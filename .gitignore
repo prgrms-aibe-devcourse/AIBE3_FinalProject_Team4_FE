@@ -29,4 +29,5 @@ dist-ssr
 .env.local
 
 # Next.js build files
-.next/
+/.next/
+/out/
