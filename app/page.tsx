@@ -1,65 +1,93 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { Heart, MessageCircle } from 'lucide-react';
+import Sidebar from './components/SideBar';
+
+export default function CatGalleryPage() {
+  const catPosts = [
+    {
+      id: 1,
+      image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&h=400&fit=crop',
+      username: 'karpas762',
+      likes: 123,
+      comments: 8,
+      caption: '우리 집 고양이가 자는 상태 은 애 같아요ㅋㅋ',
+    },
+    {
+      id: 2,
+      image: 'https://images.unsplash.com/photo-1573865526739-10c1dd7e9ba0?w=400&h=400&fit=crop',
+      username: 'karpas762',
+      likes: 123,
+      comments: 8,
+      caption: '우리 집 고양이가 오늘 싫냐 우 애 같아요ㅋㅋ',
+    },
+    {
+      id: 3,
+      image: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=400&h=400&fit=crop',
+      username: 'karpas762',
+      likes: 123,
+      comments: 8,
+      caption: '세계 3시에 강아지 머리 토이 하이나다는',
+    },
+  ];
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex h-screen bg-white">
+      <Sidebar />
+
+      {/* 메인 콘텐츠 - 스크롤 가능 */}
+      <div className="ml-64 flex-1 overflow-y-auto bg-gray-50">
+        {/* 헤더 */}
+        <div className="bg-white border-b border-gray-200 p-6 sticky top-0 z-10">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">쇼로그</h1>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* 갤러리 그리드 */}
+        <div className="p-6">
+          <div className="grid grid-cols-3 gap-4">
+            {catPosts.map((post) => (
+              <div
+                key={post.id}
+                className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer"
+              >
+                {/* 이미지 */}
+                <div className="relative aspect-square bg-gray-100">
+                  <img src={post.image} alt="Cat" className="w-full h-full object-cover" />
+                  {/* 프로필 오버레이 */}
+                  <div className="absolute bottom-3 left-3 flex items-center gap-2">
+                    <div className="w-8 h-8 bg-white rounded-full border-2 border-white overflow-hidden">
+                      <img src={post.image} alt="Profile" className="w-full h-full object-cover" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 정보 */}
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-sm">{post.username}</span>
+                    <span className="text-xs text-gray-500">#고양이 #육아중독</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                    <div className="flex items-center gap-1">
+                      <Heart size={16} />
+                      <span>{post.likes}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MessageCircle size={16} />
+                      <span>{post.comments}</span>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-700 line-clamp-2">{post.caption}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
