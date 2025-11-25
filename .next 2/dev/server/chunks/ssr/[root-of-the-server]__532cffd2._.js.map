@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 10, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/leehe/Desktop/bootcamp/AIBE3_FinalProject_Team4/fe/app/page.tsx"],"sourcesContent":["export default function Home() {\r\n  return (\r\n    <html>\r\n      <body>\r\n        <h1>Hello, world!</h1>\r\n      </body>\r\n    </html>\r\n  );\r\n}\r\n"],"names":[],"mappings":";;;;;;AAAe,SAAS;IACtB,qBACE,8OAAC;kBACC,cAAA,8OAAC;sBACC,cAAA,8OAAC;0BAAG;;;;;;;;;;;;;;;;AAIZ","debugId":null}}]
+}

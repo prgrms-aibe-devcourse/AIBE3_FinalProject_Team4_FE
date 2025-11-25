@@ -36,7 +36,7 @@ export default function CatGalleryPage() {
       <Sidebar />
 
       {/* 메인 콘텐츠 - 스크롤 가능 */}
-      <div className="ml-64 flex-1 overflow-y-auto bg-gray-50">
+      <div className="ml-60 flex-1 overflow-y-auto bg-gray-50">
         {/* 헤더 */}
         <div className="bg-white border-b border-gray-200 p-6 sticky top-0 z-10">
           <div className="flex items-center justify-between">
