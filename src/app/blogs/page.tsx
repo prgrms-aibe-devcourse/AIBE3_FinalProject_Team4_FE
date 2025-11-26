@@ -9,7 +9,9 @@ async function fetchBlogs(sort: BlogSortType = 'LATEST', keyword?: string)
    if (!API_BASE_URL && !isCI) {
      throw new Error('NEXT_PUBLIC_API_BASE_URL is not set');
    }
-
+if (isCI) {
+  return [];
+}
   const params = new URLSearchParams();
   params.set('sort', sort);
   if (keyword) params.set('keyword', keyword);
