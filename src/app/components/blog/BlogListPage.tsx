@@ -18,6 +18,7 @@ export function BlogListPage() {
       try {
         const params = new URLSearchParams();
         params.set('sort', sortType);
+        params.set('scope', scope);
         if (keyword) params.set('keyword', keyword);
 
         const res = await fetch(`${API_BASE_URL}/api/v1/blogs?${params.toString()}`, {

@@ -11,7 +11,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const menuItems = [
     { icon: Home, label: '메인', href: '/' },
-    { icon: Image, label: '숏피드' ,href:'shorlog'},
+    { icon: Image, label: '숏피드' ,href:'/shorlog'},
     { icon: Image, label: '블로그', href: '/blogs' },
     { icon: Image, label: '작성' ,href:'/write'},
     { icon: Bell, label: '알림' ,href:'/notification'},

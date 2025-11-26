@@ -13,8 +13,9 @@ async function fetchBlogs(sort: BlogSortType = 'LATEST', keyword?: string): Prom
   if (keyword) params.set('keyword', keyword);
   // size, cursor는 기본값 쓰면 일단 생략 가능
 
-  const res = await fetch(`${API_BASE_URL}/api/v1/blogs?sort=LATEST`, { credentials: 'include' });
-
+  const res = await fetch(`${API_BASE_URL}/api/v1/blogs?${params.toString()}`, {
+    credentials: 'include',
+  });
   if (!res.ok) {
     console.error('fetchBlogs failed:', res.status, res.statusText);
     throw new Error('블로그 목록을 불러오지 못했습니다.');
