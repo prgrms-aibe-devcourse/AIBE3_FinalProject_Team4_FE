@@ -1,7 +1,7 @@
 'use client';
 
 import { Heart, MessageCircle } from 'lucide-react';
-import Sidebar from './components/SideBar';
+import Sidebar from './components/common/SideBar';
 
 export default function CatGalleryPage() {
   const catPosts = [
