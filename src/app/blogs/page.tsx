@@ -1,4 +1,4 @@
-import { BlogListPage } from '@/src/app/blogs/_components/BlogListPage';
+import { BlogListPage } from '@/src/app/components/blogs/get/BlogListPage';
 import { BlogSliceResponse, BlogSortType, BlogSummary } from '@/src/types/blog';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -14,7 +14,6 @@ async function fetchBlogs(sort: BlogSortType = 'LATEST', keyword?: string): Prom
   const params = new URLSearchParams();
   params.set('sort', sort);
   if (keyword) params.set('keyword', keyword);
-  // size, cursor는 기본값 쓰면 일단 생략 가능
 
   const res = await fetch(`${API_BASE_URL}/api/v1/blogs?${params.toString()}`, {
     credentials: 'include',

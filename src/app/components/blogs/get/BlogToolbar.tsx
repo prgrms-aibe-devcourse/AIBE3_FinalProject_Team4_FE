@@ -3,7 +3,7 @@
 import { ScopeFilterTabs } from '@/src/app/components/common/ScopeFilterTabs';
 import { SearchField } from '@/src/app/components/common/SearchField';
 import type { BlogScope, BlogSortType } from '@/src/types/blog';
-import { RecommendSortButton } from '../../components/common/RecommandSortButton';
+import { RecommendSortButton } from '../../common/RecommandSortButton';
 
 type BlogToolbarProps = {
   keyword: string;

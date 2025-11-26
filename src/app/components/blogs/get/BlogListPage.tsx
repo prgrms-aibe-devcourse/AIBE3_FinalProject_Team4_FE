@@ -1,6 +1,6 @@
 'use client';
 
-import { BlogCard } from '@/src/app/blogs/_components/BlogCard';
+import { BlogCard } from '@/src/app/components/blogs/get/BlogCard';
 import type { BlogScope, BlogSliceResponse, BlogSortType, BlogSummary } from '@/src/types/blog';
 import { useEffect, useState } from 'react';
 import { BlogToolbar } from './BlogToolbar';

@@ -1,4 +1,4 @@
-import { BlogCard } from '@/src/app/blogs/_components/BlogCard';
+import { BlogCard } from '@/src/app/components/blogs/get/BlogCard';
 import type { BlogSummary } from '@/src/types/blog';
 
 type BlogListProps = {
