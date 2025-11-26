@@ -27,6 +27,7 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
   const [isCropping, setIsCropping] = useState(false);
   const [lastAspect, setLastAspect] = useState<string>('원본');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
   const [imageSourceType, setImageSourceType] = useState<'file' | 'url'>('file');
   const [toast, setToast] = useState<{
     message: string;
@@ -131,10 +132,15 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
         {/* 탭 컨텐츠 */}
         {selectedTab === 'upload' && (
           <UploadTab
+            uploadedFile={uploadedFile}
+            uploadedFileUrl={uploadedFileUrl}
+            selectedImage={selectedImage}
+            originalImage={originalImage}
             setSelectedImage={setSelectedImage}
             setCroppingImage={setCroppingImage}
             setOriginalImage={setOriginalImage}
             setUploadedFile={setUploadedFile}
+            setUploadedFileUrl={setUploadedFileUrl}
             setImageSourceType={setImageSourceType}
           />
         )}
@@ -147,7 +153,6 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
               setCroppingImage(url);
               setOriginalImage(url);
               setImageSourceType('url');
-              setUploadedFile(null);
             }}
           />
         )}
@@ -159,7 +164,6 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
               setCroppingImage(url);
               setOriginalImage(url);
               setImageSourceType('url');
-              setUploadedFile(null);
             }}
           />
         )}
