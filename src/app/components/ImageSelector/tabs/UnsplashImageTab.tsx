@@ -2,7 +2,11 @@
 
 import { useState } from 'react';
 
-export default function UnsplashImagePicker({ onSelect }: { onSelect: (url: string) => void }) {
+interface UnsplashImagePickerProps {
+  onSelect: (url: string) => void;
+}
+
+export default function UnsplashImagePicker({ onSelect }: UnsplashImagePickerProps) {
   const [keyword, setKeyword] = useState('');
   const [images, setImages] = useState<string[]>([]);
 

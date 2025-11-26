@@ -6,7 +6,7 @@ import Cropper, { Area } from 'react-easy-crop';
 export default function CropperModal({ imageUrl, initialAspect, onClose, onCrop }: any) {
   const [aspect, setAspect] = useState<number | undefined>(undefined);
   const [originalAspect, setOriginalAspect] = useState<number | undefined>(undefined);
-  const [selectedAspect, setSelectedAspect] = useState<any>(initialAspect || 'original');
+  const [selectedAspect, setSelectedAspect] = useState<string>(initialAspect || '원본');
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   useEffect(() => {
@@ -16,8 +16,13 @@ export default function CropperModal({ imageUrl, initialAspect, onClose, onCrop 
       setOriginalAspect(ratio);
 
       // initialAspect가 있으면 그것을 사용, 없으면 원본 비율
-      if (initialAspect && initialAspect !== 'original') {
-        setAspect(initialAspect);
+      if (initialAspect && initialAspect !== '원본') {
+        const aspectMap: Record<string, number> = {
+          '1:1': 1,
+          '4:5': 4 / 5,
+          '16:9': 16 / 9,
+        };
+        setAspect(aspectMap[initialAspect] || ratio);
       } else {
         setAspect(ratio);
       }
@@ -25,19 +30,19 @@ export default function CropperModal({ imageUrl, initialAspect, onClose, onCrop 
     img.src = imageUrl;
   }, [imageUrl, initialAspect]);
 
-  const cropOptions = [
-    { label: '원본', value: 'original' },
-    { label: '1:1', value: 1 },
-    { label: '4:5', value: 4 / 5 },
-    { label: '16:9', value: 16 / 9 },
-  ];
+  const cropOptions = ['원본', '1:1', '4:5', '16:9'];
 
-  const handleAspectChange = (value: any) => {
+  const handleAspectChange = (value: string) => {
     setSelectedAspect(value);
-    if (value === 'original') {
+    if (value === '원본') {
       setAspect(originalAspect);
     } else {
-      setAspect(value);
+      const aspectMap: Record<string, number> = {
+        '1:1': 1,
+        '4:5': 4 / 5,
+        '16:9': 16 / 9,
+      };
+      setAspect(aspectMap[value]);
     }
   };
 
@@ -117,15 +122,17 @@ export default function CropperModal({ imageUrl, initialAspect, onClose, onCrop 
       {/* 이미지 크롭 영역 */}
       <div className="relative w-full h-[300px] sm:h-[350px] bg-gray-100 overflow-hidden cursor-not-allowed mb-4">
         <div style={{ pointerEvents: 'none', width: '100%', height: '100%' }}>
-          <Cropper
-            image={imageUrl}
-            crop={{ x: 0, y: 0 }}
-            aspect={aspect}
-            onCropChange={() => {}}
-            onCropComplete={onCropComplete}
-            restrictPosition={true}
-            showGrid={false}
-          />
+          {aspect && (
+            <Cropper
+              image={imageUrl}
+              crop={{ x: 0, y: 0 }}
+              aspect={aspect}
+              onCropChange={() => {}}
+              onCropComplete={onCropComplete}
+              restrictPosition={true}
+              showGrid={false}
+            />
+          )}
         </div>
       </div>
 
@@ -133,15 +140,15 @@ export default function CropperModal({ imageUrl, initialAspect, onClose, onCrop 
       <div className="flex gap-2 overflow-x-auto pb-2">
         {cropOptions.map((opt) => (
           <button
-            key={opt.label}
-            onClick={() => handleAspectChange(opt.value)}
+            key={opt}
+            onClick={() => handleAspectChange(opt)}
             className={`px-4 py-2 rounded-xl border text-sm whitespace-nowrap transition-colors ${
-              selectedAspect === opt.value
+              selectedAspect === opt
                 ? 'bg-gray-100 border-gray-300 text-gray-600'
                 : 'border-gray-300 text-gray-600 hover:bg-gray-100'
             }`}
           >
-            {opt.label}
+            {opt}
           </button>
         ))}
       </div>

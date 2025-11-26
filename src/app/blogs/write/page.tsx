@@ -77,26 +77,5 @@ export default function NewBlogPage() {
         </section>
       </main>
     </div>
-    // import BlogForm from '@/app/blogs/_components/BlogForm';
-
-    // export default function BlogWritePage() {
-    //   return (
-    //     <>
-    //       <BlogForm />
-    //     </>
   );
 }
-// import ImageSelector from '../../components/image/ImageSelector';
-
-// export default function WritePage() {
-//   return (
-//     <>
-//       {/* ... */}
-//       {/* 섬네일용 이미지 선택 */}
-//       <main className="w-full min-h-screen bg-gray-50 p-6">
-//         <h1 className="text-2xl font-bold mb-6">섬네일 이미지 선택</h1>
-//         <ImageSelector />
-//       </main>
-//     </>
-//   );
-// }

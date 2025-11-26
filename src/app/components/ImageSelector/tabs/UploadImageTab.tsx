@@ -1,7 +1,13 @@
 import { UploadCloud } from 'lucide-react';
 import { ChangeEvent } from 'react';
 
-export default function UploadTab({ setSelectedImage, setCroppingImage, setOriginalImage }: any) {
+export default function UploadTab({
+  setSelectedImage,
+  setCroppingImage,
+  setOriginalImage,
+  setUploadedFile,
+  setImageSourceType,
+}: any) {
   const handleUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -9,6 +15,8 @@ export default function UploadTab({ setSelectedImage, setCroppingImage, setOrigi
     setSelectedImage(url);
     setCroppingImage(url);
     setOriginalImage(url);
+    setUploadedFile(file);
+    setImageSourceType('file');
   };
 
   const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
@@ -20,6 +28,8 @@ export default function UploadTab({ setSelectedImage, setCroppingImage, setOrigi
     setSelectedImage(url);
     setCroppingImage(url);
     setOriginalImage(url);
+    setUploadedFile(file);
+    setImageSourceType('file');
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLLabelElement>) => {
