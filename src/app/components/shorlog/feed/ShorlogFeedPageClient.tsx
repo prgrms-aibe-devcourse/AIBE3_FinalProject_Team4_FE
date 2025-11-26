@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useInView } from 'react-intersection-observer';
-import ShorlogTabs from './ShorlogTabs';
+import FilterTabs from '../../shared/FilterTabs';
+import SortButton from '../../shared/SortButton';
 import ShorlogCard from './ShorlogCard';
 
-export type ShorlogTab = "all" | "following" | "recommend";
+export type ShorlogFilter = "all" | "following";
+export type ShorlogSort = "recommend" | null;
 
 export type ShorlogItem = {
   id: number;
@@ -43,17 +45,25 @@ type PageResponse<T> = {
 };
 
 // ----- 실제 API 연동 -----
-async function fetchShorlogFeed(tab: ShorlogTab, page: number): Promise<ShorlogFeedResponse> {
+async function fetchShorlogFeed(
+  filter: ShorlogFilter,
+  sort: ShorlogSort,
+  page: number
+): Promise<ShorlogFeedResponse> {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
   let endpoint: string;
 
-  if (tab === 'all') {
-    endpoint = `${API_URL}/api/v1/shorlog/feed?page=${page}`;
-  } else if (tab === 'recommend') {
-    endpoint = `${API_URL}/api/v1/shorlog/feed/recommended?page=${page}`;
-  } else {
+  if (filter === 'following') {
+    // 팔로우: 항상 최신순
     endpoint = `${API_URL}/api/v1/shorlog/following?page=${page}`;
+  } else {
+    // 전체: sort에 따라 분기
+    if (sort === 'recommend') {
+      endpoint = `${API_URL}/api/v1/shorlog/feed/recommended?page=${page}`;
+    } else {
+      endpoint = `${API_URL}/api/v1/shorlog/feed?page=${page}`;
+    }
   }
 
   const res = await fetch(endpoint, {
@@ -76,7 +86,8 @@ async function fetchShorlogFeed(tab: ShorlogTab, page: number): Promise<ShorlogF
 
 // ----- 메인 클라이언트 컴포넌트 -----
 export default function ShorlogFeedPageClient() {
-  const [activeTab, setActiveTab] = useState<ShorlogTab>('recommend');
+  const [filter, setFilter] = useState<ShorlogFilter>('all');
+  const [sort, setSort] = useState<ShorlogSort>('recommend');
 
   const {
     data,
@@ -87,8 +98,8 @@ export default function ShorlogFeedPageClient() {
     isFetchingNextPage,
     refetch,
   } = useInfiniteQuery({
-    queryKey: ['shorlog-feed', activeTab],
-    queryFn: ({ pageParam }) => fetchShorlogFeed(activeTab, pageParam as number),
+    queryKey: ['shorlog-feed', filter, sort],
+    queryFn: ({ pageParam }) => fetchShorlogFeed(filter, sort, pageParam as number),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => lastPage.nextPage ?? undefined,
   });
@@ -116,7 +127,10 @@ export default function ShorlogFeedPageClient() {
 
   return (
     <section aria-label="숏 피드">
-      <ShorlogTabs value={activeTab} onChange={setActiveTab} />
+      <div className="flex items-center justify-between">
+        <FilterTabs value={filter} onChange={setFilter} />
+        {filter === 'all' && <SortButton value={sort} onChange={setSort} />}
+      </div>
 
       <div className="mt-4 md:mt-6">
         {isLoading ? (
