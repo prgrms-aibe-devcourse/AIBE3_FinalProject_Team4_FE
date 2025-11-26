@@ -2,9 +2,9 @@
 
 import type { BlogFormValues, BlogVisibility } from '@/src/types/blog';
 import { useState } from 'react';
+import { BlogMetaForm } from '../../components/blogs/write/BlogMetaForm';
 import { BlogWriteHeader } from '../../components/blogs/write/BlogWriteHeader';
 import { MarkdownEditor } from '../../components/blogs/write/MarkdownEditor';
-import { BlogMetaForm } from '../../components/blogs/write/BlogMetaForm';
 
 export default function NewBlogPage() {
   const [form, setForm] = useState<BlogFormValues>({
@@ -79,3 +79,17 @@ export default function NewBlogPage() {
     </div>
   );
 }
+// import ImageSelector from '../../components/image/ImageSelector';
+
+// export default function WritePage() {
+//   return (
+//     <>
+//       {/* ... */}
+//       {/* 섬네일용 이미지 선택 */}
+//       <main className="w-full min-h-screen bg-gray-50 p-6">
+//         <h1 className="text-2xl font-bold mb-6">섬네일 이미지 선택</h1>
+//         <ImageSelector />
+//       </main>
+//     </>
+//   );
+// }
