@@ -2,11 +2,13 @@ import { BlogListPage } from '@/src/app/components/blog/BlogListPage';
 import { BlogSliceResponse, BlogSortType, BlogSummary } from '@/src/types/blog';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const isCI = process.env.CI === 'true';
 
-async function fetchBlogs(sort: BlogSortType = 'LATEST', keyword?: string): Promise<BlogSummary[]> {
-  if (!API_BASE_URL) {
-    throw new Error('NEXT_PUBLIC_API_BASE_URL is not set');
-  }
+async function fetchBlogs(sort: BlogSortType = 'LATEST', keyword?: string)
+: Promise<BlogSummary[]> {
+   if (!API_BASE_URL && !isCI) {
+     throw new Error('NEXT_PUBLIC_API_BASE_URL is not set');
+   }
 
   const params = new URLSearchParams();
   params.set('sort', sort);
