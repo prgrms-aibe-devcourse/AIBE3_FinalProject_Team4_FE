@@ -1,6 +1,7 @@
-import ShorlogFeedPageClient from '@/src/app/components/shorlog/ShorlogFeedPageClient';
+import ShorlogFeedPageClient from '../../components/shorlog/feed/ShorlogFeedPageClient';
+import type { Metadata } from 'next';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: '숏 피드 - TexTok',
 };
 
