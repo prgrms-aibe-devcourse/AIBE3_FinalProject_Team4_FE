@@ -6,7 +6,7 @@ import { useInView } from 'react-intersection-observer';
 import ShorlogTabs from './ShorlogTabs';
 import ShorlogCard from './ShorlogCard';
 
-export type ShorlogTab = 'ai' | 'following';
+export type ShorlogTab = "all" | "following" | "recommend";
 
 export type ShorlogItem = {
   id: number;
@@ -42,71 +42,19 @@ type PageResponse<T> = {
   totalElements: number;
 };
 
-// ----- Mock 데이터 생성 (보관용) -----
-/*
-function createMockItems(tab: ShorlogTab, page: number): ShorlogItem[] {
-  const baseFirstLines =
-    tab === 'ai'
-      ? [
-        'AI가 뽑은 오늘의 집중력 명언 한 줄',
-        '5분만에 읽는 딥워크 실천 가이드',
-        '퇴근 후 1시간, 사이드 프로젝트 루틴',
-        '아이디어가 떠오르지 않을 때 해야 할 것들',
-        '번아웃 직전, 나를 지키는 체크리스트',
-        '아침 루틴을 망치는 3가지 작은 습관',
-      ]
-      : [
-        '팔로잉한 작가의 신작 숏로그',
-        '내가 좋아하는 개발자의 오늘의 회고',
-        '디자이너가 기록한 작은 픽셀 로그',
-        '사이드 프로젝트 팀의 데일리 노트',
-        '기록 덕분에 바뀐 나의 하루',
-        '꾸준함을 만드는 아주 작은 장치들',
-      ];
-
-  const hashtagsPool =
-    tab === 'ai'
-      ? ['#집중력', '#딥워크', '#생산성', '#데일리로그', '#자기계발', '#루틴']
-      : ['#팔로잉', '#일상기록', '#개발로그', '#디자인', '#프로덕트', '#사이드프로젝트'];
-
-  return Array.from({ length: 12 }).map((_, index) => {
-    const uniqueId = page * 12 + index;
-    const base = baseFirstLines[index % baseFirstLines.length];
-
-    return {
-      id: uniqueId,
-      thumbnailUrl: `https://images.pexels.com/photos/${1500000 + index}?auto=compress&cs=tinysrgb&w=600`,
-      profileImgUrl: `https://api.dicebear.com/7.x/identicon/svg?seed=${tab}-${uniqueId}`,
-      nickname: tab === 'ai' ? `creator_${index + 1}` : `following_user_${index + 1}`,
-      hashtags: [
-        hashtagsPool[index % hashtagsPool.length],
-        hashtagsPool[(index + 2) % hashtagsPool.length],
-      ],
-      likeCount: 15 + page * 3 + index,
-      commentCount: 2 + (index % 5),
-      firstLine: base,
-    };
-  });
-}
-
-async function fetchShorlogFeedMock(tab: ShorlogTab, page: number): Promise<ShorlogFeedResponse> {
-  await new Promise((res) => setTimeout(res, 550));
-  const hasMore = page < 2;
-  const items = hasMore ? createMockItems(tab, page) : [];
-  return {
-    items,
-    nextPage: hasMore ? page + 1 : null,
-  };
-}
-*/
-
 // ----- 실제 API 연동 -----
 async function fetchShorlogFeed(tab: ShorlogTab, page: number): Promise<ShorlogFeedResponse> {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-  const endpoint = tab === 'ai'
-    ? `${API_URL}/api/v1/shorlog/feed?page=${page}`
-    : `${API_URL}/api/v1/shorlog/following?page=${page}`;
+  let endpoint: string;
+
+  if (tab === 'all') {
+    endpoint = `${API_URL}/api/v1/shorlog/feed?page=${page}`;
+  } else if (tab === 'recommend') {
+    endpoint = `${API_URL}/api/v1/shorlog/feed/recommended?page=${page}`;
+  } else {
+    endpoint = `${API_URL}/api/v1/shorlog/following?page=${page}`;
+  }
 
   const res = await fetch(endpoint, {
     cache: 'no-store',
@@ -128,7 +76,7 @@ async function fetchShorlogFeed(tab: ShorlogTab, page: number): Promise<ShorlogF
 
 // ----- 메인 클라이언트 컴포넌트 -----
 export default function ShorlogFeedPageClient() {
-  const [activeTab, setActiveTab] = useState<ShorlogTab>('ai');
+  const [activeTab, setActiveTab] = useState<ShorlogTab>('recommend');
 
   const {
     data,
@@ -156,16 +104,19 @@ export default function ShorlogFeedPageClient() {
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const items = useMemo(
-    () => data?.pages.flatMap((page) => page.items) ?? [],
-    [data],
-  );
+  const items = useMemo(() => {
+    const allItems = data?.pages.flatMap((page) => page.items) ?? [];
+    // ID 중복 제거
+    return allItems.filter((item, index, self) =>
+      index === self.findIndex((t) => t.id === item.id)
+    );
+  }, [data]);
 
   const isEmpty = !isLoading && items.length === 0;
 
   return (
     <section aria-label="숏 피드">
-      <ShorlogTabs activeTab={activeTab} onChange={setActiveTab} />
+      <ShorlogTabs value={activeTab} onChange={setActiveTab} />
 
       <div className="mt-4 md:mt-6">
         {isLoading ? (

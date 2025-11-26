@@ -6,16 +6,17 @@ type TabDef = {
 };
 
 const TABS: TabDef[] = [
-  { id: 'ai', label: 'AI 추천' },
-  { id: 'following', label: '팔로잉' },
+  { id: 'all', label: '전체' },
+  { id: 'following', label: '팔로우' },
+  { id: 'recommend', label: '추천' },
 ];
 
 interface ShorlogTabsProps {
-  activeTab: ShorlogTab;
+  value: ShorlogTab;
   onChange: (tab: ShorlogTab) => void;
 }
 
-export default function ShorlogTabs({ activeTab, onChange }: ShorlogTabsProps) {
+export default function ShorlogTabs({ value, onChange }: ShorlogTabsProps) {
   return (
     <div className="flex items-center justify-end">
       <div
@@ -28,7 +29,7 @@ export default function ShorlogTabs({ activeTab, onChange }: ShorlogTabsProps) {
         aria-label="숏로그 피드 탭"
       >
         {TABS.map((tab) => {
-          const isActive = tab.id === activeTab;
+          const isActive = tab.id === value;
 
           const baseClass = `
             relative inline-flex items-center justify-center
