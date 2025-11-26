@@ -77,6 +77,13 @@ export default function NewBlogPage() {
         </section>
       </main>
     </div>
+    // import BlogForm from '@/app/blogs/_components/BlogForm';
+
+    // export default function BlogWritePage() {
+    //   return (
+    //     <>
+    //       <BlogForm />
+    //     </>
   );
 }
 // import ImageSelector from '../../components/image/ImageSelector';

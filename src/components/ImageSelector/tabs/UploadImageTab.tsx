@@ -1,13 +1,13 @@
-'use client';
+import { ChangeEvent } from 'react';
 
-import { useCallback } from 'react';
-
-export default function UploadPanel() {
-  const handleUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+export default function UploadTab({ setSelectedImage, setCroppingImage }: any) {
+  const handleUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    console.log('uploaded:', file);
-  }, []);
+    const url = URL.createObjectURL(file);
+    setSelectedImage(url);
+    setCroppingImage(url);
+  };
 
   return (
     <div>

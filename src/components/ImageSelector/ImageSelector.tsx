@@ -1,9 +1,9 @@
 'use client';
 
 import { SetStateAction, useState } from 'react';
-import UnsplashImagePicker from './UnsplashImagePicker';
-import UploadTab from './UploadTab';
 import CropperModal from './crop/CropperModal';
+import UnsplashImagePicker from './tabs/UnsplashImageTab';
+import UploadTab from './tabs/UploadImageTab';
 
 export default function ImageSelector() {
   const [selectedTab, setSelectedTab] = useState('upload');
@@ -16,8 +16,9 @@ export default function ImageSelector() {
       <div className="flex border-b mb-6 text-sm font-medium">
         {[
           { key: 'upload', label: '이미지 업로드' },
-          { key: 'blog', label: '블로그에서 가져오기' },
-          { key: 'unsplash', label: '무료 이미지 선택' },
+          { key: 'blog', label: '블로그 본문 이미지' },
+          { key: 'unsplash', label: '무료 이미지' },
+          { key: 'google', label: '구글 검색 이미지' },
         ].map((tab) => (
           <button
             key={tab.key}
@@ -70,6 +71,13 @@ export default function ImageSelector() {
           }}
         />
       )}
+
+      {/* 적용하기 */}
+      <div className="mt-8 flex justify-end">
+        <button className="px-6 py-2 rounded-xl bg-[#2979FF] text-white shadow-sm hover:opacity-90 transition">
+          적용하기
+        </button>
+      </div>
     </div>
   );
 }
