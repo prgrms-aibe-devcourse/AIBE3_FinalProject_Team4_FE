@@ -1,4 +1,4 @@
-import ImageSelector from '@/components/ImageSelector/ImageSelector';
+import ImageSelector from '@/src/components/ImageSelector/ImageSelector';
 
 export default function BlogForm() {
   return (
