@@ -29,6 +29,8 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
   const [imageSourceType, setImageSourceType] = useState<'file' | 'url'>('file');
+  const [unsplashSearchKeyword, setUnsplashSearchKeyword] = useState('');
+  const [googleSearchKeyword, setGoogleSearchKeyword] = useState('');
   const [toast, setToast] = useState<{
     message: string;
     type: 'success' | 'error' | 'warning';
@@ -160,12 +162,32 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
 
         {selectedTab === 'unsplash' && (
           <UnsplashImagePicker
+            searchKeyword={unsplashSearchKeyword}
+            onSearchKeywordChange={setUnsplashSearchKeyword}
+            selectedImage={selectedImage}
+            originalImage={originalImage}
             onSelect={(url: string) => {
               setSelectedImage(url);
               setCroppingImage(url);
               setOriginalImage(url);
               setImageSourceType('url');
             }}
+          />
+        )}
+
+        {selectedTab === 'google' && (
+          <UnsplashImagePicker
+            searchKeyword={googleSearchKeyword}
+            onSearchKeywordChange={setGoogleSearchKeyword}
+            selectedImage={selectedImage}
+            originalImage={originalImage}
+            onSelect={(url: string) => {
+              setSelectedImage(url);
+              setCroppingImage(url);
+              setOriginalImage(url);
+              setImageSourceType('url');
+            }}
+            apiEndpoint="google"
           />
         )}
 

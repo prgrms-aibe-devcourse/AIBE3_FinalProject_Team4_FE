@@ -16,3 +16,29 @@ export const getBlogById = async (blogId: string) => {
 
   return response;
 };
+
+export const getUnsplashImages = async (keyword: string, page: number, size: number) => {
+  const response = await apiClient(`/api/v1/images/unsplash`, {
+    method: 'GET',
+    params: {
+      keyword,
+      number: page.toString(),
+      size: size.toString(),
+    },
+  });
+
+  return response;
+};
+
+export const getGoogleImages = async (keyword: string, page: number, size: number) => {
+  const response = await apiClient(`/api/v1/images/google`, {
+    method: 'GET',
+    params: {
+      keyword,
+      number: page.toString(),
+      size: size.toString(),
+    },
+  });
+
+  return response;
+};
