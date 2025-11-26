@@ -1,5 +1,3 @@
-import { Sparkle } from 'lucide-react';
-
 type RecommendSortButtonProps = {
   active: boolean;
   onClick: () => void;
@@ -18,7 +16,6 @@ export function RecommendSortButton({ active, onClick }: RecommendSortButtonProp
           : 'bg-[#2979FF]/10 text-[#2979FF] hover:bg-[#2979FF]/20',
       ].join(' ')}
     >
-      <Sparkle size={14} />
       추천순
     </button>
   );
