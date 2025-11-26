@@ -148,6 +148,7 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
         {selectedTab === 'blog' && (
           <BlogImageTab
             images={blogImages}
+            selectedImage={selectedImage}
             onSelect={(url: string) => {
               setSelectedImage(url);
               setCroppingImage(url);
