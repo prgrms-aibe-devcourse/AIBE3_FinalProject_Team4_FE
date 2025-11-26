@@ -1,11 +1,11 @@
 import type { BlogSummary } from '@/src/types/blog';
 
 type BlogDetailPageProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
-  const { id } = params;
+  const { id } = await params;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
