@@ -36,21 +36,25 @@ export function BlogToolbar({
 
       {/* 하단: 전체/팔로잉 + 추천순 + 정렬 */}
       <div className="flex items-center justify-between gap-2">
-        {/* 왼쪽: 전체 / 팔로잉 + 추천 버튼 */}
+        {/* 전체 / 팔로잉 */}
+        <ScopeFilterTabs
+          value={scope} // BlogScope: 'ALL' | 'FOLLOWING'
+          onChange={onScopeChange}
+        />
+
+        {/* 오른쪽: 추천순 + 정렬 */}
         <div className="flex items-center gap-2">
-          <ScopeFilterTabs
-            value={scope} // 'ALL' | 'FOLLOWING'
-            onChange={onScopeChange}
-          />
-
           <RecommendSortButton
-            active={isRecommendActive}
-            onClick={() => onSortChange(isRecommendActive ? 'LATEST' : 'RECOMMEND')}
+            active={sortType === 'RECOMMEND'}
+            onClick={() =>
+              onSortChange(
+                sortType === 'RECOMMEND' ? 'LATEST' : 'RECOMMEND',
+              )
+            }
           />
-        </div>
 
-        {/* 오른쪽: 기본 정렬 드롭다운 */}
-        <SortDropdown sortType={sortType} onSortChange={onSortChange} />
+          <SortDropdown sortType={sortType} onSortChange={onSortChange} />
+        </div>
       </div>
     </section>
   );

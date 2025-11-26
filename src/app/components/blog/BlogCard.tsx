@@ -54,7 +54,7 @@ export function BlogCard({ blog }: BlogCardProps) {
             <h2 className="line-clamp-1 text-sm font-semibold text-slate-900 sm:text-base">
               {blog.title}
             </h2>
-            <p className="line-clamp-2 text-xs text-slate-500 sm:text-sm">{blog.title}</p>
+            <p className="line-clamp-2 text-xs text-slate-500 sm:text-sm">{blog.contentPre}</p>
           </div>
 
           {/* 태그 + 통계 */}
