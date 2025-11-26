@@ -37,7 +37,7 @@ export function BlogCard({ blog }: BlogCardProps) {
 
         <div className="flex-1 space-y-3">
           <div className="flex items-center gap-2 text-xs text-slate-500">
-            <AuthorAvatar name={blog.userNickname} url={blog.userNickname} />
+            <AuthorAvatar name={blog.userNickname} url={blog.profileImageUrl?? undefined} />
             <span className="font-medium text-slate-800">{blog.userNickname}</span>
             <span className="h-1 w-1 rounded-full bg-slate-300" aria-hidden />
             <span className="h-1 w-1 rounded-full bg-slate-300" aria-hidden />
@@ -123,7 +123,9 @@ function AuthorAvatar({ name, url }: AuthorAvatarProps) {
   }
 
   return (
-    <img src={url} alt={`${name} 프로필 이미지`} className="h-7 w-7 rounded-full object-cover" />
+    <div className="relative h-7 w-7 overflow-hidden rounded-full bg-slate-200">
+      <Image src={url} alt={`${name} 프로필 이미지`} fill sizes="28px" className="object-cover" />
+    </div>
   );
 }
 

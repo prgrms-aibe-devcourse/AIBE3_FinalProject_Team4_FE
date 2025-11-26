@@ -1,5 +1,5 @@
+import { BlogCard } from '@/src/app/blogs/_components/BlogCard';
 import type { BlogSummary } from '@/src/types/blog';
-import { BlogCard } from '@/src/app/components/blog/BlogCard';
 
 type BlogListProps = {
   blogs: BlogSummary[];

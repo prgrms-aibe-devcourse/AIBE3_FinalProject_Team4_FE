@@ -3,7 +3,7 @@
 import { ScopeFilterTabs } from '@/src/app/components/common/ScopeFilterTabs';
 import { SearchField } from '@/src/app/components/common/SearchField';
 import type { BlogScope, BlogSortType } from '@/src/types/blog';
-import { RecommendSortButton } from '../common/RecommandSortButton';
+import { RecommendSortButton } from '../../components/common/RecommandSortButton';
 
 type BlogToolbarProps = {
   keyword: string;
@@ -46,11 +46,7 @@ export function BlogToolbar({
         <div className="flex items-center gap-2">
           <RecommendSortButton
             active={sortType === 'RECOMMEND'}
-            onClick={() =>
-              onSortChange(
-                sortType === 'RECOMMEND' ? 'LATEST' : 'RECOMMEND',
-              )
-            }
+            onClick={() => onSortChange(sortType === 'RECOMMEND' ? 'LATEST' : 'RECOMMEND')}
           />
 
           <SortDropdown sortType={sortType} onSortChange={onSortChange} />
