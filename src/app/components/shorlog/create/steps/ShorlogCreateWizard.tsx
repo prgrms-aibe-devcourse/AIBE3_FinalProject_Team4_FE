@@ -10,12 +10,13 @@ import {
   UploadImageResponse,
   AspectRatio,
 } from '../types';
-import { uploadImagesBatchMock, createShorlogMock } from '../api';
+import { uploadImagesBatch, createShorlog, callAiApi } from '../api';
 import WizardHeader from './WizardHeader';
 import ThumbnailSelectStep from './ThumbnailSelectStep';
 import ImageEditStep from './ImageEditStep';
 import ContentComposeStep from './ContentComposeStep';
 import BlogImageSelectModal from './BlogImageSelectModal';
+import FreeImageSelectModal from './FreeImageSelectModal';
 
 export default function ShorlogCreateWizard() {
   const [images, setImages] = useState<LocalImage[]>([]);
@@ -36,6 +37,8 @@ export default function ShorlogCreateWizard() {
 
   // 블로그 이미지 선택 모달
   const [showBlogImageModal, setShowBlogImageModal] = useState(false);
+  const [showUnsplashModal, setShowUnsplashModal] = useState(false);
+  const [showGoogleModal, setShowGoogleModal] = useState(false);
 
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -126,13 +129,12 @@ export default function ShorlogCreateWizard() {
     setError(null);
 
     try {
-      // 실제 구현 시: /api/v1/shorlog/images/batch
-      const uploaded = await uploadImagesBatchMock(images);
+      const uploaded = await uploadImagesBatch(images);
       setUploadedImages(uploaded);
       goToStep(3);
     } catch (e) {
       console.error(e);
-      setError('이미지 업로드 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.');
+      setError(e instanceof Error ? e.message : '이미지 업로드 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.');
     } finally {
       setIsUploading(false);
     }
@@ -159,16 +161,16 @@ export default function ShorlogCreateWizard() {
     setError(null);
 
     try {
-      // 실제 구현 시: POST /api/v1/shorlog
-      await createShorlogMock({
+      const result = await createShorlog({
         content: trimmed,
         imageIds: uploadedImages.map((img) => img.id),
         hashtags,
       });
-      alert('숏로그가 임시로 생성되었다고 가정합니다. (mock)');
+      alert('숏로그가 성공적으로 생성되었습니다!');
+      console.log('생성된 숏로그:', result);
     } catch (e) {
       console.error(e);
-      setError('숏로그 생성 중 오류가 발생했습니다.');
+      setError(e instanceof Error ? e.message : '숏로그 생성 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
     }
@@ -259,36 +261,103 @@ export default function ShorlogCreateWizard() {
     setError(null);
 
     try {
-      // 실제 구현 시:
-      // POST /api/v1/ais  { mode: "hashtag", content }
-      const mockSuggested = ['개발', '일상', '텍톡'];
+      const data = await callAiApi({
+        mode: 'hashtag',
+        content: content.trim(),
+      });
+
+      const suggested = data.hashtags || [];
       const merged = [...hashtags];
-      mockSuggested.forEach((tag) => {
+      suggested.forEach((tag: string) => {
         if (merged.length < 10 && !merged.includes(tag)) merged.push(tag);
       });
       setHashtags(merged);
     } catch (e) {
       console.error(e);
-      setError('AI 해시태그 추천 호출 중 오류가 발생했습니다.');
+      setError(e instanceof Error ? e.message : 'AI 해시태그 추천 호출 중 오류가 발생했습니다.');
     } finally {
       setIsAiLoading(false);
     }
   };
 
-  // --------- 무료 사진 키워드 (AI) ---------
-  const handleAiKeywordForUnsplash = async () => {
-    // 실제 구현 시:
-    // POST /api/v1/ais  { mode: "keywordForUnsplash" | "keywordForGoogle", content }
-    alert('무료 사진 키워드 추천 API 자리입니다. (mock)');
+  // --------- 무료 사진 (Unsplash) ---------
+  const handleUnsplashPhoto = () => {
+    setShowUnsplashModal(true);
+  };
+
+  const handleUnsplashImagesSelect = async (selectedUrls: string[]) => {
+    setError(null);
+
+    const currentCount = images.length;
+    const remainingSlots = MAX_FILES - currentCount;
+    const urlsToAdd = selectedUrls.slice(0, remainingSlots);
+
+    const newImages: LocalImage[] = await Promise.all(
+      urlsToAdd.map(async (url) => {
+        const id = crypto.randomUUID();
+        return {
+          id,
+          sourceType: 'URL' as const,
+          previewUrl: url,
+          remoteUrl: url,
+          aspectRatio: 'ORIGINAL' as const,
+          originalFilename: url.split('/').pop() || 'unsplash_image',
+        };
+      })
+    );
+
+    if (newImages.length > 0) {
+      setImages((prev) => [...prev, ...newImages]);
+
+      if (step === 1 && currentCount === 0) {
+        setStep(2);
+        setSelectedIndex(0);
+      }
+    }
+  };
+
+  // --------- 무료 사진 (Google) ---------
+  const handleGooglePhoto = () => {
+    setShowGoogleModal(true);
+  };
+
+  const handleGoogleImagesSelect = async (selectedUrls: string[]) => {
+    setError(null);
+
+    const currentCount = images.length;
+    const remainingSlots = MAX_FILES - currentCount;
+    const urlsToAdd = selectedUrls.slice(0, remainingSlots);
+
+    const newImages: LocalImage[] = await Promise.all(
+      urlsToAdd.map(async (url) => {
+        const id = crypto.randomUUID();
+        return {
+          id,
+          sourceType: 'URL' as const,
+          previewUrl: url,
+          remoteUrl: url,
+          aspectRatio: 'ORIGINAL' as const,
+          originalFilename: url.split('/').pop() || 'google_image',
+        };
+      })
+    );
+
+    if (newImages.length > 0) {
+      setImages((prev) => [...prev, ...newImages]);
+
+      if (step === 1 && currentCount === 0) {
+        setStep(2);
+        setSelectedIndex(0);
+      }
+    }
   };
 
   // --------- 블로그 이미지 선택 ---------
   const handleBlogPhotoClick = () => {
-    // TODO: 실제 구현 시 blogId 필수 체크 활성화
-    // if (!blogId) {
-    //   setError('블로그 ID가 없습니다.');
-    //   return;
-    // }
+    if (!blogId) {
+      setError('블로그 ID가 없습니다.');
+      return;
+    }
     setShowBlogImageModal(true);
   };
 
@@ -336,7 +405,8 @@ export default function ShorlogCreateWizard() {
             onFileInputChange={handleFileInputChange}
             onAddFiles={addFiles}
             onNext={handleNextFromStep1}
-            onAiFreePhoto={handleAiKeywordForUnsplash}
+            onUnsplashPhoto={handleUnsplashPhoto}
+            onGooglePhoto={handleGooglePhoto}
             onBlogPhotoClick={handleBlogPhotoClick}
             hasBlogId={!!blogId}
           />
@@ -382,6 +452,24 @@ export default function ShorlogCreateWizard() {
             blogId={blogId}
             onSelect={handleBlogImagesSelect}
             onClose={() => setShowBlogImageModal(false)}
+            maxSelect={MAX_FILES - images.length}
+          />
+        )}
+
+        {showUnsplashModal && (
+          <FreeImageSelectModal
+            apiType="unsplash"
+            onSelect={handleUnsplashImagesSelect}
+            onClose={() => setShowUnsplashModal(false)}
+            maxSelect={MAX_FILES - images.length}
+          />
+        )}
+
+        {showGoogleModal && (
+          <FreeImageSelectModal
+            apiType="google"
+            onSelect={handleGoogleImagesSelect}
+            onClose={() => setShowGoogleModal(false)}
             maxSelect={MAX_FILES - images.length}
           />
         )}

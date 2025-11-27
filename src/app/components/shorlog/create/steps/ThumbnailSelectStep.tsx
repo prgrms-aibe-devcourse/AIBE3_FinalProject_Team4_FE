@@ -7,7 +7,8 @@ interface ThumbnailSelectStepProps {
   onFileInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onAddFiles: (files: File[]) => void;
   onNext: () => void;
-  onAiFreePhoto: () => void;
+  onUnsplashPhoto: () => void;
+  onGooglePhoto: () => void;
   onBlogPhotoClick?: () => void;
   hasBlogId?: boolean;
 }
@@ -17,7 +18,8 @@ export default function ThumbnailSelectStep({
   onFileInputChange,
   onAddFiles,
   onNext,
-  onAiFreePhoto,
+  onUnsplashPhoto,
+  onGooglePhoto,
   onBlogPhotoClick,
   hasBlogId = false,
 }: ThumbnailSelectStepProps) {
@@ -66,10 +68,17 @@ export default function ThumbnailSelectStep({
           </button>
           <button
             type="button"
-            onClick={onAiFreePhoto}
+            onClick={onUnsplashPhoto}
             className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]"
           >
-            무료 사진 찾기 (AI)
+            무료 사진 (Unsplash)
+          </button>
+          <button
+            type="button"
+            onClick={onGooglePhoto}
+            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]"
+          >
+            무료 사진 (Google)
           </button>
           {hasBlogId && onBlogPhotoClick && (
             <button

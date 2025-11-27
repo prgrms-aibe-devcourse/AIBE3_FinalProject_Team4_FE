@@ -1,6 +1,6 @@
 export type Step = 1 | 2 | 3;
 export type AspectRatio = 'ORIGINAL' | '1:1' | '4:5' | '16:9';
-export type ImageSourceType = 'FILE' | 'URL';
+export type ImageSourceType = 'file' | 'url';
 
 export const MAX_CONTENT_LENGTH = 800;
 export const MAX_FILES = 10;
@@ -8,7 +8,7 @@ export const MAX_FILES = 10;
 export interface LocalImage {
   id: string;
   file?: File;
-  sourceType: ImageSourceType;
+  sourceType: 'FILE' | 'URL';
   previewUrl: string;
   remoteUrl?: string;
   aspectRatio: AspectRatio;
