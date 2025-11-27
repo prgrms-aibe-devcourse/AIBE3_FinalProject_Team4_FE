@@ -1,6 +1,6 @@
 'use client';
 
-import { getGoogleImages, getUnsplashImages } from '@/src/api/blogApi';
+import { getGoogleImages, getUnsplashImages } from '@/src/api/blogImageApi';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';

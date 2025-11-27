@@ -1,6 +1,6 @@
 'use client';
 
-import { uploadBlogImage } from '@/src/api/blogApi';
+import { uploadBlogImage } from '@/src/api/blogImageApi';
 import { SetStateAction, useState } from 'react';
 import Cropper from './Cropper';
 import BlogImageTab from './tabs/BlogImageTab';
@@ -108,115 +108,10 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
         </div>
       )}
 
-      <div className="w-full max-w-3xl mx-auto rounded-2xl bg-white shadow-sm p-6">
-        {/* 탭 메뉴 */}
-        <div className="flex border-b mb-6 text-sm font-medium">
-          {[
-            { key: 'upload', label: '이미지 업로드' },
-            { key: 'blog', label: '블로그 본문 이미지' },
-            { key: 'unsplash', label: '무료 이미지' },
-            { key: 'google', label: '구글 검색 이미지' },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setSelectedTab(tab.key)}
-              className={`px-4 py-3 border-b-2 transition-all duration-200 ${
-                selectedTab === tab.key
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* 탭 컨텐츠 */}
-        {selectedTab === 'upload' && (
-          <UploadTab
-            uploadedFile={uploadedFile}
-            uploadedFileUrl={uploadedFileUrl}
-            selectedImage={selectedImage}
-            originalImage={originalImage}
-            setSelectedImage={setSelectedImage}
-            setCroppingImage={setCroppingImage}
-            setOriginalImage={setOriginalImage}
-            setUploadedFile={setUploadedFile}
-            setUploadedFileUrl={setUploadedFileUrl}
-            setImageSourceType={setImageSourceType}
-          />
-        )}
-
-        {selectedTab === 'blog' && (
-          <BlogImageTab
-            images={blogImages}
-            selectedImage={selectedImage}
-            onSelect={(url: string) => {
-              setSelectedImage(url);
-              setCroppingImage(url);
-              setOriginalImage(url);
-              setImageSourceType('url');
-            }}
-          />
-        )}
-
-        {selectedTab === 'unsplash' && (
-          <UnsplashImagePicker
-            searchKeyword={unsplashSearchKeyword}
-            onSearchKeywordChange={setUnsplashSearchKeyword}
-            selectedImage={selectedImage}
-            originalImage={originalImage}
-            onSelect={(url: string) => {
-              setSelectedImage(url);
-              setCroppingImage(url);
-              setOriginalImage(url);
-              setImageSourceType('url');
-            }}
-          />
-        )}
-
-        {selectedTab === 'google' && (
-          <UnsplashImagePicker
-            searchKeyword={googleSearchKeyword}
-            onSearchKeywordChange={setGoogleSearchKeyword}
-            selectedImage={selectedImage}
-            originalImage={originalImage}
-            onSelect={(url: string) => {
-              setSelectedImage(url);
-              setCroppingImage(url);
-              setOriginalImage(url);
-              setImageSourceType('url');
-            }}
-            apiEndpoint="google"
-          />
-        )}
-
-        {/* 이미지 미리보기 또는 크롭 */}
-        {selectedImage && !isCropping && (
-          <div className="mt-6">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-sm text-gray-600">미리보기</p>
-              <button
-                onClick={() => {
-                  setCroppingImage(originalImage);
-                  setIsCropping(true);
-                }}
-                className="px-2 py-1 text-xs rounded border text-gray-600 hover:bg-gray-100"
-              >
-                자르기
-              </button>
-            </div>
-            <img
-              src={selectedImage}
-              alt="preview"
-              className="w-full h-[300px] sm:h-[350px] object-contain bg-gray-50 rounded-none"
-            />
-          </div>
-        )}
-
-        {/* 크롭 모드 */}
-        {isCropping && croppingImage && (
-          <div className="mt-6">
+      {/* 크롭 모달 */}
+      {isCropping && croppingImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-4xl rounded-2xl bg-white p-6 shadow-xl">
             <Cropper
               imageUrl={croppingImage}
               initialAspect={lastAspect}
@@ -232,19 +127,149 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
               }}
             />
           </div>
-        )}
+        </div>
+      )}
 
-        {/* 적용하기 */}
-        {!isCropping && selectedImage && (
-          <div className="mt-8 flex justify-end">
-            <button
-              onClick={handleSubmit}
-              className="px-6 py-2 rounded-xl bg-[#2979FF] text-white shadow-sm hover:opacity-90 transition"
-            >
-              적용하기
-            </button>
+      <div className="w-full space-y-4">
+        {/* 블로그 카드 스타일 미리보기 */}
+        <article className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+          <div className="flex items-start gap-4">
+            {/* 썸네일 */}
+            <div className="flex-shrink-0">
+              {selectedImage ? (
+                <div className="relative h-20 w-20 overflow-hidden rounded-xl bg-slate-100">
+                  <img
+                    src={selectedImage}
+                    alt="선택된 썸네일"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-slate-100 text-[10px] text-slate-400">
+                  썸네일 없음
+                </div>
+              )}
+            </div>
+
+            {/* 오른쪽 내용 */}
+            <div className="flex flex-1 flex-col justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900">썸네일 이미지 선택하기</h3>
+                <p className="mt-1 text-xs text-slate-500">
+                  아래 탭에서 이미지를 선택하거나 업로드하세요
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {selectedImage && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setCroppingImage(originalImage);
+                        setIsCropping(true);
+                      }}
+                      className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 transition hover:bg-slate-50"
+                    >
+                      자르기
+                    </button>
+                    <button
+                      onClick={handleSubmit}
+                      className="rounded-lg bg-[#2979FF] px-4 py-1.5 text-xs text-white shadow-sm transition hover:opacity-90"
+                    >
+                      적용하기
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
-        )}
+        </article>
+
+        {/* 탭 메뉴 */}
+        <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
+          <div className="flex border-b text-sm font-medium">
+            {[
+              { key: 'upload', label: '이미지 업로드' },
+              { key: 'blog', label: '블로그 본문 이미지' },
+              { key: 'unsplash', label: '무료 이미지' },
+              { key: 'google', label: '구글 검색 이미지' },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setSelectedTab(tab.key)}
+                className={`px-4 py-3 border-b-2 transition-all duration-200 ${
+                  selectedTab === tab.key
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 탭 컨텐츠 */}
+          <div className="p-6">
+            {selectedTab === 'upload' && (
+              <UploadTab
+                uploadedFile={uploadedFile}
+                uploadedFileUrl={uploadedFileUrl}
+                selectedImage={selectedImage}
+                originalImage={originalImage}
+                setSelectedImage={setSelectedImage}
+                setCroppingImage={setCroppingImage}
+                setOriginalImage={setOriginalImage}
+                setUploadedFile={setUploadedFile}
+                setUploadedFileUrl={setUploadedFileUrl}
+                setImageSourceType={setImageSourceType}
+              />
+            )}
+
+            {selectedTab === 'blog' && (
+              <BlogImageTab
+                images={blogImages}
+                selectedImage={selectedImage}
+                onSelect={(url: string) => {
+                  setSelectedImage(url);
+                  setCroppingImage(url);
+                  setOriginalImage(url);
+                  setImageSourceType('url');
+                }}
+              />
+            )}
+
+            {selectedTab === 'unsplash' && (
+              <UnsplashImagePicker
+                searchKeyword={unsplashSearchKeyword}
+                onSearchKeywordChange={setUnsplashSearchKeyword}
+                selectedImage={selectedImage}
+                originalImage={originalImage}
+                onSelect={(url: string) => {
+                  setSelectedImage(url);
+                  setCroppingImage(url);
+                  setOriginalImage(url);
+                  setImageSourceType('url');
+                }}
+              />
+            )}
+
+            {selectedTab === 'google' && (
+              <UnsplashImagePicker
+                searchKeyword={googleSearchKeyword}
+                onSearchKeywordChange={setGoogleSearchKeyword}
+                selectedImage={selectedImage}
+                originalImage={originalImage}
+                onSelect={(url: string) => {
+                  setSelectedImage(url);
+                  setCroppingImage(url);
+                  setOriginalImage(url);
+                  setImageSourceType('url');
+                }}
+                apiEndpoint="google"
+              />
+            )}
+          </div>
+        </div>
       </div>
     </>
   );
