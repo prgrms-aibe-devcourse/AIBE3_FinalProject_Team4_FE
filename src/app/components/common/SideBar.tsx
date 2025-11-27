@@ -2,22 +2,25 @@
 
 import { Bell, Home, Image, Search, Settings, User } from 'lucide-react';
 import { useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Sidebar() {
   const [selectedMenu, setSelectedMenu] = useState('홈');
 
+  const pathname = usePathname();
   const menuItems = [
-    { icon: Home, label: '메인' },
-    { icon: Image, label: '숏피드' },
-    { icon: Image, label: '롱피드' },
-    { icon: Image, label: '작성' },
-    { icon: Bell, label: '알림' },
-    { icon: User, label: '프로필' },
-    { icon: Settings, label: '설정' },
+    { icon: Home, label: '메인', href: '/' },
+    { icon: Image, label: '숏피드' ,href:'/shorlog'},
+    { icon: Image, label: '블로그', href: '/blogs' },
+    { icon: Image, label: '작성' ,href:'/write'},
+    { icon: Bell, label: '알림' ,href:'/notification'},
+    { icon: User, label: '프로필' ,href:'/profile'},
+    { icon: Settings, label: '설정' ,href:'/setting'},
   ];
 
   return (
-    <div className="fixed left-0 top-0 z-50 flex h-screen w-64 flex-col border-r border-gray-200 bg-white">
+    <div className="w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full">
       {/* 로고 */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-2">
@@ -29,7 +32,7 @@ export default function Sidebar() {
       </div>
 
       {/* 메뉴 */}
-      <nav className="flex-1 overflow-y-auto p-4">
+      <nav className="flex-1 p-4">
         {menuItems.map((item) => (
           <button
             key={item.label}
