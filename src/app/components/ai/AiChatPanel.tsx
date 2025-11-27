@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AIChat from './AiChat';
 
 type DisplayMode = 'sidebar' | 'floating';
@@ -12,6 +12,23 @@ export default function AiChatSideBar() {
   const toggleMode = () => {
     setMode((prev) => (prev === 'sidebar' ? 'floating' : 'sidebar'));
   };
+
+  // isOpen일 때 바깥 스크롤 잠그기
+  useEffect(() => {
+    if (isOpen) {
+      document.documentElement.classList.add('overflow-hidden');
+      document.body.classList.add('overflow-hidden');
+    } else {
+      document.documentElement.classList.remove('overflow-hidden');
+      document.body.classList.remove('overflow-hidden');
+    }
+
+    // 컴포넌트 언마운트 시 안전하게 복구
+    return () => {
+      document.documentElement.classList.remove('overflow-hidden');
+      document.body.classList.remove('overflow-hidden');
+    };
+  }, [isOpen]);
 
   return (
     <>
@@ -41,7 +58,15 @@ export default function AiChatSideBar() {
 
       {/* 사이드바 모드 */}
       {isOpen && mode === 'sidebar' && (
-        <div className="fixed top-0 right-0 h-screen w-96 bg-white shadow-2xl border-l border-gray-200 flex flex-col z-50">
+        <div
+          className="
+            fixed top-0 right-0 h-dvh
+            w-[min(24rem,100vw)]  /* ✅ 화면 좁으면 100vw로 줄어듦 */
+            max-w-full
+            bg-white shadow-2xl border-l border-gray-200
+            flex flex-col z-50
+          "
+        >
           {/* 헤더 */}
           <div className="flex items-center justify-between p-4 border-b bg-gray-50">
             <h2 className="text-lg font-semibold">텍톡 AI</h2>
@@ -85,8 +110,8 @@ export default function AiChatSideBar() {
             </div>
           </div>
 
-          {/* AI 채팅 컴포넌트 */}
-          <div className="flex-1 overflow-hidden">
+          {/* AI 채팅 컴포넌트 (내부만 스크롤) */}
+          <div className="flex-1 min-w-0 overflow-y-auto">
             <AIChat />
           </div>
         </div>
@@ -94,7 +119,15 @@ export default function AiChatSideBar() {
 
       {/* 플로팅 모드 */}
       {isOpen && mode === 'floating' && (
-        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-white shadow-2xl rounded-lg border border-gray-200 z-50 flex flex-col">
+        <div
+          className="
+            fixed bottom-6 right-6
+            w-[min(24rem,100vw-3rem)]  /* 작은 화면 대응 */
+            h-[min(600px,100dvh-3rem)]
+            bg-white shadow-2xl rounded-lg border border-gray-200
+            z-50 flex flex-col
+          "
+        >
           {/* 헤더 */}
           <div className="flex items-center justify-between p-4 border-b bg-gray-50 rounded-t-lg">
             <h2 className="text-lg font-semibold">텍톡 AI</h2>
@@ -138,8 +171,8 @@ export default function AiChatSideBar() {
             </div>
           </div>
 
-          {/* AI 채팅 컴포넌트 */}
-          <div className="flex-1 overflow-hidden">
+          {/* AI 채팅 컴포넌트 (내부만 스크롤) */}
+          <div className="flex-1 min-w-0 overflow-y-auto">
             <AIChat />
           </div>
         </div>
