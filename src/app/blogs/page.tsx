@@ -31,8 +31,10 @@ export default async function BlogsPage() {
   const initialBlogs = await fetchBlogs('LATEST');
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 pb-16 pt-10">
-      <BlogListPage />
-    </div>
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <div className="mx-auto w-full max-w-5xl px-4 pb-16 pt-10">
+        <BlogListPage />
+      </div>
+    </main>
   );
 }
