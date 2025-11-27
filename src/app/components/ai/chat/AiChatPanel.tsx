@@ -31,7 +31,8 @@ export default function AiChatSideBar() {
             h-dvh w-96
             bg-white shadow-2xl border-l border-gray-200
             flex flex-col flex-shrink-0
-            max-[960px]:fixed max-[960px]:top-0 max-[960px]:right-0 max-[960px]:z-50
+            h-dvh sticky top-0
+            max-[960px]:fixed max-[960px]:right-0 max-[960px]:inset-y-0 max-[960px]:z-50
           "
         >
           <AiChatHeader mode={mode} onToggleMode={toggleMode} onClose={() => setIsOpen(false)} />
