@@ -5,6 +5,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { useInView } from 'react-intersection-observer';
 import FilterTabs from '../../common/FilterTabs';
 import SortButton from '../../common/SortButton';
+import LoadingSpinner from '../../common/LoadingSpinner';
 import ShorlogCard from './ShorlogCard';
 
 export type ShorlogFilter = "all" | "following";
@@ -134,18 +135,6 @@ export default function ShorlogFeedPageClient() {
   );
 }
 
-type LoadingSpinnerProps = { label?: string; size?: 'md' | 'sm' };
-
-function LoadingSpinner({ label = '로딩 중입니다', size = 'md' }: LoadingSpinnerProps) {
-  const dimension = size === 'md' ? 'h-7 w-7' : 'h-5 w-5';
-
-  return (
-    <div className="inline-flex items-center gap-2" role="status" aria-live="polite">
-      <div className={`${dimension} animate-spin rounded-full border-[3px] border-sky-300 border-t-transparent`} />
-      <span className="text-xs text-slate-500">{label}</span>
-    </div>
-  );
-}
 
 function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
