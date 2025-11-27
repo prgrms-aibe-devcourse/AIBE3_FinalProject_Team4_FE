@@ -1,5 +1,6 @@
 import './globals.css';
-import ReactQueryProvider from '@/src/providers/ReactQueryProvider';
+import ReactQueryProvider from '../providers/ReactQueryProvider';
+import Sidebar from './components/SideBar';
 
 export default function RootLayout({
   children,
@@ -10,7 +11,10 @@ export default function RootLayout({
     <html lang="ko">
       <body>
         <ReactQueryProvider>
-          {children}
+          <div className="flex min-h-screen">
+            <Sidebar />
+            <main className="ml-64 flex-1 bg-slate-50">{children}</main>
+          </div>
         </ReactQueryProvider>
       </body>
     </html>
