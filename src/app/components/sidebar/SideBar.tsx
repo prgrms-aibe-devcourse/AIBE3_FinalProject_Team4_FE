@@ -8,12 +8,6 @@ import { useEffect, useRef, useState } from 'react';
 import { guestMenu, loggedInMenu } from './SideBarMenu';
 import SidebarMorePopover from './SideBarMorePopover';
 
-type User = {
-  id: number;
-  nickname: string;
-  profileImgUrl: string | null;
-};
-
 export default function Sidebar() {
   const { loginUser, isLogin, logout } = useAuth();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
@@ -34,6 +28,11 @@ export default function Sidebar() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleLogout = async () => {
+    setIsMoreOpen(false); // 🔥 모달 강제 닫기
+    await logout(); // 로그아웃 로직 실행 (라우터 이동 포함)
+  };
 
   return (
     <aside className="w-60 bg-white border-r border-gray-200 h-screen fixed flex flex-col">
@@ -85,7 +84,10 @@ export default function Sidebar() {
 
                   {/* 로그인 상태일 때만 모달 렌더링 */}
                   {isMoreOpen && isLogin && (
-                    <SidebarMorePopover logout={logout} onClose={() => setIsMoreOpen(false)} />
+                    <SidebarMorePopover
+                      logout={handleLogout}
+                      onClose={() => setIsMoreOpen(false)}
+                    />
                   )}
                 </div>
               )
