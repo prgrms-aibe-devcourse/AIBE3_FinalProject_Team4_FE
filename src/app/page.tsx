@@ -31,19 +31,21 @@ export default function CatGalleryPage() {
   ];
 
   return (
-    <div className="min-h-screen overflow-y-auto bg-gray-50">
-      {/* 헤더 */}
-      <div className="sticky top-0 z-10 border-b border-gray-200 bg-white p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">쇼로그</h1>
+    <div className="h-screen bg-white">
+      {/* 메인 콘텐츠 - 스크롤 가능 */}
+      <div className="flex-1 overflow-y-auto bg-gray-50">
+        {/* 헤더 */}
+        <div className="bg-white border-b border-gray-200 p-6 sticky top-0 z-10">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">쇼로그</h1>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* 갤러리 그리드 */}
-      <div className="p-6">
-        <div className="grid grid-cols-3 gap-4">
+        {/* 갤러리 그리드 */}
+        <div className="p-6">
+          <div className="grid grid-cols-3 gap-4">
             {catPosts.map((post) => (
               <div
                 key={post.id}
@@ -83,5 +85,6 @@ export default function CatGalleryPage() {
           </div>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
