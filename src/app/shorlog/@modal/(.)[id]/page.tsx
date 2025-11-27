@@ -1,43 +1,59 @@
+import ShorlogDetailPageClient from '../../../components/shorlog/detail/ShorlogDetailPageClient';
+import ShorlogDetailModalWrapper from '../../../components/shorlog/detail/ShorlogDetailModalWrapper';
 import type { ShorlogDetail } from '../../../components/shorlog/detail/types';
 
-// 🔧 개발용 Mock 데이터
-async function fetchMockShorlogDetail(id: string): Promise<ShorlogDetail> {
-  const numericId = Number(id);
+interface PageProps {
+  params: { id: string };
+}
 
-  // shorlog/1만 여러 이미지 + 댓글 많은 케이스
-  const isFirst = numericId === 1;
+// 실제 API 연동용
+async function fetchShorlogDetail(id: string): Promise<ShorlogDetail> {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
 
-  const multiImages = isFirst
-    ? [
-      'https://images.pexels.com/photos/45201/kitty-cat-kitten-pet-45201.jpeg?auto=compress&cs=tinysrgb&w=1200',
-      'https://images.pexels.com/photos/126407/pexels-photo-126407.jpeg?auto=compress&cs=tinysrgb&w=1200',
-      'https://images.pexels.com/photos/617278/pexels-photo-617278.jpeg?auto=compress&cs=tinysrgb&w=1200',
-    ]
-    : [
-      'https://images.pexels.com/photos/45201/kitty-cat-kitten-pet-45201.jpeg?auto=compress&cs=tinysrgb&w=1200',
-    ];
+  const res = await fetch(`${API_BASE_URL}/api/v1/shorlog/${id}`, {
+    cache: 'no-store',
+    credentials: 'include',
+  });
 
-  const baseContent =
-    '새벽 3시에 갑자기 미친 듯이 뛰어다니는 고양이의 비밀에 대하여...\n\n' +
-    '사실 아무 이유도 없을 수 있습니다. 하지만 그게 또 사랑스럽죠.\n\n' +
-    '이 글은 고양이의 황당한 야간 질주를 기록한 숏로그입니다.';
+  if (!res.ok) {
+    if (res.status === 404) {
+      throw new Error('숏로그를 찾을 수 없습니다.');
+    }
+    throw new Error('숏로그를 불러오는데 실패했습니다.');
+  }
+
+  const rsData = await res.json();
+  const data = rsData.data;
 
   return {
-    id: numericId,
-    userId: 1,
-    username: 'karpas762',
-    nickname: '닉네임',
-    profileImgUrl:
-      'https://images.pexels.com/photos/45201/kitty-cat-kitten-pet-45201.jpeg?auto=compress&cs=tinysrgb&w=500',
-    content: baseContent,
-    thumbnailUrls: multiImages,
-    viewCount: isFirst ? 321 : 123,
-    likeCount: isFirst ? 48 : 24,
-    bookmarkCount: isFirst ? 31 : 24,
-    commentCount: isFirst ? 8 : 2, // 1번은 댓글/대댓글 더 많게
-    hashtags: ['#고양이', '#복슬복슬'],
-    createdAt: new Date().toISOString(),
-    modifiedAt: new Date().toISOString(),
-    linkedBlogId: 42,
+    id: data.id,
+    userId: data.userId,
+    username: data.username,
+    nickname: data.nickname,
+    profileImgUrl: data.profileImgUrl ?? null,
+    content: data.content,
+    thumbnailUrls: data.thumbnailUrls ?? [],
+    viewCount: data.viewCount ?? 0,
+    likeCount: data.likeCount ?? 0,
+    bookmarkCount: data.bookmarkCount ?? 0,
+    commentCount: data.commentCount ?? 0,
+    hashtags: data.hashtags ?? [],
+    createdAt: data.createdAt,
+    modifiedAt: data.modifiedAt,
+    linkedBlogId: data.linkedBlogId ?? null,
   };
 }
+
+export default async function ShorlogModalPage({ params }: PageProps) {
+  const { id } = params;
+
+  const detail = await fetchShorlogDetail(id);
+  const isOwner = false; // TODO: 로그인 유저와 비교해서 계산
+
+  return (
+    <ShorlogDetailModalWrapper>
+      <ShorlogDetailPageClient detail={detail} isOwner={isOwner} />
+    </ShorlogDetailModalWrapper>
+  );
+}
+
