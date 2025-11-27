@@ -1,6 +1,6 @@
 import './globals.css';
 import ReactQueryProvider from '../providers/ReactQueryProvider';
-import Sidebar from './components/SideBar';
+import Sidebar from './components/common/SideBar';
 
 export default function RootLayout({
   children,
