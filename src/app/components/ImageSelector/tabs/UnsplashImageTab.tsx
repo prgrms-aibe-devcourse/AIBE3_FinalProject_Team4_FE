@@ -1,6 +1,7 @@
 'use client';
 
 import { getGoogleImages, getUnsplashImages } from '@/src/api/blogImageApi';
+import { SearchField } from '@/src/app/components/common/SearchField';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -139,20 +140,16 @@ export default function UnsplashImagePicker({
 
   return (
     <div>
-      <div className="flex gap-3 mb-4">
-        <input
+      <div className="mb-4">
+        <SearchField
+          id="image-search"
           value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          onKeyDown={onKeyDown}
-          placeholder="검색어 입력"
-          className="flex-1 border rounded-lg px-3 py-2"
+          onChange={(value) => {
+            setKeyword(value);
+            if (value === '') onSearch();
+          }}
+          placeholder="이미지 검색어를 입력하세요"
         />
-        <button
-          onClick={onSearch}
-          className="px-4 py-2 rounded-lg bg-blue-600 text-white shadow hover:bg-blue-500"
-        >
-          검색
-        </button>
       </div>
 
       {isError && (

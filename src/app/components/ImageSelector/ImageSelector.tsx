@@ -1,6 +1,6 @@
 'use client';
 
-import { uploadBlogImage } from '@/src/api/blogImageApi';
+// import { uploadBlogImage } from '@/src/api/blogImageApi';
 import { SetStateAction, useState } from 'react';
 import Cropper from './Cropper';
 import BlogImageTab from './tabs/BlogImageTab';
@@ -42,8 +42,8 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
   };
 
   const handleSubmit = async () => {
+    // 섬네일 이미지 업로드
     const formData = new FormData();
-
     // 파일 업로드인 경우
     if (imageSourceType === 'file' && uploadedFile) {
       formData.append('files', uploadedFile);
@@ -52,9 +52,7 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
     else if (imageSourceType === 'url' && originalImage) {
       formData.append('url', originalImage);
     }
-
     formData.append('type', 'THUMBNAIL');
-
     // aspectRatios 변환 ("원본" -> "original")
     const aspectRatioMap: Record<string, string> = {
       원본: 'original',
@@ -63,30 +61,28 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
       '16:9': '16:9',
     };
     formData.append('aspectRatios', aspectRatioMap[lastAspect] || 'original');
-
-    try {
-      const response = await uploadBlogImage(blogId, formData);
-
-      if (response.ok) {
-        showToast('썸네일이 성공적으로 업로드되었습니다!', 'success');
-      } else {
-        // 상태코드별 메시지
-        if (response.status === 401) {
-          showToast('로그인이 필요합니다. 다시 로그인해주세요.', 'error');
-        } else if (response.status === 403) {
-          showToast('접근 권한이 없습니다.', 'error');
-        } else if (response.status === 404) {
-          showToast('블로그를 찾을 수 없습니다.', 'error');
-        } else if (response.status >= 500) {
-          showToast('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
-        } else {
-          showToast('업로드에 실패했습니다.', 'error');
-        }
-      }
-    } catch (error) {
-      showToast('네트워크 오류가 발생했습니다.', 'error');
-      console.error('업로드 중 오류 발생:', error);
-    }
+    // try {
+    //   const response = await uploadBlogImage(blogId, formData);
+    //   if (response.ok) {
+    //     showToast('썸네일이 성공적으로 업로드되었습니다!', 'success');
+    //   } else {
+    //     // 상태코드별 메시지
+    //     if (response.status === 401) {
+    //       showToast('로그인이 필요합니다. 다시 로그인해주세요.', 'error');
+    //     } else if (response.status === 403) {
+    //       showToast('접근 권한이 없습니다.', 'error');
+    //     } else if (response.status === 404) {
+    //       showToast('블로그를 찾을 수 없습니다.', 'error');
+    //     } else if (response.status >= 500) {
+    //       showToast('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
+    //     } else {
+    //       showToast('업로드에 실패했습니다.', 'error');
+    //     }
+    //   }
+    // } catch (error) {
+    //   showToast('네트워크 오류가 발생했습니다.', 'error');
+    //   console.error('업로드 중 오류 발생:', error);
+    // }
   };
 
   return (
@@ -110,8 +106,17 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
 
       {/* 크롭 모달 */}
       {isCropping && croppingImage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-4xl rounded-2xl bg-white p-6 shadow-xl">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => {
+            setIsCropping(false);
+            setCroppingImage(null);
+          }}
+        >
+          <div
+            className="w-full max-w-4xl rounded-2xl bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Cropper
               imageUrl={croppingImage}
               initialAspect={lastAspect}
@@ -172,12 +177,12 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
                     >
                       자르기
                     </button>
-                    <button
+                    {/* <button
                       onClick={handleSubmit}
                       className="rounded-lg bg-[#2979FF] px-4 py-1.5 text-xs text-white shadow-sm transition hover:opacity-90"
                     >
                       적용하기
-                    </button>
+                    </button> */}
                   </>
                 )}
               </div>
@@ -186,89 +191,92 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
         </article>
 
         {/* 탭 메뉴 */}
-        <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
-          <div className="flex border-b text-sm font-medium">
-            {[
-              { key: 'upload', label: '이미지 업로드' },
-              { key: 'blog', label: '블로그 본문 이미지' },
-              { key: 'unsplash', label: '무료 이미지' },
-              { key: 'google', label: '구글 검색 이미지' },
-            ].map((tab) => (
+        <div className="flex w-full items-center gap-1 rounded-full bg-slate-100 p-1 text-xs">
+          {[
+            { key: 'upload', label: '이미지 업로드' },
+            { key: 'blog', label: '블로그 본문 이미지' },
+            { key: 'unsplash', label: '무료 이미지' },
+            { key: 'google', label: '구글 검색 이미지' },
+          ].map((tab) => {
+            const isActive = selectedTab === tab.key;
+            return (
               <button
                 key={tab.key}
+                type="button"
                 onClick={() => setSelectedTab(tab.key)}
-                className={`px-4 py-3 border-b-2 transition-all duration-200 ${
-                  selectedTab === tab.key
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+                className={[
+                  'flex-1 rounded-full px-3 py-1.5 font-medium transition',
+                  isActive
+                    ? 'bg-white text-[#2979FF] shadow-sm'
+                    : 'text-slate-500 hover:text-[#2979FF]',
+                ].join(' ')}
               >
                 {tab.label}
               </button>
-            ))}
-          </div>
+            );
+          })}
+        </div>
 
-          {/* 탭 컨텐츠 */}
-          <div className="p-6">
-            {selectedTab === 'upload' && (
-              <UploadTab
-                uploadedFile={uploadedFile}
-                uploadedFileUrl={uploadedFileUrl}
-                selectedImage={selectedImage}
-                originalImage={originalImage}
-                setSelectedImage={setSelectedImage}
-                setCroppingImage={setCroppingImage}
-                setOriginalImage={setOriginalImage}
-                setUploadedFile={setUploadedFile}
-                setUploadedFileUrl={setUploadedFileUrl}
-                setImageSourceType={setImageSourceType}
-              />
-            )}
+        {/* 탭 컨텐츠 */}
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+          {selectedTab === 'upload' && (
+            <UploadTab
+              uploadedFile={uploadedFile}
+              uploadedFileUrl={uploadedFileUrl}
+              selectedImage={selectedImage}
+              originalImage={originalImage}
+              setSelectedImage={setSelectedImage}
+              setCroppingImage={setCroppingImage}
+              setOriginalImage={setOriginalImage}
+              setUploadedFile={setUploadedFile}
+              setUploadedFileUrl={setUploadedFileUrl}
+              setImageSourceType={setImageSourceType}
+            />
+          )}
 
-            {selectedTab === 'blog' && (
-              <BlogImageTab
-                images={blogImages}
-                selectedImage={selectedImage}
-                onSelect={(url: string) => {
-                  setSelectedImage(url);
-                  setCroppingImage(url);
-                  setOriginalImage(url);
-                  setImageSourceType('url');
-                }}
-              />
-            )}
+          {selectedTab === 'blog' && (
+            <BlogImageTab
+              images={blogImages}
+              selectedImage={selectedImage}
+              onSelect={(url: string) => {
+                setSelectedImage(url);
+                setCroppingImage(url);
+                setOriginalImage(url);
+                setImageSourceType('url');
+              }}
+            />
+          )}
 
-            {selectedTab === 'unsplash' && (
-              <UnsplashImagePicker
-                searchKeyword={unsplashSearchKeyword}
-                onSearchKeywordChange={setUnsplashSearchKeyword}
-                selectedImage={selectedImage}
-                originalImage={originalImage}
-                onSelect={(url: string) => {
-                  setSelectedImage(url);
-                  setCroppingImage(url);
-                  setOriginalImage(url);
-                  setImageSourceType('url');
-                }}
-              />
-            )}
+          {selectedTab === 'unsplash' && (
+            <UnsplashImagePicker
+              searchKeyword={unsplashSearchKeyword}
+              onSearchKeywordChange={setUnsplashSearchKeyword}
+              selectedImage={selectedImage}
+              originalImage={originalImage}
+              onSelect={(url: string) => {
+                setSelectedImage(url);
+                setCroppingImage(url);
+                setOriginalImage(url);
+                setImageSourceType('url');
+              }}
+            />
+          )}
 
-            {selectedTab === 'google' && (
-              <UnsplashImagePicker
-                searchKeyword={googleSearchKeyword}
-                onSearchKeywordChange={setGoogleSearchKeyword}
-                selectedImage={selectedImage}
-                originalImage={originalImage}
-                onSelect={(url: string) => {
-                  setSelectedImage(url);
-                  setCroppingImage(url);
-                  setOriginalImage(url);
-                  setImageSourceType('url');
-                }}
-                apiEndpoint="google"
-              />
-            )}
-          </div>
+          {selectedTab === 'google' && (
+            <UnsplashImagePicker
+              searchKeyword={googleSearchKeyword}
+              onSearchKeywordChange={setGoogleSearchKeyword}
+              selectedImage={selectedImage}
+              originalImage={originalImage}
+              onSelect={(url: string) => {
+                setSelectedImage(url);
+                setCroppingImage(url);
+                setOriginalImage(url);
+                setImageSourceType('url');
+              }}
+              apiEndpoint="google"
+            />
+          )}
         </div>
       </div>
     </>
