@@ -4,7 +4,7 @@ import type { ShorlogDetail } from '../../components/shorlog/detail/types';
 import type { Metadata } from 'next';
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // 실제 API 연동용
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ShorlogDetailPage({ params }: PageProps) {
-  const { id } = params;
+  const { id } = await params;
 
   const detail = await fetchShorlogDetail(id);
   // TODO: 로그인한 유저 ID와 detail.userId 비교하여 isOwner 계산

@@ -3,10 +3,9 @@ import ShorlogDetailModalWrapper from '../../../components/shorlog/detail/Shorlo
 import type { ShorlogDetail } from '../../../components/shorlog/detail/types';
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-// 실제 API 연동용
 async function fetchShorlogDetail(id: string): Promise<ShorlogDetail> {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
 
@@ -45,10 +44,11 @@ async function fetchShorlogDetail(id: string): Promise<ShorlogDetail> {
 }
 
 export default async function ShorlogModalPage({ params }: PageProps) {
-  const { id } = params;
+  const { id } = await params;
 
   const detail = await fetchShorlogDetail(id);
-  const isOwner = false; // TODO: 로그인 유저와 비교해서 계산
+  // TODO: 로그인한 유저 ID와 detail.userId 비교하여 isOwner 계산
+  const isOwner = false;
 
   return (
     <ShorlogDetailModalWrapper>
