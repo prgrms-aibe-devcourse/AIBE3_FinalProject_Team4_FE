@@ -1,3 +1,4 @@
+import { getSessionUser } from '@/src/lib/getSessionUser';
 import ProfileContent from './ProfileContent';
 import { ProfileHeader } from './ProfileHeader';
 
@@ -11,6 +12,15 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const { id } = await params;
 
   const profile = await getProfileData(id);
+  const currentUser = await getSessionUser();
+  const currentUserId = currentUser?.id?.toString() || '';
+
+  const isMyPage = currentUserId === id;
+
+  console.log('========================='); // todo: 삭제 예정
+  console.log('currentUser:', currentUser);
+  console.log('currentUserId:', currentUserId);
+  console.log('isMyPage:', isMyPage);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white text-slate-900">
