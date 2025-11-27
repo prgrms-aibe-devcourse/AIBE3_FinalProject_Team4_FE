@@ -25,7 +25,6 @@ async function fetchUserId(request: NextRequest): Promise<number | null> {
     }
 
     const json = await res.json();
-    console.log('###################User ID from JSON:', json.data?.id);
 
     if (json.resultCode !== '200' || !json.data) {
       return null;
@@ -45,7 +44,6 @@ export async function middleware(request: NextRequest) {
 
   if (pathname === '/profile') {
     const userId = await fetchUserId(request);
-    console.log('Fetched userId:', userId);
 
     if (userId) {
       const url = new URL(`/profile/${userId}`, request.url);

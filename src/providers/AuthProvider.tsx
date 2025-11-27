@@ -52,12 +52,11 @@ const sendLogoutRequest = async () => {
   }
 };
 
-// useAuth 훅 (인증 로직 관리)
 function useAuthLogic() {
   const router = useRouter();
 
   const [loginUser, setLoginUser] = useState<UserDto | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // 로딩 상태 추가
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchUser = async () => {
     setIsLoading(true);
@@ -87,17 +86,15 @@ function useAuthLogic() {
       isLogin,
       loginUser,
       logout,
-      setLoginUser, // 외부에서 강제 상태 변경이 필요한 경우 사용
-      isLoading, // 로딩 상태 추가
-      refreshUser, // 사용자 정보 새로고침 함수 추가
+      setLoginUser,
+      isLoading,
+      refreshUser,
     };
   }, [isLogin, loginUser, isLoading]);
 
   return authState;
 }
 
-// Context 생성 및 사용 훅
-// AuthState 타입 정의
 type AuthState = ReturnType<typeof useAuthLogic>;
 
 export const AuthContext = createContext<AuthState | null>(null);
@@ -106,20 +103,18 @@ export function useAuth() {
   const authState = useContext(AuthContext);
 
   if (authState === null) {
-    // Provider 외부에서 훅을 호출한 경우
     throw new Error('useAuth must be used within an AuthProvider');
   }
 
   return authState;
 }
 
-// Provider 컴포넌트
 export function AuthProvider({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const authState = useAuthLogic(); // 로직 훅 호출
+  const authState = useAuthLogic();
 
   return <AuthContext.Provider value={authState}>{children}</AuthContext.Provider>;
 }

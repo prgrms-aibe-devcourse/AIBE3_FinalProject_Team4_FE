@@ -28,7 +28,7 @@ export const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
       <div className="flex-shrink-0">
         <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-md bg-slate-100">
           <img
-            src={profile.profileImgUrl}
+            src={profile.profileImgUrl ?? '/tmpProfile.png'}
             alt={`${profile.nickname} 프로필 이미지`}
             className="w-full h-full object-cover"
           />
