@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useInView } from 'react-intersection-observer';
-import FilterTabs from '../../shared/FilterTabs';
-import SortButton from '../../shared/SortButton';
+import FilterTabs from '../../common/FilterTabs';
+import SortButton from '../../common/SortButton';
 import ShorlogCard from './ShorlogCard';
 
 export type ShorlogFilter = "all" | "following";
