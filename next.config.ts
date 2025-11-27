@@ -1,8 +1,17 @@
-import type { NextConfig } from "next";
-
 const nextConfig = {
   images: {
-    domains: ['next5-dev-images.s3.ap-northeast-2.amazonaws.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'next5-dev-images.s3.ap-northeast-2.amazonaws.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'shorlog-dev-bucket.s3.ap-northeast-2.amazonaws.com',
+        pathname: '/**',
+      },
+    ],
   },
   eslint: {
     // 빌드 시 ESLint 에러가 나도 빌드는 계속 진행 npm run lint에서 lint 에러

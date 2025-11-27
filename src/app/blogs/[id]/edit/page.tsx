@@ -1,4 +1,4 @@
-import BlogForm from '@/src/app/temp-blogs/_components/BlogForm';
+import BlogForm from '@/src/app/blogs/_components/BlogForm';
 
 export default function BlogEditPage() {
   return (
