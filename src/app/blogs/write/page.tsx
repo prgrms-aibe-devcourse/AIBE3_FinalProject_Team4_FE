@@ -2,9 +2,10 @@
 
 import type { BlogFormValues, BlogVisibility } from '@/src/types/blog';
 import { useState } from 'react';
+import { BlogMetaForm } from '../../components/blogs/write/BlogMetaForm';
 import { BlogWriteHeader } from '../../components/blogs/write/BlogWriteHeader';
 import { MarkdownEditor } from '../../components/blogs/write/MarkdownEditor';
-import { BlogMetaForm } from '../../components/blogs/write/BlogMetaForm';
+import ImageSelector from '../../components/ImageSelector/ImageSelector';
 
 export default function NewBlogPage() {
   const [form, setForm] = useState<BlogFormValues>({
@@ -74,6 +75,10 @@ export default function NewBlogPage() {
             onChange={(v) => update('contentMarkdown', v)}
             placeholder="마크다운으로 블로그 내용을 작성해 주세요."
           />
+        </section>
+
+        <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
+          <ImageSelector blogId="temp" blogImages={[]} />
         </section>
       </main>
     </div>
