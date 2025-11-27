@@ -64,8 +64,9 @@ export default function Sidebar() {
       {/* 메뉴 */}
       <nav className="flex-1 px-4 space-y-1 text-[15px] relative">
         {menu.map((item) => {
-          const isActive = pathname === item.href;
           const isProfileItem = item.label === '프로필';
+          const isActive =
+            item.href === '/profile' ? pathname.startsWith('/profile') : pathname === item.href;
 
           if (item.label === '더보기') {
             return (
