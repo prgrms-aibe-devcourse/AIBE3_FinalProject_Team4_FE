@@ -2,18 +2,21 @@
 
 import { Bell, Home, Image, Search, Settings, User } from 'lucide-react';
 import { useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Sidebar() {
   const [selectedMenu, setSelectedMenu] = useState('홈');
 
+  const pathname = usePathname();
   const menuItems = [
-    { icon: Home, label: '메인' },
-    { icon: Image, label: '숏피드' },
-    { icon: Image, label: '롱피드' },
-    { icon: Image, label: '작성' },
-    { icon: Bell, label: '알림' },
-    { icon: User, label: '프로필' },
-    { icon: Settings, label: '설정' },
+    { icon: Home, label: '메인', href: '/' },
+    { icon: Image, label: '숏피드' ,href:'/shorlog'},
+    { icon: Image, label: '블로그', href: '/blogs' },
+    { icon: Image, label: '작성' ,href:'/write'},
+    { icon: Bell, label: '알림' ,href:'/notification'},
+    { icon: User, label: '프로필' ,href:'/profile'},
+    { icon: Settings, label: '설정' ,href:'/setting'},
   ];
 
   return (
