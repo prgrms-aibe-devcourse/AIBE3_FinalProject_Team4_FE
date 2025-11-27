@@ -40,8 +40,6 @@ async function fetchUserId(request: NextRequest): Promise<number | null> {
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  console.log('Middleware triggered for:', pathname);
-
   if (pathname === '/profile') {
     const userId = await fetchUserId(request);
 
