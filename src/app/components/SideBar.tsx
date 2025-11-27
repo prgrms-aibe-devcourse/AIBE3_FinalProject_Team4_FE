@@ -17,7 +17,7 @@ export default function Sidebar() {
   ];
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full">
+    <div className="fixed left-0 top-0 z-50 flex h-screen w-64 flex-col border-r border-gray-200 bg-white">
       {/* 로고 */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-2">
@@ -29,7 +29,7 @@ export default function Sidebar() {
       </div>
 
       {/* 메뉴 */}
-      <nav className="flex-1 p-4">
+      <nav className="flex-1 overflow-y-auto p-4">
         {menuItems.map((item) => (
           <button
             key={item.label}
