@@ -1,6 +1,6 @@
 'use client';
 
-import AiChatSideBar from '../components/ai/AiChatPanel';
+import AiChatPanel from '../components/ai/chat/AiChatPanel';
 
 export default function AiChatDemoPage() {
   return (
@@ -57,7 +57,7 @@ export default function AiChatDemoPage() {
       </div>
 
       {/* AI 채팅 사이드바/플로팅 컴포넌트 */}
-      <AiChatSideBar />
+      <AiChatPanel />
     </div>
   );
 }
