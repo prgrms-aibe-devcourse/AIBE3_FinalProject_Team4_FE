@@ -8,21 +8,17 @@ interface ShorlogCardProps {
 }
 
 export default function ShorlogCard({ item, index, allItems }: ShorlogCardProps) {
-  // 이전/다음 숏로그 ID 계산
   const prevItem = index > 0 ? allItems[index - 1] : null;
   const nextItem = index < allItems.length - 1 ? allItems[index + 1] : null;
 
-  // URL 쿼리 파라미터 생성
   const queryParams = new URLSearchParams();
   if (prevItem) queryParams.set('prev', prevItem.id.toString());
   if (nextItem) queryParams.set('next', nextItem.id.toString());
 
   const href = `/shorlog/${item.id}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
 
-  // 클릭 시 전체 피드 리스트를 세션 스토리지에 저장
   const handleClick = () => {
     if (typeof window !== 'undefined') {
-      // 전체 피드 리스트의 ID만 저장 (용량 절약)
       const feedIds = allItems.map(item => item.id);
       sessionStorage.setItem('shorlog_feed_ids', JSON.stringify(feedIds));
       sessionStorage.setItem('shorlog_current_index', index.toString());
@@ -33,18 +29,9 @@ export default function ShorlogCard({ item, index, allItems }: ShorlogCardProps)
     <Link
       href={href}
       onClick={handleClick}
-      className="
-        group flex flex-col overflow-hidden
-        rounded-2xl bg-white shadow-sm ring-1 ring-slate-100
-        transition-transform duration-200
-        hover:-translate-y-1 hover:shadow-lg
-        focus-visible:outline-none focus-visible:ring-2
-        focus-visible:ring-sky-500 focus-visible:ring-offset-2
-        focus-visible:ring-offset-sky-50
-      "
+      className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-sky-50"
       aria-label={`${item.nickname}의 숏로그: ${item.firstLine}`}
     >
-      {/* 상단 큰 썸네일 이미지 */}
       <div className="relative w-full bg-slate-100">
         <div className="aspect-[3/4] w-full overflow-hidden">
           <img
@@ -56,9 +43,7 @@ export default function ShorlogCard({ item, index, allItems }: ShorlogCardProps)
         </div>
       </div>
 
-      {/* 작성자 + 해시태그 + 좋아요/댓글 + 첫 문장 */}
       <div className="flex flex-1 flex-col px-4 pb-4 pt-3">
-        {/* 아바타 + 닉네임 */}
         <div className="flex flex-col items-center text-center">
           <div className="h-12 w-12 overflow-hidden rounded-full bg-slate-200">
             <img
@@ -68,24 +53,17 @@ export default function ShorlogCard({ item, index, allItems }: ShorlogCardProps)
               loading="lazy"
             />
           </div>
-          <p className="mt-2 text-sm font-semibold text-slate-900">
-            {item.nickname}
-          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-900">{item.nickname}</p>
 
-          {/* 해시태그 */}
           <div className="mt-1 flex flex-wrap justify-center gap-1">
             {item.hashtags.slice(0, 3).map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-700"
-              >
+              <span key={tag} className="inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-700">
                 {tag}
               </span>
             ))}
           </div>
         </div>
 
-        {/* 좋아요 / 댓글 수 */}
         <div className="mt-3 flex items-center justify-center gap-4 text-xs text-slate-500">
           <div className="inline-flex items-center gap-1.5">
             <LikeIcon />
@@ -97,11 +75,8 @@ export default function ShorlogCard({ item, index, allItems }: ShorlogCardProps)
           </div>
         </div>
 
-        {/* 첫 문장 프리뷰 */}
         <div className="mt-3 border-t border-slate-100 pt-3">
-          <p className="line-clamp-2 text-sm leading-relaxed text-slate-900">
-            {item.firstLine}
-          </p>
+          <p className="line-clamp-2 text-sm leading-relaxed text-slate-900">{item.firstLine}</p>
         </div>
       </div>
     </Link>

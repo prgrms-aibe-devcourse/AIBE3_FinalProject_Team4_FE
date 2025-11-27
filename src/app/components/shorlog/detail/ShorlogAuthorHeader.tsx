@@ -11,28 +11,27 @@ interface Props {
 }
 
 export default function ShorlogAuthorHeader({
-                                              username,
-                                              nickname,
-                                              profileImgUrl,
-                                              isOwner = false,
-                                            }: Props) {
+  username,
+  nickname,
+  profileImgUrl,
+  isOwner = false,
+}: Props) {
   const [isFollowing, setIsFollowing] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const toggleFollow = () => {
     if (!requireAuth('팔로우')) return;
-    // TODO: 1번 공통 팔로우 컴포넌트 연동
+    // TODO: 1번(주권영) 팔로우 컴포넌트 연동
     setIsFollowing((prev) => !prev);
   };
 
   const handleMenuAction = (action: string) => {
     setMenuOpen(false);
-    // TODO: 실제 액션 구현
+    // TODO: 수정/삭제/블로그 연결 기능 구현
     alert(`${action} 기능은 추후 제공될 예정입니다.`);
   };
 
-  // 메뉴 외부 클릭 시 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -54,10 +53,7 @@ export default function ShorlogAuthorHeader({
       <div className="flex items-center gap-3">
         <div className="h-9 w-9 overflow-hidden rounded-full bg-slate-200 md:h-10 md:w-10">
           <img
-            src={
-              profileImgUrl ??
-              'https://api.dicebear.com/7.x/identicon/svg?seed=shorlog-user'
-            }
+            src={profileImgUrl ?? 'https://api.dicebear.com/7.x/identicon/svg?seed=shorlog-user'}
             alt={`${username} 프로필 이미지`}
             className="h-full w-full object-cover"
           />
@@ -69,7 +65,6 @@ export default function ShorlogAuthorHeader({
       </div>
 
       <div className="flex items-center gap-1.5">
-        {/* 팔로우 버튼 (본인이 아닐 때만 표시) */}
         {!isOwner && (
           <button
             type="button"
@@ -84,7 +79,6 @@ export default function ShorlogAuthorHeader({
           </button>
         )}
 
-        {/* "..." 메뉴 (본인만 표시) */}
         {isOwner && (
           <div className="relative" ref={menuRef}>
             <button
@@ -97,29 +91,14 @@ export default function ShorlogAuthorHeader({
             </button>
 
             {menuOpen && (
-              <div
-                className="absolute right-0 z-20 mt-1 w-40 rounded-xl border border-slate-100 bg-white py-1 text-xs text-slate-700 shadow-lg"
-                role="menu"
-              >
-                <button
-                  type="button"
-                  onClick={() => handleMenuAction('블로그 연결')}
-                  className="flex w-full items-center justify-between px-3 py-1.5 hover:bg-slate-50"
-                >
+              <div className="absolute right-0 z-20 mt-1 w-40 rounded-xl border border-slate-100 bg-white py-1 text-xs text-slate-700 shadow-lg" role="menu">
+                <button type="button" onClick={() => handleMenuAction('블로그 연결')} className="flex w-full items-center justify-between px-3 py-1.5 hover:bg-slate-50">
                   블로그 연결하기
                 </button>
-                <button
-                  type="button"
-                  onClick={() => handleMenuAction('수정')}
-                  className="flex w-full items-center justify-between px-3 py-1.5 hover:bg-slate-50"
-                >
+                <button type="button" onClick={() => handleMenuAction('수정')} className="flex w-full items-center justify-between px-3 py-1.5 hover:bg-slate-50">
                   수정
                 </button>
-                <button
-                  type="button"
-                  onClick={() => handleMenuAction('삭제')}
-                  className="flex w-full items-center justify-between px-3 py-1.5 text-rose-600 hover:bg-rose-50"
-                >
+                <button type="button" onClick={() => handleMenuAction('삭제')} className="flex w-full items-center justify-between px-3 py-1.5 text-rose-600 hover:bg-rose-50">
                   삭제
                 </button>
               </div>

@@ -53,7 +53,8 @@ export default async function ShorlogDetailPage({ params }: PageProps) {
   const { id } = params;
 
   const detail = await fetchShorlogDetail(id);
-  const isOwner = false; // TODO: 로그인 유저와 비교해서 계산
+  // TODO: 로그인한 유저 ID와 detail.userId 비교하여 isOwner 계산
+  const isOwner = false;
 
   return (
     <ShorlogDetailModalWrapper>
