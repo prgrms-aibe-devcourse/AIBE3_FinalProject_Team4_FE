@@ -134,10 +134,6 @@ export default function UnsplashImagePicker({
     return () => observer.disconnect();
   }, [fetchNextPage, isFetchingNextPage, shouldFetchMore]);
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') onSearch();
-  };
-
   return (
     <div>
       <div className="mb-4">
@@ -148,6 +144,7 @@ export default function UnsplashImagePicker({
             setKeyword(value);
             if (value === '') onSearch();
           }}
+          onSearch={onSearch}
           placeholder="이미지 검색어를 입력하세요"
         />
       </div>
