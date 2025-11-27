@@ -1,5 +1,6 @@
 'use client';
 
+import { useAuth } from '@/src/providers/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -7,6 +8,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export default function Page() {
   const router = useRouter();
+  const { refreshUser } = useAuth();
   const [id, setId] = useState('');
   const [pw, setPw] = useState('');
 
@@ -42,6 +44,7 @@ export default function Page() {
         return;
       }
 
+      await refreshUser();
       router.replace('/');
     } catch (error) {
       alert('서버와 연결할 수 없습니다.');
