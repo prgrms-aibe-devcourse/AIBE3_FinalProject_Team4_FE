@@ -3,14 +3,38 @@ import type { ShorlogItem } from './ShorlogFeedPageClient';
 
 interface ShorlogCardProps {
   item: ShorlogItem;
+  index: number;
+  allItems: ShorlogItem[];
 }
 
-export default function ShorlogCard({ item }: ShorlogCardProps) {
+export default function ShorlogCard({ item, index, allItems }: ShorlogCardProps) {
+  // 이전/다음 숏로그 ID 계산
+  const prevItem = index > 0 ? allItems[index - 1] : null;
+  const nextItem = index < allItems.length - 1 ? allItems[index + 1] : null;
+
+  // URL 쿼리 파라미터 생성
+  const queryParams = new URLSearchParams();
+  if (prevItem) queryParams.set('prev', prevItem.id.toString());
+  if (nextItem) queryParams.set('next', nextItem.id.toString());
+
+  const href = `/shorlog/${item.id}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
+  // 클릭 시 전체 피드 리스트를 세션 스토리지에 저장
+  const handleClick = () => {
+    if (typeof window !== 'undefined') {
+      // 전체 피드 리스트의 ID만 저장 (용량 절약)
+      const feedIds = allItems.map(item => item.id);
+      sessionStorage.setItem('shorlog_feed_ids', JSON.stringify(feedIds));
+      sessionStorage.setItem('shorlog_current_index', index.toString());
+    }
+  };
+
   return (
     <Link
-      href={`/shorlog/${item.id}`}
+      href={href}
+      onClick={handleClick}
       className="
-        group flex h-full flex-col overflow-hidden
+        group flex flex-col overflow-hidden
         rounded-2xl bg-white shadow-sm ring-1 ring-slate-100
         transition-transform duration-200
         hover:-translate-y-1 hover:shadow-lg

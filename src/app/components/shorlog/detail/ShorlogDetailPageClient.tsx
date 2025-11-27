@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import ShorlogImageSlider from './ShorlogImageSlider';
 import ShorlogAuthorHeader from './ShorlogAuthorHeader';
 import ShorlogTtsController from './ShorlogTtsController';
@@ -65,16 +65,53 @@ function HighlightedContent({ content, progress }: { content: string; progress: 
   );
 }
 
-// 좌/우 숏로그 이동 화살표
+// 좌/우 숏로그 이동 화살표 (URL 쿼리 파라미터 기반)
 function PrevNextNavArrows({ currentId }: { currentId: number }) {
   const router = useRouter();
-  const MIN_ID = 1;
-  const MAX_ID = 4;
+  const searchParams = useSearchParams();
+  const [prevId, setPrevId] = useState<string | null>(null);
+  const [nextId, setNextId] = useState<string | null>(null);
 
-  const hasPrev = currentId > MIN_ID;
-  const hasNext = currentId < MAX_ID;
+  // 마운트 시 또는 currentId 변경 시 prev/next ID 계산
+  useEffect(() => {
+    // URL 쿼리 파라미터에서 먼저 확인
+    let prev = searchParams.get('prev');
+    let next = searchParams.get('next');
 
-  const goTo = (id: number) => router.push(`/shorlog/${id}`);
+    // 쿼리 파라미터가 없으면 세션 스토리지에서 피드 리스트를 가져와서 계산
+    if (!prev || !next) {
+      if (typeof window !== 'undefined') {
+        const feedIdsStr = sessionStorage.getItem('shorlog_feed_ids');
+        if (feedIdsStr) {
+          try {
+            const feedIds: number[] = JSON.parse(feedIdsStr);
+            const currentIndex = feedIds.findIndex(id => id === currentId);
+
+            if (currentIndex !== -1) {
+              if (currentIndex > 0) {
+                prev = feedIds[currentIndex - 1].toString();
+              }
+              if (currentIndex < feedIds.length - 1) {
+                next = feedIds[currentIndex + 1].toString();
+              }
+            }
+          } catch (e) {
+            // sessionStorage 파싱 실패 시 조용히 무시
+          }
+        }
+      }
+    }
+
+    setPrevId(prev);
+    setNextId(next);
+  }, [currentId, searchParams]);
+
+  const hasPrev = !!prevId;
+  const hasNext = !!nextId;
+
+  const handleNavigation = (targetId: string) => {
+    router.push(`/shorlog/${targetId}`);
+  };
 
   return (
     <>
@@ -82,12 +119,12 @@ function PrevNextNavArrows({ currentId }: { currentId: number }) {
         <button
           type="button"
           aria-label="이전 숏로그"
-          onClick={() => goTo(currentId - 1)}
+          onClick={() => handleNavigation(prevId!)}
           className="
-            absolute left-0 top-1/2 hidden -translate-x-10 -translate-y-1/2
-            items-center justify-center rounded-full border border-white/60
-            bg-white/90 px-2 py-1 text-lg text-slate-600 shadow-md
-            transition hover:bg-white hover:text-slate-900
+            absolute left-0 top-1/2 z-50 -translate-x-12 -translate-y-1/2
+            flex h-12 w-12 items-center justify-center rounded-full
+            border-2 border-white bg-white text-2xl text-slate-700
+            shadow-xl transition hover:bg-slate-50 hover:scale-110
             md:flex
           "
         >
@@ -98,12 +135,12 @@ function PrevNextNavArrows({ currentId }: { currentId: number }) {
         <button
           type="button"
           aria-label="다음 숏로그"
-          onClick={() => goTo(currentId + 1)}
+          onClick={() => handleNavigation(nextId!)}
           className="
-            absolute right-0 top-1/2 hidden translate-x-10 -translate-y-1/2
-            items-center justify-center rounded-full border border-white/60
-            bg-white/90 px-2 py-1 text-lg text-slate-600 shadow-md
-            transition hover:bg-white hover:text-slate-900
+            absolute right-0 top-1/2 z-50 translate-x-12 -translate-y-1/2
+            flex h-12 w-12 items-center justify-center rounded-full
+            border-2 border-white bg-white text-2xl text-slate-700
+            shadow-xl transition hover:bg-slate-50 hover:scale-110
             md:flex
           "
         >

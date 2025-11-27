@@ -152,8 +152,8 @@ export default function ShorlogFeedPageClient() {
                 2xl:grid-cols-6
               "
             >
-              {items.map((item) => (
-                <ShorlogCard key={item.id} item={item} />
+              {items.map((item, index) => (
+                <ShorlogCard key={item.id} item={item} index={index} allItems={items} />
               ))}
             </div>
 
