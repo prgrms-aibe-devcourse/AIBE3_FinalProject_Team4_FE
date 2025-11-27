@@ -6,6 +6,7 @@ type SearchFieldProps = {
   id?: string;
   value: string;
   onChange: (value: string) => void;
+  onSearch?: () => void;
   placeholder?: string;
   className?: string;
 };
@@ -14,9 +15,16 @@ export function SearchField({
   id = 'search',
   value,
   onChange,
+  onSearch,
   placeholder = '검색어를 입력하세요',
   className = '',
 }: SearchFieldProps) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && onSearch) {
+      onSearch();
+    }
+  };
+
   return (
     <div className={`flex-1 ${className}`}>
       <label className="sr-only" htmlFor={id}>
@@ -28,6 +36,7 @@ export function SearchField({
           id={id}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className="w-full bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
         />
