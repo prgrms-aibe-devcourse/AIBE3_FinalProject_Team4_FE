@@ -129,6 +129,19 @@ export default function ShorlogDetailPageClient({ detail, isOwner = false }: Pro
   const [ttsProgress, setTtsProgress] = useState(0);
   const firstLineForAlt = detail.content.split('\n')[0]?.slice(0, 40) ?? '';
 
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}.${month}.${day} ${hours}:${minutes}`;
+  };
+
+  const isModified = detail.modifiedAt && detail.modifiedAt !== detail.createdAt;
+
   return (
     <div className="relative flex h-full w-full items-stretch">
       <PrevNextNavArrows currentId={detail.id} />
@@ -151,9 +164,34 @@ export default function ShorlogDetailPageClient({ detail, isOwner = false }: Pro
           <div className="flex flex-1 flex-col overflow-y-auto px-4 pb-4 pt-3 md:px-5 md:pb-5 md:pt-4">
             <section aria-label="숏로그 내용">
               <HighlightedContent content={detail.content} progress={ttsProgress} />
+
+              {detail.hashtags && detail.hashtags.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {detail.hashtags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-3 flex items-center gap-2 text-xs text-slate-400">
+                <time dateTime={detail.createdAt}>
+                  {formatDate(detail.createdAt)}
+                </time>
+                {isModified && (
+                  <>
+                    <span>·</span>
+                    <span>수정됨</span>
+                  </>
+                )}
+              </div>
             </section>
 
-            <section aria-label="리액션" className="mt-4 border-t border-slate-100 pt-3">
+            <section aria-label="리액션" className="mt-2 border-t border-slate-100 pt-3">
               <ShorlogReactionSection
                 likeCount={detail.likeCount}
                 commentCount={detail.commentCount}
