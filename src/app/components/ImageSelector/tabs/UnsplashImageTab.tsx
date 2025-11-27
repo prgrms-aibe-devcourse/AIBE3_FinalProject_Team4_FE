@@ -109,7 +109,7 @@ export default function UnsplashImagePicker({
       const containerRect = container.getBoundingClientRect();
       const elementRect = element.getBoundingClientRect();
       const scrollTop = container.scrollTop;
-      const offset = elementRect.top - containerRect.top + scrollTop - 12; // 16px 여백
+      const offset = elementRect.top - containerRect.top + scrollTop - 12; // 12px 여백
 
       container.scrollTo({ top: offset, behavior: 'smooth' });
     }
