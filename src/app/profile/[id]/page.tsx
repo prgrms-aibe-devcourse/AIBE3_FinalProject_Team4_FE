@@ -3,7 +3,11 @@ import { ProfileHeader } from './ProfileHeader';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-export default async function ProfilePage({ params }: { params: { id: string } }) {
+type ProfilePageProps = {
+  params: { id: string };
+};
+
+export default async function ProfilePage({ params }: ProfilePageProps) {
   const userId = Number(params.id);
 
   const profile = await getProfileData(userId);
