@@ -10,7 +10,7 @@ type PrimaryTab = 'mine' | 'bookmark';
 type SecondaryTab = 'short' | 'long';
 
 interface ProfileContentProps {
-  userId: number;
+  userId: string;
 }
 
 /** 공통 피드 구조 */
@@ -29,7 +29,7 @@ export interface ProfileFeedPost {
 
 export default function ProfileContent({ userId }: ProfileContentProps) {
   const { loginUser, isLogin } = useAuth();
-  const isMe = isLogin && loginUser?.id === userId;
+  const isMe = isLogin && loginUser?.id === Number(userId);
 
   const [primaryTab, setPrimaryTab] = useState<PrimaryTab>('mine');
   const [secondaryTab, setSecondaryTab] = useState<SecondaryTab>('short');
