@@ -4,8 +4,7 @@ import { ProfileHeader } from './ProfileHeader';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export default async function ProfilePage({ params }: { params: { id: string } }) {
-  const routeParams = await params;
-  const userId = Number(routeParams.id);
+  const userId = Number(params.id);
 
   const profile = await getProfileData(userId);
 

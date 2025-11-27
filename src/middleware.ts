@@ -12,7 +12,7 @@ async function fetchUserId(request: NextRequest): Promise<number | null> {
   }
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
+    const res = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -26,13 +26,12 @@ async function fetchUserId(request: NextRequest): Promise<number | null> {
 
     const json = await res.json();
 
-    if (json.resultCode !== '200' || !json.data) {
+    if (json.resultCode !== '200-1' || !json.data) {
       return null;
     }
 
     return json.data.id;
   } catch (error) {
-    console.error('Middleware fetch exception:', error);
     return null;
   }
 }
