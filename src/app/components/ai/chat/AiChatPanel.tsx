@@ -1,8 +1,8 @@
 'use client';
 import { useState } from 'react';
 import Tooltip from '../../common/Tooltip';
-import ChatBotButton from '../AiChatBotButton';
 import AIChat from './AiChatBody';
+import ChatBotButton from './AiChatBotButton';
 import AiChatHeader from './AiChatHeader';
 import AiChatSidebar from './AiChatSidebar';
 import { ModelOption } from './ModelDropdown';
