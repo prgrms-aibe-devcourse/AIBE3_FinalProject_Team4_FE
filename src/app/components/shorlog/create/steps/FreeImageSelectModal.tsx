@@ -96,9 +96,16 @@ export default function FreeImageSelectModal({
       <div className="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl">
         {/* 헤더 */}
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-          <h3 className="text-lg font-semibold text-slate-900">
-            무료 사진 찾기 ({title})
-          </h3>
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold text-slate-900">
+              무료 사진 찾기 ({title})
+            </h3>
+            {apiType === 'google' && (
+              <span className="text-xs text-red-500">
+                ※ 일부 사진은 업로드가 실패할 수 있습니다!
+              </span>
+            )}
+          </div>
           <button
             type="button"
             onClick={onClose}
