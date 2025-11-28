@@ -22,10 +22,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const isMyPage = currentUserId === id;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white text-slate-900">
+    <div className="min-h-screen text-slate-900">
       <div className="flex">
         <main className="flex-1 min-h-screen">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8">
             <ProfileHeader profile={profile} isMyPage={isMyPage} />
             <div className="mt-8">
               <ProfileContent userId={id} isMyPage={isMyPage} />
