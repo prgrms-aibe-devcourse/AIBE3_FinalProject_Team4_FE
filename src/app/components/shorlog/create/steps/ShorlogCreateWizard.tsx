@@ -57,6 +57,31 @@ export default function ShorlogCreateWizard() {
     }
   };
 
+  // 블로그 → 숏로그 변환
+  const handleBlogToShorlogClick = async () => {
+    // TODO: 블로그 내용 기반 요약 생성 기능 구현
+    // 
+    // [조건] 블로그 생성 후 숏로그 생성 시에만 이 버튼이 보여야 함
+    // - URL에서 blogId 파라미터 확인 (예: /shorlog/create?blogId=123)
+    // - blogId가 있을 때만 onBlogToShorlogClick prop 전달
+    //
+    // [구현 순서]
+    // 1. blogId로 해당 블로그 내용 조회
+    //    GET /api/v1/blogs/{blogId}
+    //
+    // 2. 블로그 내용을 AI로 요약 (200-800자)
+    //    POST /api/v1/ais
+    //
+    // 3. 요약 결과를 content에 설정
+    //    setContent(result.data)
+    //
+    // 4. 사용자에게 성공 알림
+    //    "블로그 내용을 숏로그로 요약했어요!"
+
+    console.log('블로그 → 숏로그 변환 기능 (구현 예정)');
+    alert('블로그 → 숏로그 변환 기능은 곧 추가됩니다!');
+  };
+
   // Unsplash 이미지 선택
   const handleUnsplashImagesSelect = async (selectedUrls: string[]) => {
     shorlogCreate.setError(null);
@@ -128,6 +153,8 @@ export default function ShorlogCreateWizard() {
             removeHashtag={hashtag.removeHashtag}
             onAiHashtagClick={handleAiHashtagClick}
             isAiLoading={hashtag.isAiLoading}
+            onBlogToShorlogClick={handleBlogToShorlogClick}
+            isBlogConverting={false}
             onPrev={() => shorlogCreate.goToStep(2)}
             onSaveDraft={handleSaveDraft}
             onSubmit={handleSubmit}
