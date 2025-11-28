@@ -255,12 +255,12 @@ export default function ShorlogCreateWizard() {
     setError(null);
 
     try {
-      const data = await callAiApi({
+      const response = await callAiApi({
         mode: 'hashtag',
         content: content.trim(),
       });
 
-      const suggested = data.hashtags || [];
+      const suggested = response.data?.results || [];
       const merged = [...hashtags];
       suggested.forEach((tag: string) => {
         if (merged.length < 10 && !merged.includes(tag)) merged.push(tag);
