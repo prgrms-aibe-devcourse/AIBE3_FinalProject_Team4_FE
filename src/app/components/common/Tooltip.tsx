@@ -2,20 +2,28 @@ interface TooltipProps {
   text: string;
   className?: string;
   animationClass?: string;
+  positionClass?: string;
+  style?: React.CSSProperties;
 }
 
 export default function Tooltip({
   text,
-  className = 'bg-white text-[15px] text-gray-700 border border-gray-200',
-  animationClass = 'opacity-0 scale-70 group-hover:opacity-100 group-hover:scale-100 transition-all duration-100 ease-out',
+  className = 'bg-neutral-800 text-white text-xs px-2 py-1 rounded-md border-none shadow-lg',
+  animationClass,
+  positionClass = 'bottom-full right-0 mb-2',
+  style,
 }: TooltipProps) {
   return (
-    <div className={`absolute bottom-full right-0 mb-2 pointer-events-none ${animationClass}`}>
-      <div
-        className={`${className} px-3 py-2 rounded-[10px] whitespace-nowrap shadow-[0_2px_8px_rgba(0,0,0,0.12)]`}
-      >
-        {text}
-      </div>
+    <div
+      style={style}
+      className={`
+        absolute pointer-events-none
+        opacity-0 scale-30 group-hover:opacity-100 group-hover:scale-100 transition-all duration-100 ease-out group-hover:delay-200
+        ${positionClass}
+        ${animationClass}
+      `}
+    >
+      <div className={`whitespace-nowrap ${className}`}>{text}</div>
     </div>
   );
 }
