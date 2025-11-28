@@ -7,6 +7,7 @@ import {
   MAX_FILES,
   UploadImageResponse,
   AspectRatio,
+  ShorlogRelatedBlogSummary,
 } from '../types';
 import { uploadImagesBatch, createShorlog } from '../api';
 
@@ -19,6 +20,12 @@ export function useShorlogCreate() {
   const [step, setStep] = useState<Step>(1);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
+
+  // 블로그 연결 모달 관련
+  const [showBlogConnectModal, setShowBlogConnectModal] = useState(false);
+  const [createdShorlogId, setCreatedShorlogId] = useState<string | null>(null);
+  const [recentBlogs, setRecentBlogs] = useState<ShorlogRelatedBlogSummary[]>([]);
+  const [isLoadingBlogs, setIsLoadingBlogs] = useState(false);
 
   const currentStepTitle = useMemo(() => {
     if (step === 1) return '섬네일 선택';
@@ -34,6 +41,30 @@ export function useShorlogCreate() {
   }, [images, uploadedImages]);
 
   const safeSelectedIndex = Math.min(selectedIndex, Math.max(images.length - 1, 0));
+
+  // 최근 블로그 목록 조회
+  const fetchRecentBlogs = async () => {
+    setIsLoadingBlogs(true);
+    try {
+      const response = await fetch('/api/v1/shorlog/my/recent-blogs', {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('최근 블로그 목록 조회 실패');
+      }
+
+      const data = await response.json();
+      setRecentBlogs(data.content || []);
+    } catch (e) {
+      console.error('최근 블로그 목록 조회 실패:', e);
+      setRecentBlogs([]);
+    } finally {
+      setIsLoadingBlogs(false);
+    }
+  };
 
   const addFiles = useCallback(
     (files: File[]) => {
@@ -122,11 +153,19 @@ export function useShorlogCreate() {
         hashtags,
       });
 
+      const shorlogId = result.data?.id;
       const userId = result.data?.userId;
-      if (userId) {
-        router.push(`/profile/${userId}`);
+      if (shorlogId) {
+        setCreatedShorlogId(shorlogId);
+        await fetchRecentBlogs();
+        setShowBlogConnectModal(true);
       } else {
         alert('숏로그가 성공적으로 생성되었습니다!');
+        if (userId) {
+          router.push(`/profile/${userId}`);
+        } else {
+          router.push('/shorlog/feed');
+        }
       }
     } catch (e) {
       console.error(e);
@@ -157,6 +196,31 @@ export function useShorlogCreate() {
     setSelectedIndex(toIndex);
   };
 
+  // 블로그 연결 핸들러
+  const handleSelectBlog = async (blogId: ShorlogRelatedBlogSummary['id']) => {
+    if (!createdShorlogId) return;
+
+    try {
+      console.log('블로그 연결:', { shorlogId: createdShorlogId, blogId });
+
+      setShowBlogConnectModal(false);
+      router.push(`/shorlog/${createdShorlogId}`);
+    } catch (e) {
+      console.error('블로그 연결 실패:', e);
+      setError(e instanceof Error ? e.message : '블로그 연결 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleCreateNewBlog = () => {
+    setShowBlogConnectModal(false);
+    router.push('/blogs/write');
+  };
+
+  const handleSkipConnection = () => {
+    setShowBlogConnectModal(false);
+    router.push('/mypage');
+  };
+
   return {
     // State
     images,
@@ -172,6 +236,12 @@ export function useShorlogCreate() {
     currentStepTitle,
     sliderImages,
     safeSelectedIndex,
+    // 블로그 연결 모달 관련
+    showBlogConnectModal,
+    setShowBlogConnectModal,
+    createdShorlogId,
+    recentBlogs,
+    isLoadingBlogs,
     // Actions
     addFiles,
     goToStep,
@@ -180,6 +250,11 @@ export function useShorlogCreate() {
     changeAspectRatio,
     deleteImage,
     reorderImages,
+    // 블로그 연결 핸들러
+    handleSelectBlog,
+    handleCreateNewBlog,
+    handleSkipConnection,
+    fetchRecentBlogs,
   };
 }
 
