@@ -24,6 +24,7 @@ export function useShorlogCreate() {
   // 블로그 연결 모달 관련
   const [showBlogConnectModal, setShowBlogConnectModal] = useState(false);
   const [createdShorlogId, setCreatedShorlogId] = useState<string | null>(null);
+  const [createdUserId, setCreatedUserId] = useState<string | null>(null);
   const [recentBlogs, setRecentBlogs] = useState<ShorlogRelatedBlogSummary[]>([]);
   const [isLoadingBlogs, setIsLoadingBlogs] = useState(false);
 
@@ -46,7 +47,7 @@ export function useShorlogCreate() {
   const fetchRecentBlogs = async () => {
     setIsLoadingBlogs(true);
     try {
-      const response = await fetch('/api/v1/shorlog/my/recent-blogs', {
+      const response = await fetch('/api/v1/blogs/my/recent-blogs', {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -57,7 +58,7 @@ export function useShorlogCreate() {
       }
 
       const data = await response.json();
-      setRecentBlogs(data.content || []);
+      setRecentBlogs(data.data || []);
     } catch (e) {
       console.error('최근 블로그 목록 조회 실패:', e);
       setRecentBlogs([]);
@@ -157,15 +158,12 @@ export function useShorlogCreate() {
       const userId = result.data?.userId;
       if (shorlogId) {
         setCreatedShorlogId(shorlogId);
+        setCreatedUserId(userId);
         await fetchRecentBlogs();
         setShowBlogConnectModal(true);
       } else {
         alert('숏로그가 성공적으로 생성되었습니다!');
-        if (userId) {
           router.push(`/profile/${userId}`);
-        } else {
-          router.push('/shorlog/feed');
-        }
       }
     } catch (e) {
       console.error(e);
@@ -203,8 +201,11 @@ export function useShorlogCreate() {
     try {
       console.log('블로그 연결:', { shorlogId: createdShorlogId, blogId });
 
+      // TODO: 블로그 연결 API 호출 구현 예정
+      alert('연결은 곧 추가됩니다');
+
       setShowBlogConnectModal(false);
-      router.push(`/shorlog/${createdShorlogId}`);
+      router.push(`/profile/${createdUserId}`);
     } catch (e) {
       console.error('블로그 연결 실패:', e);
       setError(e instanceof Error ? e.message : '블로그 연결 중 오류가 발생했습니다.');
@@ -218,7 +219,7 @@ export function useShorlogCreate() {
 
   const handleSkipConnection = () => {
     setShowBlogConnectModal(false);
-    router.push('/mypage');
+      router.push(`/profile/${createdUserId}`);
   };
 
   return {
@@ -240,6 +241,7 @@ export function useShorlogCreate() {
     showBlogConnectModal,
     setShowBlogConnectModal,
     createdShorlogId,
+    createdUserId,
     recentBlogs,
     isLoadingBlogs,
     // Actions

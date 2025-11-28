@@ -37,8 +37,8 @@ export interface CreateShorlogRequest {
 }
 
 export interface ShorlogRelatedBlogSummary {
-  id: number | string;
+  id: number;
   title: string;
-  tags: string[];
-  createdAtText: string;
+  hashtagNames: string[];
+  modifiedAt: string;
 }
