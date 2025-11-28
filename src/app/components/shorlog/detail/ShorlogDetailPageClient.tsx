@@ -158,6 +158,7 @@ export default function ShorlogDetailPageClient({ detail, isOwner = false }: Pro
               nickname={detail.nickname}
               profileImgUrl={detail.profileImgUrl}
               isOwner={isOwner}
+              shorlogId={detail.id}
             />
           </div>
 

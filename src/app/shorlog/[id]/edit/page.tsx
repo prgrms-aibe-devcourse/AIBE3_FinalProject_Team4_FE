@@ -1,12 +1,12 @@
-import ShorlogDetailPageClient from '../../../components/shorlog/detail/ShorlogDetailPageClient';
-import ShorlogDetailModalWrapper from '../../../components/shorlog/detail/ShorlogDetailModalWrapper';
-import type { ShorlogDetail } from '../../../components/shorlog/detail/types';
-import { getSessionUser } from '@/src/lib/getSessionUser';
+import ShorlogEditModal from '@/src/app/components/shorlog/edit/ShorlogEditModal';
+import type { ShorlogDetail } from '@/src/app/components/shorlog/detail/types';
+import type { Metadata } from 'next';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+// 수정할 숏로그 데이터 조회
 async function fetchShorlogDetail(id: string): Promise<ShorlogDetail> {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
 
@@ -44,20 +44,14 @@ async function fetchShorlogDetail(id: string): Promise<ShorlogDetail> {
   };
 }
 
-export default async function ShorlogModalPage({ params }: PageProps) {
+export const metadata: Metadata = {
+  title: '숏로그 수정 - TexTok',
+};
+
+export default async function ShorlogEditPage({ params }: PageProps) {
   const { id } = await params;
+  const detail = await fetchShorlogDetail(id);
 
-  const [detail, sessionUser] = await Promise.all([
-    fetchShorlogDetail(id),
-    getSessionUser(),
-  ]);
-
-  const isOwner = sessionUser ? detail.userId === sessionUser.id : false;
-
-  return (
-    <ShorlogDetailModalWrapper>
-      <ShorlogDetailPageClient detail={detail} isOwner={isOwner} />
-    </ShorlogDetailModalWrapper>
-  );
+  return <ShorlogEditModal shorlogId={id} initialData={detail} />;
 }
 

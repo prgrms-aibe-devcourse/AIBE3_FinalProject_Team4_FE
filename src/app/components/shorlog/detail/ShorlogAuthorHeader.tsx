@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { requireAuth } from '../../../../lib/auth';
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
   nickname: string;
   profileImgUrl: string | null;
   isOwner?: boolean;
+  shorlogId?: number;
 }
 
 export default function ShorlogAuthorHeader({
@@ -15,7 +17,9 @@ export default function ShorlogAuthorHeader({
   nickname,
   profileImgUrl,
   isOwner = false,
+  shorlogId,
 }: Props) {
+  const router = useRouter();
   const [isFollowing, setIsFollowing] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -28,7 +32,23 @@ export default function ShorlogAuthorHeader({
 
   const handleMenuAction = (action: string) => {
     setMenuOpen(false);
-    // TODO: 수정/삭제/블로그 연결 기능 구현
+
+    if (action === '수정') {
+      if (shorlogId) {
+        router.push(`/shorlog/${shorlogId}/edit`);
+      }
+      return;
+    }
+
+    if (action === '삭제') {
+      if (confirm('정말 삭제하시겠습니까?')) {
+        // TODO: 삭제 API 구현
+        alert('삭제 기능은 추후 제공될 예정입니다.');
+      }
+      return;
+    }
+
+    // TODO: 블로그 연결 기능 구현
     alert(`${action} 기능은 추후 제공될 예정입니다.`);
   };
 
