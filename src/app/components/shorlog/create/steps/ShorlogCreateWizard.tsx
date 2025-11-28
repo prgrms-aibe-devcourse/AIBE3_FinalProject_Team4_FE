@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import {
   LocalImage,
   MAX_CONTENT_LENGTH,
@@ -24,8 +23,6 @@ export default function ShorlogCreateWizard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<Step>(1);
 
-  const searchParams = useSearchParams();
-  const blogId = searchParams.get('blogId');
 
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -338,7 +335,7 @@ export default function ShorlogCreateWizard() {
             onNext={handleNextFromStep1}
             onAiFreePhoto={handleAiKeywordForUnsplash}
             onBlogPhotoClick={handleBlogPhotoClick}
-            hasBlogId={!!blogId}
+            hasBlogId={false}
           />
         )}
 
@@ -377,9 +374,9 @@ export default function ShorlogCreateWizard() {
           />
         )}
 
-        {showBlogImageModal && blogId && (
+        {showBlogImageModal && (
           <BlogImageSelectModal
-            blogId={blogId}
+            blogId={'mock-blog-id'}
             onSelect={handleBlogImagesSelect}
             onClose={() => setShowBlogImageModal(false)}
             maxSelect={MAX_FILES - images.length}
