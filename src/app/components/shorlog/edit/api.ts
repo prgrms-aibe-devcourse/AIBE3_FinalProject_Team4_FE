@@ -130,3 +130,16 @@ export async function disconnectBlogFromShorlog(shorlogId: string): Promise<void
   }
 }
 
+// 숏로그 삭제
+export async function deleteShorlog(shorlogId: string): Promise<void> {
+  const response = await fetch(`/api/v1/shorlog/${shorlogId}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || '숏로그 삭제 실패');
+  }
+}
+
