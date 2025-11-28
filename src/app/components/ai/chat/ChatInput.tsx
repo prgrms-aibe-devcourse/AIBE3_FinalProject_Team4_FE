@@ -56,9 +56,12 @@ export default function ChatInput({
     <div className="p-4">
       <div className="rounded-3xl border bg-white p-3 shadow-sm">
         {/* Top row: small badges / context */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 text-xs text-slate-700 border">
+        <div className="inline-flex max-w-full items-center gap-2 px-3 py-1 rounded-full bg-slate-50 text-xs text-slate-700 border">
           <FileText size={14} className="text-slate-500" />
-          <span className="whitespace-nowrap font-light">{displayTitle}</span>
+          {/* <span className="whitespace-nowrap font-light">{displayTitle}</span> */}
+          <span className="min-w-0 truncate font-light">
+            ㅏㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ
+          </span>
         </div>
 
         {/* Middle: large input / placeholder */}
