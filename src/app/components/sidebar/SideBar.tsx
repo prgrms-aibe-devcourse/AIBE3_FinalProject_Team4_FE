@@ -101,6 +101,13 @@ export default function Sidebar() {
             <Link
               key={item.label}
               href={item.href}
+              onClick={(e) => {
+                // 숏피드 링크 클릭 시 이미 숏피드 페이지에 있으면 강제 새로고침
+                if (item.href === '/shorlog/feed' && pathname.startsWith('/shorlog')) {
+                  e.preventDefault();
+                  window.location.href = '/shorlog/feed';
+                }
+              }}
               className={
                 `flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ` +
                 (isActive ? 'text-blue-600 font-medium' : 'text-gray-800 hover:bg-gray-100')
