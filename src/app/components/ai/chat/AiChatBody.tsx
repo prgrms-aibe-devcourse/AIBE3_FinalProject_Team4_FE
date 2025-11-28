@@ -27,6 +27,26 @@ export default function AIChat() {
       role: 'assistant',
       text: 'that looks so good that looks so good that looks so good that looks so good!',
     },
+    {
+      id: 4,
+      role: 'assistant',
+      text: 'that looks so good that looks so good that looks so good that looks so good!',
+    },
+    {
+      id: 5,
+      role: 'assistant',
+      text: 'that looks so good that looks so good that looks so good that looks so good!',
+    },
+    {
+      id: 6,
+      role: 'assistant',
+      text: 'that looks so good that looks so good that looks so good that looks so good!',
+    },
+    {
+      id: 7,
+      role: 'assistant',
+      text: 'that looks so good that looks so good that looks so good that looks so good!',
+    },
   ]);
 
   const sendMessage = (text: string) => {
