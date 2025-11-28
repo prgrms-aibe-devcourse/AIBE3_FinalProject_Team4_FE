@@ -124,7 +124,11 @@ export async function callAiApi(params: {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(params),
+      body: JSON.stringify({
+        mode: params.mode,
+        contentType: 'shorlog',
+        content: params.content,
+      }),
       credentials: 'include',
     });
 
@@ -133,7 +137,8 @@ export async function callAiApi(params: {
       throw new Error(errorData.message || `AI API 호출 실패 (${response.status})`);
     }
 
-    return await response.json();
+    const result = await response.json();
+    return result;
   } catch (error) {
     if (error instanceof TypeError && error.message === 'Failed to fetch') {
       throw new Error('서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.');
