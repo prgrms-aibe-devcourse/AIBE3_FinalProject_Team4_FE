@@ -131,9 +131,9 @@ export default function ContentComposeStep({
               type="button"
               onClick={onAiHashtagClick}
               disabled={isAiLoading}
-              className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]"
+              className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]"
             >
-              {isAiLoading && <LoadingSpinner />}
+              {isAiLoading && <LoadingSpinner size="sm" inline />}
               <span>{isAiLoading ? 'AI 추천 중...' : 'AI 해시태그 추천'}</span>
             </button>
             <span className="text-[11px] text-slate-400">
@@ -166,7 +166,7 @@ export default function ContentComposeStep({
             >
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
-                  <LoadingSpinner />
+                  <LoadingSpinner size="sm" inline theme="light" />
                   <span>작성 중...</span>
                 </span>
               ) : (
