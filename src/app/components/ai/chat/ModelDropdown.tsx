@@ -1,0 +1,96 @@
+import { Bot, BotOff, ChevronDown, ChevronUp } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+
+export interface ModelOption {
+  label: string;
+  value: string;
+  enabled: boolean;
+}
+
+interface ModelDropdownProps {
+  options: ModelOption[];
+  selected: ModelOption;
+  onSelect: (value: string) => void;
+  direction?: 'down' | 'up';
+}
+
+export default function ModelDropdown({
+  options,
+  selected,
+  onSelect,
+  direction = 'down',
+}: ModelDropdownProps) {
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  return (
+    <div ref={dropdownRef} className="relative flex items-center gap-3">
+      <button
+        aria-label="모델 변경"
+        className="w-auto h-8 rounded-full flex items-center gap-1 px-2 text-slate-500 hover:bg-slate-100 transition"
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+      >
+        {selected.enabled ? (
+          <Bot size={20} strokeWidth={1.2} />
+        ) : (
+          <BotOff size={20} strokeWidth={1.2} />
+        )}
+        <span className="ml-1 text-xs font-light text-slate-700 whitespace-nowrap">
+          {selected.label}
+        </span>
+        {direction === 'up' ? (
+          <ChevronUp size={16} className="ml-0.5" />
+        ) : (
+          <ChevronDown size={16} className="ml-0.5" />
+        )}
+      </button>
+      {open && (
+        <div
+          className={`absolute left-0 z-30 min-w-[120px] bg-white border rounded-xl shadow p-1 flex flex-col ${direction === 'up' ? 'bottom-10' : 'top-10'}`}
+        >
+          {options.map((opt) => {
+            const isSelected = opt.value === selected.value;
+            return (
+              <button
+                key={opt.value}
+                className={`flex items-center gap-2 px-3 py-1 text-xs rounded-xl transition whitespace-nowrap
+                  ${isSelected ? 'text-main' : 'text-slate-700'}
+                  ${!opt.enabled ? 'opacity-50' : 'hover:bg-slate-100'}`}
+                onClick={() => {
+                  if (opt.enabled) {
+                    onSelect(opt.value);
+                    setOpen(false);
+                  }
+                }}
+                disabled={!opt.enabled}
+              >
+                {opt.enabled ? (
+                  isSelected ? (
+                    <Bot size={16} strokeWidth={1.2} />
+                  ) : (
+                    <span style={{ width: 16, display: 'inline-block' }} />
+                  )
+                ) : (
+                  <BotOff size={16} strokeWidth={1.2} />
+                )}
+                <span className="font-light">{opt.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
