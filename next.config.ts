@@ -3,12 +3,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'next5-dev-images.s3.ap-northeast-2.amazonaws.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'shorlog-dev-bucket.s3.ap-northeast-2.amazonaws.com',
+        hostname: 'shorlog-dev-images.s3.ap-northeast-2.amazonaws.com',
         pathname: '/**',
       },
     ],
@@ -16,6 +11,14 @@ const nextConfig = {
   eslint: {
     // 빌드 시 ESLint 에러가 나도 빌드는 계속 진행 npm run lint에서 lint 에러
     ignoreDuringBuilds: true,
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:8080/api/:path*',
+      },
+    ];
   },
 };
 
