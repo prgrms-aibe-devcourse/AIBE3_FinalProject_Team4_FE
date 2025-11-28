@@ -11,6 +11,7 @@ type SecondaryTab = 'short' | 'long';
 
 interface ProfileContentProps {
   userId: string;
+  isMyPage: boolean;
 }
 
 /** 공통 피드 구조 */
@@ -27,7 +28,7 @@ export interface ProfileFeedPost {
   popularityScore: number;
 }
 
-export default function ProfileContent({ userId }: ProfileContentProps) {
+export default function ProfileContent({ userId, isMyPage }: ProfileContentProps) {
   const { loginUser, isLogin } = useAuth();
   const isMe = isLogin && loginUser?.id === Number(userId);
 
@@ -47,14 +48,23 @@ export default function ProfileContent({ userId }: ProfileContentProps) {
 
       let data: ProfileFeedPost[] = [];
 
-      if (primaryTab === 'mine') {
-        if (secondaryTab === 'short') data = await getMyShorlogs(sortKey);
-        else data = await getMyBlogs(sortKey);
+      // ⭐ 내 페이지일 때 : 기존 로직 그대로 유지
+      if (isMyPage) {
+        if (primaryTab === 'mine') {
+          if (secondaryTab === 'short') data = await getMyShorlogs(sortKey);
+          else data = await getMyBlogs(sortKey);
+        } else {
+          if (!isMe) data = [];
+          else
+            data =
+              secondaryTab === 'short' ? await getBookmarkedShorlogs() : await getBookmarkedBlogs();
+        }
       } else {
-        if (!isMe) data = [];
-        else {
-          data =
-            secondaryTab === 'short' ? await getBookmarkedShorlogs() : await getBookmarkedBlogs();
+        // 다른사람 페이지 : primaryTab 대신 secondaryTab만 사용 (1차=short/long)
+        if (secondaryTab === 'short') {
+          data = await getUserShorlogs(userId);
+        } else {
+          data = await getUserBlogs(userId);
         }
       }
 
@@ -63,105 +73,103 @@ export default function ProfileContent({ userId }: ProfileContentProps) {
     }
 
     load();
-  }, [primaryTab, secondaryTab, sortKey, isMe]);
+  }, [isMyPage, primaryTab, secondaryTab, sortKey, isMe, userId]);
 
   /* 🔥 정렬 + 필터 */
   const filteredAndSorted = useMemo(() => {
-    const filtered = posts.filter((p) =>
-      secondaryTab === 'short' ? p.type === 'short' : p.type === 'long',
-    );
-
-    return [...filtered].sort((a, b) => {
+    return [...posts].sort((a, b) => {
       if (sortKey === 'latest') return +new Date(b.createdAt ?? 0) - +new Date(a.createdAt ?? 0);
       if (sortKey === 'oldest') return +new Date(a.createdAt ?? 0) - +new Date(b.createdAt ?? 0);
-
       return b.popularityScore - a.popularityScore;
     });
-  }, [posts, secondaryTab, sortKey]);
+  }, [posts, sortKey]);
 
   const shortCount = posts.filter((p) => p.type === 'short').length;
   const longCount = posts.filter((p) => p.type === 'long').length;
 
   return (
     <section className="space-y-4">
-      {/* ✨ 상단 탭 UI */}
-      <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-        <div className="flex gap-6 text-sm">
+      {isMyPage ? (
+        /* 내 페이지 */
+        <div className="flex items-end justify-between border-b border-slate-200">
+          <div className="flex gap-0 text-lg">
+            <button
+              onClick={() => setPrimaryTab('mine')}
+              className={`px-8 pb-2 border-b-2 ${primaryTab === 'mine' ? 'border-slate-900 font-semibold' : 'border-transparent text-slate-500'}`}
+            >
+              내 글
+            </button>
+
+            {isMe && (
+              <button
+                onClick={() => setPrimaryTab('bookmark')}
+                className={`px-8 pb-2 border-b-2 ${primaryTab === 'bookmark' ? 'border-slate-900 font-semibold' : 'border-transparent text-slate-500'}`}
+              >
+                북마크
+              </button>
+            )}
+          </div>
+
+          {/* 정렬 */}
+          <SortButtons sortKey={sortKey} setSortKey={setSortKey} />
+        </div>
+      ) : (
+        /* 다른사람 페이지 */
+        <div className="flex items-end justify-between border-b border-slate-200">
+          <div className="flex gap-0 text-lg">
+            <button
+              onClick={() => setSecondaryTab('short')}
+              className={`px-8 pb-2 border-b-2 ${secondaryTab === 'short' ? 'border-slate-900 font-semibold' : 'border-transparent text-slate-500'}`}
+            >
+              숏로그
+            </button>
+
+            <button
+              onClick={() => setSecondaryTab('long')}
+              className={`px-8 pb-2 border-b-2 ${secondaryTab === 'long' ? 'border-slate-900 font-semibold' : 'border-transparent text-slate-500'}`}
+            >
+              블로그
+            </button>
+          </div>
+
+          <SortButtons sortKey={sortKey} setSortKey={setSortKey} />
+        </div>
+      )}
+
+      {isMyPage && (
+        <div className="inline-flex items-center rounded-md p-0.5 text-[14px]">
           <button
-            onClick={() => setPrimaryTab('mine')}
-            className={`pb-2 border-b-2 -mb-px ${
-              primaryTab === 'mine'
-                ? 'border-slate-900 font-semibold'
-                : 'border-transparent text-slate-500'
+            onClick={() => setSecondaryTab('short')}
+            className={`px-4 py-1.5 rounded-md ${
+              secondaryTab === 'short'
+                ? 'bg-slate-100 font-semibold text-slate-900'
+                : 'text-slate-500'
             }`}
           >
-            내 글
+            숏로그 <span className="text-slate-400">{shortCount}개</span>
           </button>
 
-          {isMe && (
-            <button
-              onClick={() => setPrimaryTab('bookmark')}
-              className={`pb-2 border-b-2 -mb-px ${
-                primaryTab === 'bookmark'
-                  ? 'border-slate-900 font-semibold'
-                  : 'border-transparent text-slate-500'
-              }`}
-            >
-              북마크
-            </button>
-          )}
+          <button
+            onClick={() => setSecondaryTab('long')}
+            className={`px-4 py-1.5 rounded-md ${
+              secondaryTab === 'long'
+                ? 'bg-slate-100 font-semibold text-slate-900'
+                : 'text-slate-500'
+            }`}
+          >
+            블로그 <span className="text-slate-400">{longCount}개</span>
+          </button>
         </div>
+      )}
 
-        {/* 정렬 버튼 */}
-        <div className="inline-flex items-center rounded-full bg-slate-100 p-1 text-[13px]">
-          {[
-            { key: 'latest', label: '최신' },
-            { key: 'popular', label: '인기' },
-            { key: 'oldest', label: '오래된 순' },
-          ].map((item) => (
-            <button
-              key={item.key}
-              onClick={() => setSortKey(item.key as SortKey)}
-              className={`px-3 py-1.5 rounded-full ${
-                sortKey === item.key ? 'bg-white shadow text-slate-900' : 'text-slate-500'
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* 숏로그/블로그 탭 */}
-      <div className="flex gap-6 text-[13px]">
-        <button
-          onClick={() => setSecondaryTab('short')}
-          className={`pb-1 border-b-2 -mb-px ${
-            secondaryTab === 'short'
-              ? 'border-slate-900 font-semibold'
-              : 'border-transparent text-slate-500'
-          }`}
-        >
-          숏로그 <span className="text-slate-400">{shortCount}개</span>
-        </button>
-
-        <button
-          onClick={() => setSecondaryTab('long')}
-          className={`pb-1 border-b-2 -mb-px ${
-            secondaryTab === 'long'
-              ? 'border-slate-900 font-semibold'
-              : 'border-transparent text-slate-500'
-          }`}
-        >
-          블로그 <span className="text-slate-400">{longCount}개</span>
-        </button>
-      </div>
-
-      {/* ✨ 카드 UI 구현 (ShorlogCard 제거) */}
       {loading ? (
         <div className="mt-8 text-center text-sm text-slate-600">불러오는 중…</div>
       ) : filteredAndSorted.length === 0 ? (
-        <div className="mt-8 text-center text-sm text-slate-600">아직 작성한 글이 없어요.</div>
+        <div className="mt-8 text-center text-sm text-slate-600">
+          {isMyPage && primaryTab === 'bookmark'
+            ? '아직 북마크 글이 없어요.'
+            : '아직 작성한 글이 없어요.'}
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-4">
           {filteredAndSorted.map((post) => (
@@ -170,6 +178,34 @@ export default function ProfileContent({ userId }: ProfileContentProps) {
         </div>
       )}
     </section>
+  );
+}
+
+function SortButtons({
+  sortKey,
+  setSortKey,
+}: {
+  sortKey: SortKey;
+  setSortKey: (v: SortKey) => void;
+}) {
+  return (
+    <div className="inline-flex items-center rounded-md bg-slate-100 p-0.5 text-[13px]">
+      {[
+        { key: 'latest', label: '최신' },
+        { key: 'popular', label: '인기' },
+        { key: 'oldest', label: '오래된 순' },
+      ].map((item) => (
+        <button
+          key={item.key}
+          onClick={() => setSortKey(item.key as SortKey)}
+          className={`px-3 py-1.5 rounded-md ${
+            sortKey === item.key ? 'bg-white shadow text-slate-900' : 'text-slate-500'
+          }`}
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -273,6 +309,14 @@ async function getMyShorlogs(sortKey: SortKey): Promise<ProfileFeedPost[]> {
       popularityScore: (item.likeCount ?? 0) + (item.commentCount ?? 0) * 2,
     }),
   );
+}
+
+async function getUserShorlogs(userId: string): Promise<ProfileFeedPost[]> {
+  return [];
+}
+
+async function getUserBlogs(userId: string): Promise<ProfileFeedPost[]> {
+  return [];
 }
 
 // 북마크는 아직 API 없으니 임시 구현

@@ -107,7 +107,7 @@ export default function Sidebar() {
               <div className="relative flex items-center justify-center">
                 {isProfileItem && isLogin ? (
                   <img
-                    src={loginUser?.profileImgUrl ?? '/tmpProfile.png'}
+                    src={loginUser?.profileImgUrl || '/tmpProfile.png'}
                     alt="profile icon"
                     className="w-7 h-7 rounded-full object-cover"
                   />
