@@ -16,6 +16,8 @@ interface ContentComposeStepProps {
   removeHashtag: (tag: string) => void;
   onAiHashtagClick: () => void;
   isAiLoading: boolean;
+  onBlogToShorlogClick?: () => void;
+  isBlogConverting?: boolean;
   onPrev: () => void;
   onSaveDraft: () => void;
   onSubmit: () => void;
@@ -34,6 +36,8 @@ export default function ContentComposeStep({
                                              removeHashtag,
                                              onAiHashtagClick,
                                              isAiLoading,
+                                             onBlogToShorlogClick,
+                                             isBlogConverting = false,
                                              onPrev,
                                              onSaveDraft,
                                              onSubmit,
@@ -140,6 +144,23 @@ export default function ContentComposeStep({
               {hashtags.length}/10
             </span>
           </div>
+
+          {onBlogToShorlogClick && (
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={onBlogToShorlogClick}
+                disabled={isBlogConverting}
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-[#2979FF]/20 bg-[#2979FF]/5 px-4 py-2.5 text-xs font-medium text-[#2979FF] shadow-sm hover:bg-[#2979FF]/10 disabled:cursor-not-allowed disabled:text-slate-400 disabled:border-slate-200 disabled:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]"
+              >
+                {isBlogConverting && <LoadingSpinner size="sm" inline theme="default" />}
+                <span>{isBlogConverting ? '블로그 요약 중...' : '📝 블로그 → 숏로그 변환'}</span>
+              </button>
+              <p className="mt-1.5 text-center text-[10px] text-slate-400">
+                최근 작성한 블로그 내용을 숏로그로 요약해요
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="mt-auto flex items-center justify-between gap-2 pt-1">
