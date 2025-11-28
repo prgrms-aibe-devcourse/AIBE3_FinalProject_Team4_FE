@@ -5,12 +5,14 @@ import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import MorePanel from './MorePanel';
 import { guestMenu, loggedInMenu } from './SideBarMenu';
 
 export default function Sidebar() {
   const { loginUser, isLogin, logout } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const pathname = usePathname();
   const router = useRouter();
@@ -36,18 +38,20 @@ export default function Sidebar() {
   // 외부 클릭 시 popover 닫기
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
+      // 로그아웃 모달이 열려있으면 외부 클릭 무시
+      if (showLogoutModal) return;
+
       if (moreModalRef.current && !moreModalRef.current.contains(e.target as Node)) {
         setIsMoreOpen(false);
+        // 패널이 닫힐 때 화면이 크면 확대모드로 전환
+        if (window.innerWidth >= 1280) {
+          setIsCollapsed(false);
+        }
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const handleLogout = async () => {
-    setIsMoreOpen(false);
-    await logout();
-  };
+  }, [showLogoutModal]);
 
   return (
     <aside
@@ -98,7 +102,7 @@ export default function Sidebar() {
               flex items-center justify-center w-7 h-7 pointer-events-none
             "
           >
-            <Search size={22} className={isCollapsed ? 'text-blue-600' : 'text-gray-700'} />
+            <Search size={22} />
           </div>
 
           {/* input은 확장 모드일 때만 렌더
@@ -121,6 +125,73 @@ export default function Sidebar() {
         {menu.map((item) => {
           const isActive =
             item.href === '/profile' ? pathname.startsWith('/profile') : pathname === item.href;
+
+          if (item.label === '더보기') {
+            const isMoreActive = isMoreOpen;
+
+            return (
+              <div key={item.label} className="relative group" ref={moreModalRef}>
+                <button
+                  onClick={() => {
+                    if (isMoreOpen) {
+                      setIsMoreOpen(false);
+                      if (window.innerWidth >= 1280) setIsCollapsed(false);
+                    } else {
+                      setIsCollapsed(true);
+                      setTimeout(() => setIsMoreOpen(true), 150);
+                    }
+                  }}
+                  className={`
+                    flex items-center gap-3 px-4 py-2 rounded-lg transition-all
+                    ${isMoreActive ? 'text-blue-600 font-medium' : 'text-gray-800 hover:bg-gray-100'}
+                  `}
+                >
+                  <div className="flex items-center justify-center w-7 h-7 flex-shrink-0">
+                    <item.icon size={24} />
+                  </div>
+
+                  <span
+                    className={`
+                      whitespace-nowrap transition-all duration-300
+                      ${isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'}
+                    `}
+                  >
+                    {item.label}
+                  </span>
+                </button>
+
+                {/* 축소 모드 툴팁 */}
+                {isCollapsed && (
+                  <span
+                    className="
+                      absolute left-20 top-1/2 -translate-y-1/2
+                      px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0
+                      group-hover:opacity-100 transition pointer-events-none 
+                      whitespace-nowrap
+                    "
+                  >
+                    {item.label}
+                  </span>
+                )}
+
+                {/* ⭐ 패널을 wrapper 안으로 이동 — 이제 패널 내부 클릭은 ref 내부로 인식됨! */}
+                {isMoreOpen && (
+                  <MorePanel
+                    onClose={() => {
+                      setIsMoreOpen(false);
+
+                      // 🔥 화면이 넓으면 다시 확장 상태로 돌아가기
+                      if (window.innerWidth >= 1280) {
+                        setIsCollapsed(false);
+                      }
+                    }}
+                    showLogoutModal={showLogoutModal}
+                    setShowLogoutModal={setShowLogoutModal}
+                  />
+                )}
+              </div>
+            );
+          }
 
           return (
             <div key={item.label} className="relative group">
