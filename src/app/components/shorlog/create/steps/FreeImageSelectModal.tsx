@@ -1,45 +1,66 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { BlogImage } from '../types';
+import { useState } from 'react';
 
-interface BlogImageSelectModalProps {
-  blogId: string;
+interface FreeImageSelectModalProps {
   onSelect: (selectedImages: string[]) => void;
   onClose: () => void;
   maxSelect: number;
+  apiType: 'unsplash' | 'google';
 }
 
-export default function BlogImageSelectModal({
-  blogId,
+interface ImageResult {
+  url: string;
+  width?: number;
+  height?: number;
+}
+
+export default function FreeImageSelectModal({
   onSelect,
   onClose,
   maxSelect,
-}: BlogImageSelectModalProps) {
-  const [blogImages, setBlogImages] = useState<BlogImage[]>([]);
+  apiType,
+}: FreeImageSelectModalProps) {
+  const [keyword, setKeyword] = useState('');
+  const [images, setImages] = useState<ImageResult[]>([]);
   const [selectedUrls, setSelectedUrls] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchBlogImages();
-  }, [blogId]);
+  const handleSearch = async () => {
+    if (!keyword.trim()) {
+      setError('검색어를 입력해주세요.');
+      return;
+    }
 
-  const fetchBlogImages = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      // TODO: 실제 API 호출로 교체 (3번 이연서 협업)
-      const response = await fetch(`/api/v1/blogs/${blogId}/images`);
+      const endpoint = apiType === 'unsplash'
+        ? `/api/v1/images/unsplash?keyword=${encodeURIComponent(keyword.trim())}&page=0&size=20`
+        : `/api/v1/images/google?keyword=${encodeURIComponent(keyword.trim())}&page=0&size=20`;
+
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
       if (!response.ok) {
-        throw new Error('블로그 이미지 조회 실패');
+        throw new Error(`${apiType === 'unsplash' ? 'Unsplash' : 'Google'} 이미지 검색 실패`);
       }
-      const data = await response.json();
-      setBlogImages(data.images || []);
+
+      const result = await response.json();
+      const fetchedImages: ImageResult[] = result?.data?.content || [];
+
+      setImages(fetchedImages);
+
+      if (fetchedImages.length === 0) {
+        setError('검색 결과가 없습니다. 다른 키워드를 시도해보세요.');
+      }
     } catch (e) {
-      console.error('블로그 이미지 조회 실패:', e);
-      setError('블로그 이미지를 불러오는데 실패했습니다.');
+      console.error('이미지 검색 실패:', e);
+      setError(e instanceof Error ? e.message : '이미지를 불러오는데 실패했습니다.');
     } finally {
       setIsLoading(false);
     }
@@ -68,14 +89,23 @@ export default function BlogImageSelectModal({
     onClose();
   };
 
+  const title = apiType === 'unsplash' ? 'Unsplash' : 'Google';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div className="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl">
         {/* 헤더 */}
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-          <h3 className="text-lg font-semibold text-slate-900">
-            블로그 사진 선택
-          </h3>
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold text-slate-900">
+              무료 사진 찾기 ({title})
+            </h3>
+            {apiType === 'google' && (
+              <span className="text-xs text-red-500">
+                ※ 일부 사진은 업로드가 실패할 수 있습니다!
+              </span>
+            )}
+          </div>
           <button
             type="button"
             onClick={onClose}
@@ -97,6 +127,28 @@ export default function BlogImageSelectModal({
           </button>
         </div>
 
+        {/* 검색 바 */}
+        <div className="border-b border-slate-200 px-6 py-4">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              placeholder={`검색어 입력 (예: ${apiType === 'unsplash' ? 'nature, technology' : '자연, 기술'})`}
+              className="flex-1 rounded-lg border border-slate-200 bg-slate-50/60 px-4 py-2 text-sm text-slate-900 outline-none transition focus:border-[#2979FF] focus:bg-white focus:ring-2 focus:ring-[#2979FF]/20"
+            />
+            <button
+              type="button"
+              onClick={handleSearch}
+              disabled={isLoading}
+              className="rounded-lg bg-[#2979FF] px-6 py-2 text-sm font-medium text-white transition hover:bg-[#1f63d1] disabled:cursor-not-allowed disabled:bg-slate-300"
+            >
+              검색
+            </button>
+          </div>
+        </div>
+
         {/* 내용 */}
         <div className="max-h-[60vh] overflow-y-auto px-6 py-4">
           {isLoading && (
@@ -111,27 +163,27 @@ export default function BlogImageSelectModal({
             </div>
           )}
 
-          {!isLoading && !error && blogImages.length === 0 && (
+          {!isLoading && !error && images.length === 0 && (
             <div className="flex h-40 items-center justify-center">
               <p className="text-sm text-slate-500">
-                블로그에 이미지가 없습니다.
+                검색어를 입력하고 검색 버튼을 눌러주세요.
               </p>
             </div>
           )}
 
-          {!isLoading && !error && blogImages.length > 0 && (
+          {!isLoading && !error && images.length > 0 && (
             <>
               <p className="mb-4 text-sm text-slate-600">
                 선택된 이미지: {selectedUrls.length}/{maxSelect}
               </p>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {blogImages.map((image) => {
-                  const isSelected = selectedUrls.includes(image.imageUrl);
+                {images.map((image, index) => {
+                  const isSelected = selectedUrls.includes(image.url);
                   return (
                     <button
-                      key={image.id}
+                      key={`${image.url}-${index}`}
                       type="button"
-                      onClick={() => toggleImage(image.imageUrl)}
+                      onClick={() => toggleImage(image.url)}
                       className={`relative aspect-[4/3] overflow-hidden rounded-lg border-2 transition ${
                         isSelected
                           ? 'border-[#2979FF] ring-2 ring-[#2979FF]/30'
@@ -139,8 +191,8 @@ export default function BlogImageSelectModal({
                       }`}
                     >
                       <img
-                        src={image.imageUrl}
-                        alt={image.originalFilename}
+                        src={image.url}
+                        alt={`${title} image ${index + 1}`}
                         className="h-full w-full object-cover"
                       />
                       {isSelected && (

@@ -7,9 +7,8 @@ interface ThumbnailSelectStepProps {
   onFileInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onAddFiles: (files: File[]) => void;
   onNext: () => void;
-  onAiFreePhoto: () => void;
-  onBlogPhotoClick?: () => void;
-  hasBlogId?: boolean;
+  onUnsplashPhoto: () => void;
+  onGooglePhoto: () => void;
 }
 
 export default function ThumbnailSelectStep({
@@ -17,9 +16,8 @@ export default function ThumbnailSelectStep({
   onFileInputChange,
   onAddFiles,
   onNext,
-  onAiFreePhoto,
-  onBlogPhotoClick,
-  hasBlogId = false,
+  onUnsplashPhoto,
+  onGooglePhoto,
 }: ThumbnailSelectStepProps) {
   const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
@@ -66,20 +64,18 @@ export default function ThumbnailSelectStep({
           </button>
           <button
             type="button"
-            onClick={onAiFreePhoto}
+            onClick={onUnsplashPhoto}
             className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]"
           >
-            무료 사진 찾기 (AI)
+            무료 사진 (Unsplash)
           </button>
-          {hasBlogId && onBlogPhotoClick && (
-            <button
-              type="button"
-              onClick={onBlogPhotoClick}
-              className="rounded-full border border-[#2979FF] bg-[#2979FF]/5 px-4 py-2 text-xs font-medium text-[#2979FF] shadow-sm transition hover:bg-[#2979FF]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]"
-            >
-              블로그 사진 사용
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={onGooglePhoto}
+            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]"
+          >
+            무료 사진 (Google)
+          </button>
         </div>
 
         <input

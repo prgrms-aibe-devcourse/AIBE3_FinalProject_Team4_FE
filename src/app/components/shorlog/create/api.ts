@@ -1,34 +1,148 @@
 import {
-  AspectRatio,
   CreateShorlogRequest,
-  ImageSourceType,
   LocalImage,
   UploadImageOrderRequest,
   UploadImageResponse,
 } from './types';
 
-export async function uploadImagesBatchMock(
+export async function uploadImagesBatch(
   images: LocalImage[],
 ): Promise<UploadImageResponse[]> {
-  const orders: UploadImageOrderRequest[] = images.map((img, index) => ({
-    order: index,
-    type: img.sourceType as ImageSourceType,
-    fileIndex: img.sourceType === 'FILE' ? index : null,
-    url: img.sourceType === 'URL' ? img.remoteUrl ?? null : null,
-    aspectRatio: img.aspectRatio as AspectRatio,
-  }));
+  const formData = new FormData();
 
-  console.log('would upload with orders:', orders);
+  const orders: UploadImageOrderRequest[] = images.map((img, index) => {
+    const type = img.sourceType.toLowerCase() as 'file' | 'url';
+    return {
+      order: index,
+      type: type,
+      fileIndex: img.sourceType === 'FILE' ? index : null,
+      url: img.sourceType === 'URL' ? img.remoteUrl ?? null : null,
+      aspectRatio: img.aspectRatio,
+    };
+  });
 
-  return images.map((img, index) => ({
-    id: index + 1,
-    imageUrl: img.previewUrl,
-    originalFilename: img.originalFilename ?? `image-${index + 1}.jpg`,
-    fileSize: 1024 * 100,
-  }));
+  console.log('📤 업로드 요청 orders:', JSON.stringify(orders, null, 2));
+  formData.append('orders', JSON.stringify(orders));
+
+  let totalFileSize = 0;
+  let fileCount = 0;
+  images.forEach((img, index) => {
+    if (img.sourceType === 'FILE' && img.file) {
+      formData.append('files', img.file);
+      totalFileSize += img.file.size;
+      fileCount++;
+      console.log(`  📎 파일 ${index + 1}: ${img.file.name} (${(img.file.size / 1024 / 1024).toFixed(2)}MB)`);
+    }
+  });
+
+  console.log(`\n📊 업로드 요약:`);
+  console.log(`  - 총 이미지 수: ${images.length}`);
+  console.log(`  - FILE 타입: ${fileCount}개`);
+  console.log(`  - URL 타입: ${images.filter(img => img.sourceType === 'URL').length}개`);
+  console.log(`  - 총 파일 크기: ${(totalFileSize / 1024 / 1024).toFixed(2)}MB`);
+
+  if (totalFileSize > 100 * 1024 * 1024) { // 100MB
+    throw new Error('파일 전체 크기가 100MB를 초과합니다. 일부 이미지를 제거해주세요.');
+  }
+
+  console.log(`\n🚀 업로드 시작: POST /api/v1/shorlog/images/batch`);
+
+  try {
+    const response = await fetch('/api/v1/shorlog/images/batch', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ 서버 오류 응답:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorData
+      });
+      throw new Error(errorData.message || `이미지 업로드 실패 (${response.status})`);
+    }
+
+    const result = await response.json();
+    console.log('✅ 업로드 성공:', {
+      uploadedCount: result.data?.length || 0,
+      data: result.data
+    });
+    return result.data || [];
+  } catch (error) {
+    console.error('💥 업로드 오류 상세:', {
+      errorType: error instanceof Error ? error.constructor.name : typeof error,
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
+
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new Error('서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.');
+    }
+
+    if (error instanceof Error && error.message.includes('net::ERR_CONNECTION_RESET')) {
+      throw new Error('파일 크기가 너무 크거나 서버 제한을 초과했습니다. 이미지를 압축하거나 개수를 줄여주세요.');
+    }
+
+    throw error;
+  }
 }
 
-export async function createShorlogMock(payload: CreateShorlogRequest): Promise<void> {
-  console.log('would call POST /api/v1/shorlog with:', payload);
-  await new Promise((resolve) => setTimeout(resolve, 500));
+export async function createShorlog(payload: CreateShorlogRequest): Promise<any> {
+  try {
+    const response = await fetch('/api/v1/shorlog', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `숏로그 생성 실패 (${response.status})`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new Error('서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.');
+    }
+    throw error;
+  }
+}
+
+export async function callAiApi(params: {
+  mode: 'hashtag' | 'keywordForUnsplash' | 'keywordForGoogle';
+  content: string;
+}): Promise<any> {
+  try {
+    const response = await fetch('/api/v1/ais', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        mode: params.mode,
+        contentType: 'shorlog',
+        content: params.content,
+      }),
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `AI API 호출 실패 (${response.status})`);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new Error('서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.');
+    }
+    throw error;
+  }
 }
