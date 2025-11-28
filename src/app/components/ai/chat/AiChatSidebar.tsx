@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import Tooltip from '../../common/Tooltip';
 import AIChat from './AiChatBody';
 import AiChatHeader from './AiChatHeader';
 
@@ -11,7 +12,17 @@ interface AiChatSidebarProps {
 export default function AiChatSidebar({ onToggleMode, onClose }: AiChatSidebarProps) {
   const [sidebarWidth, setSidebarWidth] = useState(384); // 기본 w-96 (384px)
   const [isResizing, setIsResizing] = useState(false);
+  const [tooltipY, setTooltipY] = useState<number | null>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const handleRef = useRef<HTMLDivElement>(null);
+
+  const onEnter = (e: React.MouseEvent) => {
+    const rect = handleRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setTooltipY(e.clientY - rect.top); // 핸들 기준 Y
+  };
+
+  const onLeave = () => setTooltipY(null);
 
   const startResizing = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -65,23 +76,35 @@ export default function AiChatSidebar({ onToggleMode, onClose }: AiChatSidebarPr
       ref={sidebarRef}
       style={{ width: `${sidebarWidth}px` }}
       className="
-        h-dvh
-        bg-white shadow-2xl border-l border-gray-200
-        flex flex-col flex-shrink-0
-        sticky top-0
-        max-[960px]:fixed max-[960px]:right-0 max-[960px]:inset-y-0 max-[960px]:z-50 max-[960px]:w-96
-        relative
-      "
+          h-dvh
+          bg-white border-l border-gray-200
+          flex flex-col flex-shrink-0
+          sticky top-0
+          max-[960px]:fixed max-[960px]:right-0 max-[960px]:inset-y-0 max-[960px]:z-50 max-[960px]:w-96
+          relative
+        "
     >
       {/* 리사이저 핸들 */}
       <div
-        onMouseDown={startResizing}
-        className="
-          absolute left-0 top-0 bottom-0 w-1 cursor-col-resize
-          hover:bg-blue-400 transition-colors
-          max-[960px]:hidden
-        "
-      />
+        ref={handleRef}
+        className="group absolute left-0 top-0 bottom-0 w-4 cursor-col-resize max-[960px]:hidden z-20"
+      >
+        {/* 실제 드래그/호버 영역 */}
+        <div
+          onMouseDown={startResizing}
+          onMouseEnter={onEnter}
+          onMouseLeave={onLeave}
+          className="relative h-full w-full"
+        >
+          {tooltipY !== null && (
+            <Tooltip
+              text="드래그해서 크기 조절"
+              positionClass="right-full mr-2"
+              style={{ top: tooltipY, transform: 'translateY(-50%)' }}
+            />
+          )}
+        </div>
+      </div>
 
       <AiChatHeader mode="sidebar" onToggleMode={onToggleMode} onClose={onClose} />
 
