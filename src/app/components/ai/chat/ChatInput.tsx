@@ -30,6 +30,7 @@ export default function ChatInput({
   const handleModelSelect = (value: string) => {
     onModelChange(value);
   };
+  const isModelDisabled = !selected.enabled;
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -55,9 +56,9 @@ export default function ChatInput({
     <div className="p-4">
       <div className="rounded-3xl border bg-white p-3 shadow-sm">
         {/* Top row: small badges / context */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FBF7FF] text-xs text-slate-700 border">
-          <FileText size={14} className="text-gray-400" />
-          <span className="whitespace-nowrap">{displayTitle}</span>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 text-xs text-slate-700 border">
+          <FileText size={14} className="text-slate-500" />
+          <span className="whitespace-nowrap font-light">{displayTitle}</span>
         </div>
 
         {/* Middle: large input / placeholder */}
@@ -71,8 +72,8 @@ export default function ChatInput({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             rows={1}
-            placeholder="블로그 작성 도움받기"
-            className="w-full min-h-[40px] max-h-[240px] resize-none bg-transparent outline-none text-[15px] placeholder:text-slate-400 placeholder:text-[15px] leading-relaxed overflow-y-auto"
+            placeholder={isModelDisabled ? '이 모델은 사용할 수 없습니다' : '블로그 작성 도움받기'}
+            className="w-full min-h-[40px] max-h-[240px] resize-none bg-transparent outline-none text-[15px] placeholder:text-slate-400 placeholder:text-[15px] placeholder:font-extralight font-light leading-relaxed overflow-y-auto"
             style={{ height: 'auto' }}
             onInput={(e) => {
               const target = e.target as HTMLTextAreaElement;
@@ -82,7 +83,9 @@ export default function ChatInput({
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                submit();
+                if (!isModelDisabled) {
+                  submit();
+                }
               }
             }}
           />
@@ -99,11 +102,11 @@ export default function ChatInput({
 
           <div className="flex items-center gap-4">
             <button
-              onClick={message.trim() && !isAnswering ? submit : undefined}
+              onClick={message.trim() && !isAnswering && !isModelDisabled ? submit : undefined}
               aria-label="전송"
-              disabled={!message.trim() || isAnswering}
+              disabled={!message.trim() || isAnswering || isModelDisabled}
               className={`w-8 h-8 rounded-full flex items-center justify-center shadow transition
-                ${message.trim() && !isAnswering ? 'bg-main text-white hover:brightness-95 cursor-pointer' : 'bg-gray-200 text-gray-400'}`}
+                ${message.trim() && !isAnswering && !isModelDisabled ? 'bg-main text-white hover:brightness-95 cursor-pointer' : 'bg-gray-200 text-gray-400'}`}
             >
               <ArrowUp size={18} />
             </button>
