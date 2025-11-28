@@ -1,15 +1,14 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 interface Props {
   children: React.ReactNode;
+  /** 배경 클릭 / ESC 누를 때 호출되는 훅 (없으면 바로 닫기) */
+  onRequestClose?: () => void;
 }
 
-export default function ShorlogDetailModalWrapper({ children }: Props) {
-  const router = useRouter();
-
+export default function ShorlogDetailModalWrapper({ children, onRequestClose }: Props) {
   const closeModal = () => {
     // 페이지 전체를 리로드하여 모달 확실히 닫기
     window.location.href = '/shorlog/feed';
@@ -18,9 +17,14 @@ export default function ShorlogDetailModalWrapper({ children }: Props) {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        closeModal();
+        if (onRequestClose) {
+          onRequestClose();
+        } else {
+          closeModal();
+        }
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
 
     const originalOverflow = document.body.style.overflow;
@@ -30,10 +34,14 @@ export default function ShorlogDetailModalWrapper({ children }: Props) {
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = originalOverflow;
     };
-  }, [router]);
+  }, [onRequestClose]);
 
   const handleOverlayClick = () => {
-    closeModal();
+    if (onRequestClose) {
+      onRequestClose();
+    } else {
+      closeModal();
+    }
   };
 
   return (
@@ -43,9 +51,8 @@ export default function ShorlogDetailModalWrapper({ children }: Props) {
       aria-modal="true"
       data-scroll-locked="true"
     >
-
       <div
-        className="absolute inset-0 bg-[#a7adb8]/65 backdrop-blur-[3px]"
+        className="absolute inset-0 bg-black/55"  // <-- 회색 + 블러 대신, 살짝 어두운 블랙
         onClick={handleOverlayClick}
       />
 
@@ -57,4 +64,5 @@ export default function ShorlogDetailModalWrapper({ children }: Props) {
       </div>
     </div>
   );
+
 }
