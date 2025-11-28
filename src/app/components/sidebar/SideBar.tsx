@@ -22,13 +22,13 @@ export default function Sidebar() {
   useEffect(() => {
     function handleResize() {
       if (window.innerWidth < 1280) {
-        setIsCollapsed(true); // 브라우저가 좁아지면 자동 축소
+        setIsCollapsed(true);
       } else {
-        setIsCollapsed(false); // 다시 넓어지면 자동 확장
+        setIsCollapsed(false);
       }
     }
 
-    handleResize(); // 초기 실행
+    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -44,7 +44,6 @@ export default function Sidebar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // 로그아웃 처리
   const handleLogout = async () => {
     setIsMoreOpen(false);
     await logout();
@@ -57,50 +56,64 @@ export default function Sidebar() {
         bg-white border-r border-gray-200 h-screen fixed flex flex-col transition-all duration-300
       `}
     >
-      {/* ======================= HEADER (로고 + 축소 토글) ======================= */}
+      {/* ======================= HEADER ======================= */}
       <div className="p-5 border-b border-gray-200 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
+          {/* FIXED: 아이콘 크기 고정 */}
+          <div className="w-10 h-10 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
             📝
           </div>
-          {!isCollapsed && (
-            <div className="flex flex-col leading-tight">
-              <span className="font-bold text-xl">TEXTOK</span>
-            </div>
-          )}
+
+          {/* label만 나타나고 사라짐 — 아이콘 위치는 고정 */}
+          <div
+            className={`
+              overflow-hidden transition-all 
+              ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}
+            `}
+          >
+            <span className="font-bold text-xl whitespace-nowrap">TEXTOK</span>
+          </div>
         </div>
       </div>
 
       {/* ======================= SEARCH AREA ======================= */}
-      <div className="px-4 py-4 flex justify-center">
-        {isCollapsed ? (
-          // 축소 모드 → 원형 안에 검색 아이콘, 크기 정렬 통일
-          <button
-            onClick={() => setIsCollapsed(false)}
+      <div className="px-4 py-3 flex justify-start">
+        <div
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className={`
+                relative flex items-center 
+                transition-all duration-300 ease-in-out 
+                overflow-hidden cursor-pointer
+            ${
+              isCollapsed
+                ? 'w-10 h-10 rounded-full justify-center'
+                : 'w-full h-10 rounded-full bg-gray-100 pl-12 pr-3 border border-gray-200'
+            }
+          `}
+        >
+          {/* 🔍 아이콘 (항상 같은 위치에 고정) */}
+          <div
             className="
-              w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center 
-              hover:bg-gray-200 transition
+              absolute left-3 top-1/2 -translate-y-1/2 
+              flex items-center justify-center w-7 h-7 pointer-events-none
             "
           >
-            <Search size={22} className="text-gray-700" />
-          </button>
-        ) : (
-          // 확장 모드 → 검색바 내부 아이콘도 정렬 축 통일
-          <div className="relative w-full cursor-pointer" onClick={() => setIsCollapsed(true)}>
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-7 h-7">
-              <Search size={22} className="text-gray-700" />
-            </div>
-
-            <input
-              type="text"
-              placeholder="Search"
-              className="
-                w-full pl-12 pr-3 py-2 bg-gray-100 rounded-full text-sm border border-gray-200
-                focus:outline-none focus:border-blue-500
-              "
-            />
+            <Search size={22} className={isCollapsed ? 'text-blue-600' : 'text-gray-700'} />
           </div>
-        )}
+
+          {/* input은 확장 모드일 때만 렌더
+        collapse에서는 width:0 되도록 해서 자연스럽게 사라짐 */}
+          <input
+            type="text"
+            readOnly
+            placeholder="Search"
+            className={`
+              bg-transparent text-sm outline-none
+              transition-all duration-300 ease-in-out
+              ${isCollapsed ? 'w-0 opacity-0' : 'w-full opacity-100'}
+            `}
+          />
+        </div>
       </div>
 
       {/* ======================= MENU LIST ======================= */}
@@ -114,17 +127,32 @@ export default function Sidebar() {
               <Link
                 href={item.href}
                 className={`
-                  flex items-center 
-                  ${isCollapsed ? 'justify-center' : 'justify-start gap-3 px-4'}
-                  py-2 rounded-lg transition-all
+                  flex items-center gap-3 px-4 py-2 rounded-lg transition-all
                   ${isActive ? 'text-blue-600 font-medium' : 'text-gray-800 hover:bg-gray-100'}
                 `}
               >
+                {/* FIXED: 아이콘 위치 완전 고정 */}
                 <div className="flex items-center justify-center w-7 h-7 flex-shrink-0">
-                  <item.icon size={24} />
+                  {item.label === '프로필' && isLogin ? (
+                    <img
+                      src={loginUser?.profileImgUrl || '/tmpProfile.png'}
+                      alt="profile"
+                      className="w-7 h-7 rounded-full object-cover"
+                    />
+                  ) : (
+                    <item.icon size={24} />
+                  )}
                 </div>
 
-                {!isCollapsed && <span>{item.label}</span>}
+                {/* label만 사라짐 — 아이콘은 그대로 */}
+                <span
+                  className={`
+                    whitespace-nowrap transition-all
+                    ${isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'}
+                  `}
+                >
+                  {item.label}
+                </span>
               </Link>
 
               {/* 축소 모드 툴팁 */}
@@ -144,7 +172,6 @@ export default function Sidebar() {
           );
         })}
 
-        {/* 로그인 버튼 (확장일때만) */}
         {!isLogin && !isCollapsed && (
           <div className="pt-2 pb-6 border-b border-gray-200">
             <button

@@ -13,7 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Sidebar />
               <main
                 className="
-                  flex-1 bg-slate-50 
+                  flex-1 bg-white 
                   pl-20 
                   xl:pl-60
                   transition-all duration-300
