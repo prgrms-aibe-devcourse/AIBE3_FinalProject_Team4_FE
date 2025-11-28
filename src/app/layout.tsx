@@ -11,7 +11,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ReactQueryProvider>
             <div className="flex min-h-screen">
               <Sidebar />
-              <main className="ml-64 flex-1">{children}</main>
+              <main
+                className="
+                  flex-1 bg-slate-50 
+                  pl-20 
+                  xl:pl-60
+                  transition-all duration-300
+                "
+              >
+                {children}
+              </main>
             </div>
           </ReactQueryProvider>
         </AuthProvider>
