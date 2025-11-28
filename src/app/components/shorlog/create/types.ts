@@ -35,14 +35,3 @@ export interface CreateShorlogRequest {
   imageIds: number[];
   hashtags: string[];
 }
-
-export interface BlogImage {
-  id: number;
-  imageUrl: string;
-  originalFilename: string;
-}
-
-export interface BlogImageListResponse {
-  images: BlogImage[];
-}
-

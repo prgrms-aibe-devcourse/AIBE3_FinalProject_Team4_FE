@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import {
   LocalImage,
   MAX_CONTENT_LENGTH,
@@ -15,7 +14,6 @@ import WizardHeader from './WizardHeader';
 import ThumbnailSelectStep from './ThumbnailSelectStep';
 import ImageEditStep from './ImageEditStep';
 import ContentComposeStep from './ContentComposeStep';
-import BlogImageSelectModal from './BlogImageSelectModal';
 import FreeImageSelectModal from './FreeImageSelectModal';
 
 export default function ShorlogCreateWizard() {
@@ -25,9 +23,6 @@ export default function ShorlogCreateWizard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<Step>(1);
 
-  const searchParams = useSearchParams();
-  const blogId = searchParams.get('blogId');
-
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   // 콘텐츠 / 해시태그
@@ -35,8 +30,7 @@ export default function ShorlogCreateWizard() {
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState('');
 
-  // 블로그 이미지 선택 모달
-  const [showBlogImageModal, setShowBlogImageModal] = useState(false);
+  // 무료 사진 선택 모달
   const [showUnsplashModal, setShowUnsplashModal] = useState(false);
   const [showGoogleModal, setShowGoogleModal] = useState(false);
 
@@ -352,46 +346,6 @@ export default function ShorlogCreateWizard() {
     }
   };
 
-  // --------- 블로그 이미지 선택 ---------
-  const handleBlogPhotoClick = () => {
-    if (!blogId) {
-      setError('블로그 ID가 없습니다.');
-      return;
-    }
-    setShowBlogImageModal(true);
-  };
-
-  const handleBlogImagesSelect = async (selectedUrls: string[]) => {
-    setError(null);
-
-    const currentCount = images.length;
-    const remainingSlots = MAX_FILES - currentCount;
-    const urlsToAdd = selectedUrls.slice(0, remainingSlots);
-
-    const newImages: LocalImage[] = await Promise.all(
-      urlsToAdd.map(async (url) => {
-        const id = crypto.randomUUID();
-        return {
-          id,
-          sourceType: 'URL' as const,
-          previewUrl: url,
-          remoteUrl: url,
-          aspectRatio: 'ORIGINAL' as const,
-          originalFilename: url.split('/').pop() || 'blog_image',
-        };
-      })
-    );
-
-    if (newImages.length > 0) {
-      setImages((prev) => [...prev, ...newImages]);
-
-      // 첫 업로드면 바로 2단계로 이동
-      if (step === 1 && currentCount === 0) {
-        setStep(2);
-        setSelectedIndex(0);
-      }
-    }
-  };
 
   // --------- 렌더 ---------
   return (
@@ -407,8 +361,6 @@ export default function ShorlogCreateWizard() {
             onNext={handleNextFromStep1}
             onUnsplashPhoto={handleUnsplashPhoto}
             onGooglePhoto={handleGooglePhoto}
-            onBlogPhotoClick={handleBlogPhotoClick}
-            hasBlogId={!!blogId}
           />
         )}
 
@@ -447,14 +399,6 @@ export default function ShorlogCreateWizard() {
           />
         )}
 
-        {showBlogImageModal && blogId && (
-          <BlogImageSelectModal
-            blogId={blogId}
-            onSelect={handleBlogImagesSelect}
-            onClose={() => setShowBlogImageModal(false)}
-            maxSelect={MAX_FILES - images.length}
-          />
-        )}
 
         {showUnsplashModal && (
           <FreeImageSelectModal

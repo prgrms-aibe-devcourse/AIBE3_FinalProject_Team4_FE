@@ -9,8 +9,6 @@ interface ThumbnailSelectStepProps {
   onNext: () => void;
   onUnsplashPhoto: () => void;
   onGooglePhoto: () => void;
-  onBlogPhotoClick?: () => void;
-  hasBlogId?: boolean;
 }
 
 export default function ThumbnailSelectStep({
@@ -20,8 +18,6 @@ export default function ThumbnailSelectStep({
   onNext,
   onUnsplashPhoto,
   onGooglePhoto,
-  onBlogPhotoClick,
-  hasBlogId = false,
 }: ThumbnailSelectStepProps) {
   const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
@@ -80,15 +76,6 @@ export default function ThumbnailSelectStep({
           >
             무료 사진 (Google)
           </button>
-          {hasBlogId && onBlogPhotoClick && (
-            <button
-              type="button"
-              onClick={onBlogPhotoClick}
-              className="rounded-full border border-[#2979FF] bg-[#2979FF]/5 px-4 py-2 text-xs font-medium text-[#2979FF] shadow-sm transition hover:bg-[#2979FF]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]"
-            >
-              블로그 사진 사용
-            </button>
-          )}
         </div>
 
         <input
