@@ -14,8 +14,8 @@ export default function AiChatSideBar() {
 
   // 모델 옵션/선택값/변경함수 상태를 여기서 관리
   const modelOptions: ModelOption[] = [
-    { label: 'GPT-4o-mini', value: 'gpt-4o-mini', enabled: false },
-    { label: '추가 예정', value: '추가 예정', enabled: false },
+    { label: 'GPT-4o-mini', value: 'gpt-4o-mini', enabled: true },
+    { label: '추가 예정', value: '추가 예정', enabled: true },
     { label: '추가 예정2', value: '추가 예정2', enabled: false },
   ];
   const [selectedModel, setSelectedModel] = useState<string>(modelOptions[0].value);
@@ -35,8 +35,8 @@ export default function AiChatSideBar() {
         <div className="fixed bottom-6 right-6 z-50 group">
           <ChatBotButton onClick={() => setIsOpen(true)} ariaLabel="AI 채팅 열기" />
           <Tooltip
-            text="안녕하세요. 블로그 작성 도우미입니다."
-            className="bg-white text-[15px] text-gray-700 border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.12)] rounded-[10px] px-3 py-2"
+            text="안녕하세요. TexTok 블로그 작성 도우미입니다."
+            className="bg-white text-[15px] text-gray-700 border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.12)] rounded-[10px] px-2.5 py-1.5"
             animationClass="translate-x-1 group-hover:translate-x-0 origin-right"
             position="top-right"
           />
@@ -61,7 +61,8 @@ export default function AiChatSideBar() {
             fixed bottom-6 right-6
             w-[min(28rem,100vw-3rem)]  /* 작은 화면 대응 */
             h-[min(600px,100dvh-3rem)]
-            bg-white shadow-lg rounded-3xl border border-gray-200
+            bg-white rounded-t-[20px] rounded-b-[40px] border border-gray-200
+            shadow-[0_4px_12px_0_rgba(0,0,0,0.06),0_1.5px_4px_0_rgba(0,0,0,0.03)]
             z-50 flex flex-col
           "
         >

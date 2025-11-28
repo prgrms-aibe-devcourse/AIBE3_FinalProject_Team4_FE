@@ -31,8 +31,17 @@ export default function ModelDropdown({
         setOpen(false);
       }
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+      }
+    };
     document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [open]);
 
   return (
@@ -49,7 +58,7 @@ export default function ModelDropdown({
           ) : (
             <BotOff size={20} strokeWidth={1.2} />
           )}
-          <span className="ml-1 text-xs font-light text-slate-700 whitespace-nowrap">
+          <span className="ml-1 text-[12.5px] font-light text-slate-700 whitespace-nowrap">
             {selected.label}
           </span>
           {direction === 'up' ? (
@@ -70,7 +79,7 @@ export default function ModelDropdown({
             return (
               <div key={opt.value} className="relative group">
                 <button
-                  className={`flex items-center gap-2 px-3 py-1 text-xs rounded-xl transition whitespace-nowrap
+                  className={`w-full flex items-center gap-2 px-3 py-1 text-[12.5px] rounded-xl transition whitespace-nowrap
                     ${isSelected ? 'text-main' : 'text-slate-700'}
                     ${!opt.enabled ? 'opacity-50' : 'hover:bg-slate-100'}`}
                   onClick={() => {
