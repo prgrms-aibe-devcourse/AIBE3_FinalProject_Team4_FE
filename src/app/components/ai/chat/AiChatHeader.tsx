@@ -6,7 +6,7 @@ interface AiChatHeaderProps {
 
 export default function AiChatHeader({ mode, onToggleMode, onClose }: AiChatHeaderProps) {
   return (
-    <div className="flex items-center justify-between p-4 border-b bg-gray-50 rounded-t-lg">
+    <div className="flex items-center justify-between p-4 border-b bg-gray-50 rounded-t-lg min-w-0 w-full">
       <h2 className="text-lg font-semibold">텍톡 AI</h2>
       <div className="flex items-center gap-2">
         <button

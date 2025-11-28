@@ -1,10 +1,8 @@
 'use client';
 import { useState } from 'react';
-import Tooltip from '../../common/Tooltip';
-import ChatBotButton from '../AiChatBotButton';
-import AIChat from './AiChatBody';
-import AiChatHeader from './AiChatHeader';
-import AiChatSidebar from './AiChatSidebar';
+import ChatBotButton from './AiChatBotButton';
+import AIChat from './chat/AiChatBody';
+import AiChatHeader from './chat/AiChatHeader';
 type DisplayMode = 'sidebar' | 'floating';
 
 export default function AiChatSideBar() {
@@ -19,15 +17,30 @@ export default function AiChatSideBar() {
     <>
       {/* 열기 버튼 */}
       {!isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 group">
-          <ChatBotButton onClick={() => setIsOpen(true)} ariaLabel="AI 채팅 열기" />
-          <Tooltip text="안녕하세요. TexTok AI입니다." />
-        </div>
+        <ChatBotButton
+          onClick={() => setIsOpen(true)}
+          className="fixed bottom-6 right-6 z-50"
+          ariaLabel="AI 채팅 열기"
+        />
       )}
 
       {/* 사이드바 모드 */}
       {isOpen && mode === 'sidebar' && (
-        <AiChatSidebar onToggleMode={toggleMode} onClose={() => setIsOpen(false)} />
+        <div
+          className="
+            h-dvh w-96
+            bg-white shadow-2xl border-l border-gray-200
+            flex flex-col flex-shrink-0
+            max-[960px]:fixed max-[960px]:top-0 max-[960px]:right-0 max-[960px]:z-50
+          "
+        >
+          <AiChatHeader mode={mode} onToggleMode={toggleMode} onClose={() => setIsOpen(false)} />
+
+          {/* AI 채팅 컴포넌트 (내부만 스크롤) */}
+          <div className="flex-1 min-w-0 overflow-y-auto">
+            <AIChat />
+          </div>
+        </div>
       )}
 
       {/* 플로팅 모드 */}
