@@ -21,7 +21,11 @@ export default function AiChatSideBar() {
       {!isOpen && (
         <div className="fixed bottom-6 right-6 z-50 group">
           <ChatBotButton onClick={() => setIsOpen(true)} ariaLabel="AI 채팅 열기" />
-          <Tooltip text="안녕하세요. TexTok AI입니다." />
+          <Tooltip
+            text="안녕하세요. 블로그 작성 도우미입니다."
+            className="bg-white text-[15px] text-gray-700 border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.12)] rounded-[10px] px-3 py-2"
+            animationClass="translate-x-1 group-hover:translate-x-0 origin-right"
+          />
         </div>
       )}
 
@@ -37,7 +41,7 @@ export default function AiChatSideBar() {
             fixed bottom-6 right-6
             w-[min(24rem,100vw-3rem)]  /* 작은 화면 대응 */
             h-[min(600px,100dvh-3rem)]
-            bg-white shadow-2xl rounded-lg border border-gray-200
+            bg-white shadow-lg rounded-lg border border-gray-200
             z-50 flex flex-col
           "
         >
