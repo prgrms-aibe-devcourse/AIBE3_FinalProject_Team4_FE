@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import ChatBubble from './ChatBubble';
 import ChatInput from './ChatInput';
+import { ModelOption } from './ModelDropdown';
 
 interface Message {
   id: number;
@@ -10,7 +11,13 @@ interface Message {
   text: string;
 }
 
-export default function AIChat() {
+interface AIChatProps {
+  modelOptions: ModelOption[];
+  selectedModel: string;
+  onModelChange: (value: string) => void;
+}
+
+export default function AIChat({ modelOptions, selectedModel, onModelChange }: AIChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -75,7 +82,12 @@ export default function AIChat() {
         ))}
       </div>
 
-      <ChatInput onSend={sendMessage} />
+      <ChatInput
+        onSend={sendMessage}
+        modelOptions={modelOptions}
+        selectedModel={selectedModel}
+        onModelChange={onModelChange}
+      />
     </div>
   );
 }

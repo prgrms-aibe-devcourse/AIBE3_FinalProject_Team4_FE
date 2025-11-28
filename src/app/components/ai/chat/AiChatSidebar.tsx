@@ -7,9 +7,18 @@ import AiChatHeader from './AiChatHeader';
 interface AiChatSidebarProps {
   onToggleMode: () => void;
   onClose: () => void;
+  modelOptions: import('./ModelDropdown').ModelOption[];
+  selectedModel: string;
+  onModelChange: (value: string) => void;
 }
 
-export default function AiChatSidebar({ onToggleMode, onClose }: AiChatSidebarProps) {
+export default function AiChatSidebar({
+  onToggleMode,
+  onClose,
+  modelOptions,
+  selectedModel,
+  onModelChange,
+}: AiChatSidebarProps) {
   const [sidebarWidth, setSidebarWidth] = useState(384); // 기본 w-96 (384px)
   const [isResizing, setIsResizing] = useState(false);
   const [tooltipY, setTooltipY] = useState<number | null>(null);
@@ -110,7 +119,11 @@ export default function AiChatSidebar({ onToggleMode, onClose }: AiChatSidebarPr
 
       {/* AI 채팅 컴포넌트 (내부만 스크롤) */}
       <div className="flex-1 min-w-0 overflow-y-auto">
-        <AIChat />
+        <AIChat
+          modelOptions={modelOptions}
+          selectedModel={selectedModel}
+          onModelChange={onModelChange}
+        />
       </div>
     </div>
   );

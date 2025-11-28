@@ -5,11 +5,24 @@ import ChatBotButton from '../AiChatBotButton';
 import AIChat from './AiChatBody';
 import AiChatHeader from './AiChatHeader';
 import AiChatSidebar from './AiChatSidebar';
+import { ModelOption } from './ModelDropdown';
 type DisplayMode = 'sidebar' | 'floating';
 
 export default function AiChatSideBar() {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<DisplayMode>('sidebar');
+
+  // 모델 옵션/선택값/변경함수 상태를 여기서 관리
+  const modelOptions: ModelOption[] = [
+    { label: 'GPT-4o-mini', value: 'gpt-4o-mini', enabled: false },
+    { label: '추가 예정', value: '추가 예정', enabled: false },
+    { label: '추가 예정2', value: '추가 예정2', enabled: false },
+  ];
+  const [selectedModel, setSelectedModel] = useState<string>(modelOptions[0].value);
+
+  const handleModelChange = (value: string) => {
+    setSelectedModel(value);
+  };
 
   const toggleMode = () => {
     setMode((prev) => (prev === 'sidebar' ? 'floating' : 'sidebar'));
@@ -31,7 +44,13 @@ export default function AiChatSideBar() {
 
       {/* 사이드바 모드 */}
       {isOpen && mode === 'sidebar' && (
-        <AiChatSidebar onToggleMode={toggleMode} onClose={() => setIsOpen(false)} />
+        <AiChatSidebar
+          onToggleMode={toggleMode}
+          onClose={() => setIsOpen(false)}
+          modelOptions={modelOptions}
+          selectedModel={selectedModel}
+          onModelChange={handleModelChange}
+        />
       )}
 
       {/* 플로팅 모드 */}
@@ -49,7 +68,11 @@ export default function AiChatSideBar() {
 
           {/* AI 채팅 컴포넌트 (내부만 스크롤) */}
           <div className="flex-1 min-w-0 overflow-y-auto">
-            <AIChat />
+            <AIChat
+              modelOptions={modelOptions}
+              selectedModel={selectedModel}
+              onModelChange={handleModelChange}
+            />
           </div>
         </div>
       )}
