@@ -45,7 +45,7 @@ function BotIcon({ isHovered }: { isHovered: boolean }) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.8"
+      strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
       className="lucide lucide-bot-message-square-icon lucide-bot-message-square transition-transform duration-200 group-hover:scale-110"

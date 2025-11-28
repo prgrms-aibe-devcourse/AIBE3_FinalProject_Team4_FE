@@ -23,7 +23,7 @@ export default function Tooltip({
   align = 'center',
   positionClass,
   className = 'bg-slate-700 text-white text-[12.5px] text-center font-light px-2 py-1 rounded-md border-none shadow',
-  animationClass,
+  animationClass = '',
   style,
 }: TooltipProps) {
   const [ps, pa] = position?.split('-') ?? [];
@@ -77,7 +77,7 @@ export default function Tooltip({
         ${visibilityClass}
         ${transitionClass}
         ${finalPositionClass}
-        ${animationClass ?? ''}
+        ${animationClass}
       `}
     >
       <div className={`whitespace-nowrap ${className}`}>{text}</div>
