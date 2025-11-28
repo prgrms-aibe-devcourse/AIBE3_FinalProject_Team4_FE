@@ -96,7 +96,7 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
 
                 <button
                   aria-label="더보기"
-                  className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 hover:bg-slate-200"
+                  className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 border border-slate-300 hover:bg-slate-200"
                 >
                   ⋯
                 </button>
@@ -107,13 +107,13 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
                   팔로우
                 </button>
 
-                <button className="rounded-md border border-slate-300 px-8 h-10 text-sm font-medium hover:bg-slate-200">
+                <button className="rounded-md border border-slate-300 bg-slate-100 px-8 h-10 text-sm font-medium hover:bg-slate-200">
                   메시지
                 </button>
 
                 <button
                   aria-label="더보기"
-                  className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 hover:bg-slate-200"
+                  className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 border border-slate-300 hover:bg-slate-200"
                 >
                   ⋯
                 </button>

@@ -1,5 +1,6 @@
 import type { Creator } from '@/src/app/components/creators/CreatorCard';
 import CreatorGrid from '@/src/app/components/creators/CreatorGrid';
+import { cookies } from 'next/headers';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -18,9 +19,15 @@ export default async function CreatorsPage() {
 }
 
 async function fetchCreators() {
-  const res = await fetch(`${API_BASE_URL}/api/v1/users`, {
+  const cookieStore = cookies();
+  const cookieString = cookieStore.toString();
+  const res = await fetch(`${API_BASE_URL}/api/v1/users/creators`, {
     method: 'GET',
+    headers: {
+      cookie: cookieString,
+    },
   });
+  console.log('Fetch creators response status:', res.status);
   if (res.ok) {
     const data = await res.json();
     return data.data as Creator[];

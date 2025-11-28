@@ -7,6 +7,7 @@ export type Creator = {
   id: number;
   nickname: string;
   profileImgUrl: string;
+  followersCount: number;
   isFollowing: boolean;
   popularThumbnailUrl: string;
 };
@@ -65,7 +66,7 @@ export default function CreatorCard({ creator }: { creator: Creator }) {
               mt-3 w-32 py-1.5 rounded-md text-sm font-medium transition active:scale-[0.97] 
               ${
                 following
-                  ? 'bg-white text-[#2979FF] border border-white hover:bg-slate-100'
+                  ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                   : 'bg-[#2979FF] text-white hover:bg-blue-600'
               }
             `}
