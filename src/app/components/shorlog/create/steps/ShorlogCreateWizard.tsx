@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   LocalImage,
   MAX_CONTENT_LENGTH,
@@ -17,6 +18,7 @@ import ContentComposeStep from './ContentComposeStep';
 import FreeImageSelectModal from './FreeImageSelectModal';
 
 export default function ShorlogCreateWizard() {
+  const router = useRouter();
   const [images, setImages] = useState<LocalImage[]>([]);
   const [uploadedImages, setUploadedImages] = useState<UploadImageResponse[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -160,8 +162,14 @@ export default function ShorlogCreateWizard() {
         imageIds: uploadedImages.map((img) => img.id),
         hashtags,
       });
-      alert('숏로그가 성공적으로 생성되었습니다!');
-      console.log('생성된 숏로그:', result);
+
+      // 생성 성공 - 마이페이지로 이동
+      const userId = result.data?.userId;
+      if (userId) {
+        router.push(`/profile/${userId}`);
+      } else {
+        alert('숏로그가 성공적으로 생성되었습니다!');
+      }
     } catch (e) {
       console.error(e);
       setError(e instanceof Error ? e.message : '숏로그 생성 중 오류가 발생했습니다.');
@@ -178,18 +186,6 @@ export default function ShorlogCreateWizard() {
     alert('현재 내용을 임시 저장했어요. (localStorage)');
   };
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const raw = window.localStorage.getItem(DRAFT_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as { content?: string; hashtags?: string[] };
-      if (parsed.content) setContent(parsed.content);
-      if (parsed.hashtags) setHashtags(parsed.hashtags);
-    } catch {
-      // ignore
-    }
-  }, []);
 
   // --------- 이미지 편집 로직 ---------
   const changeAspectRatio = (id: string, ratio: AspectRatio) => {
