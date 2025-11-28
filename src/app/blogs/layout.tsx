@@ -1,4 +1,4 @@
-import Sidebar from '@/src/app/components/common/SideBar';
+import Sidebar from '@/src/app/components/sidebar/SideBar';
 
 export default function BlogsLayout({ children }: { children: React.ReactNode }) {
   return (
