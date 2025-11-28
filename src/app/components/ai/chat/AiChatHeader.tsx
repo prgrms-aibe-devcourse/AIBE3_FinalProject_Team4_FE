@@ -1,5 +1,5 @@
 import { Minus, PanelRight, SquareSquare } from 'lucide-react';
-import Tooltip from '../../common/Tooltip';
+import Tooltip from './Tooltip';
 
 interface AiChatHeaderProps {
   mode: 'sidebar' | 'floating';
@@ -11,7 +11,7 @@ export default function AiChatHeader({ mode, onToggleMode, onClose }: AiChatHead
   return (
     <div className="flex items-center justify-between py-2 px-4 rounded-t-lg min-w-0 w-full">
       <div className="text-s text-slate-700">TexTok AI</div>
-      <div className="flex items-center">
+      <div className="flex items-center gap-0.5">
         <div className="relative group">
           <HeaderIconButton
             onClick={onToggleMode}
@@ -25,14 +25,14 @@ export default function AiChatHeader({ mode, onToggleMode, onClose }: AiChatHead
           </HeaderIconButton>
           <Tooltip
             text={mode === 'sidebar' ? '플로팅 모드로 전환' : '사이드바 모드로 전환'}
-            positionClass="top-full left-1/2 -translate-x-1/2 mt-2"
+            side="bottom"
           />
         </div>
         <div className="relative group">
           <HeaderIconButton onClick={onClose} ariaLabel="닫기">
             <Minus size={18} strokeWidth={1.75} />
           </HeaderIconButton>
-          <Tooltip text="닫기" positionClass="top-full left-1/2 -translate-x-1/2 mt-2" />
+          <Tooltip text="닫기" side="bottom" />
         </div>
       </div>
     </div>
@@ -51,7 +51,7 @@ function HeaderIconButton({
   return (
     <button
       onClick={onClick}
-      className="p-[6px] hover:bg-slate-100 rounded-full transition-colors"
+      className="p-[6px] hover:bg-slate-100 rounded-full transition-colors text-slate-700"
       aria-label={ariaLabel}
     >
       {children}

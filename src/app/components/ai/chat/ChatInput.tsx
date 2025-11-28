@@ -1,6 +1,7 @@
 import { ArrowUp, FileText } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import ModelDropdown from './ModelDropdown';
+import Tooltip from './Tooltip';
 
 interface ModelOption {
   label: string;
@@ -54,14 +55,19 @@ export default function ChatInput({
 
   return (
     <div className="p-4">
+      {/* 모델 한도 초과 안내문구 */}
+      {isModelDisabled && (
+        <div className="mb-2 flex justify-center">
+          <div className="px-4 py-2 rounded-md bg-slate-700 text-white text-[12.5px] font-light text-center shadow animate-fadein">
+            모델 사용 한도에 도달했습니다. 다음 날 한도가 초기화될 때까지 다른 모델을 사용하세요.
+          </div>
+        </div>
+      )}
       <div className="rounded-3xl border bg-white p-3 shadow-sm">
         {/* Top row: small badges / context */}
         <div className="inline-flex max-w-full items-center gap-2 px-3 py-1 rounded-full bg-slate-50 text-xs text-slate-700 border">
           <FileText size={14} className="text-slate-500" />
-          {/* <span className="whitespace-nowrap font-light">{displayTitle}</span> */}
-          <span className="min-w-0 truncate font-light">
-            ㅏㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ
-          </span>
+          <span className="min-w-0 truncate font-light">{displayTitle}</span>
         </div>
 
         {/* Middle: large input / placeholder */}
@@ -75,7 +81,7 @@ export default function ChatInput({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             rows={1}
-            placeholder={isModelDisabled ? '이 모델은 사용할 수 없습니다' : '블로그 작성 도움받기'}
+            placeholder={isModelDisabled ? '모델 사용 불가' : '블로그 작성 도움받기'}
             className="w-full min-h-[40px] max-h-[240px] resize-none bg-transparent outline-none text-[15px] placeholder:text-slate-400 placeholder:text-[15px] placeholder:font-extralight font-light leading-relaxed overflow-y-auto"
             style={{ height: 'auto' }}
             onInput={(e) => {
@@ -104,15 +110,31 @@ export default function ChatInput({
           />
 
           <div className="flex items-center gap-4">
-            <button
-              onClick={message.trim() && !isAnswering && !isModelDisabled ? submit : undefined}
-              aria-label="전송"
-              disabled={!message.trim() || isAnswering || isModelDisabled}
-              className={`w-8 h-8 rounded-full flex items-center justify-center shadow transition
-                ${message.trim() && !isAnswering && !isModelDisabled ? 'bg-main text-white hover:brightness-95 cursor-pointer' : 'bg-gray-200 text-gray-400'}`}
-            >
-              <ArrowUp size={18} />
-            </button>
+            <div className="relative flex items-center group">
+              <button
+                onClick={message.trim() && !isAnswering && !isModelDisabled ? submit : undefined}
+                aria-label="전송"
+                disabled={!message.trim() || isAnswering || isModelDisabled}
+                className={`w-8 h-8 rounded-full flex items-center justify-center shadow transition
+                  ${message.trim() && !isAnswering && !isModelDisabled ? 'bg-main text-white hover:brightness-95 cursor-pointer' : 'bg-gray-200 text-gray-400'}`}
+              >
+                <ArrowUp size={18} />
+              </button>
+              {/* Tooltip: 마우스 호버 시 노출 */}
+              {(!message.trim() || isAnswering || isModelDisabled) && (
+                <Tooltip
+                  text={
+                    isModelDisabled
+                      ? '사용 한도 도달'
+                      : isAnswering
+                        ? '대답 생성 중지'
+                        : !message.trim()
+                          ? '내용 없음'
+                          : ''
+                  }
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import Tooltip from '../../common/Tooltip';
-import AIChat from './AiChatBody';
+import AIChatBody from './AiChatBody';
 import AiChatHeader from './AiChatHeader';
+import Tooltip from './Tooltip';
 
 interface AiChatSidebarProps {
   onToggleMode: () => void;
@@ -22,6 +22,7 @@ export default function AiChatSidebar({
   const [sidebarWidth, setSidebarWidth] = useState(384); // 기본 w-96 (384px)
   const [isResizing, setIsResizing] = useState(false);
   const [tooltipY, setTooltipY] = useState<number | null>(null);
+  const lastTooltipYRef = useRef(0);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLDivElement>(null);
 
@@ -37,6 +38,12 @@ export default function AiChatSidebar({
     e.preventDefault();
     setIsResizing(true);
   };
+
+  useEffect(() => {
+    if (tooltipY !== null) {
+      lastTooltipYRef.current = tooltipY;
+    }
+  }, [tooltipY]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -105,13 +112,12 @@ export default function AiChatSidebar({
           onMouseLeave={onLeave}
           className="relative h-full w-full"
         >
-          {tooltipY !== null && (
-            <Tooltip
-              text="드래그해서 크기 조절"
-              positionClass="right-full mr-2"
-              style={{ top: tooltipY, transform: 'translateY(-50%)' }}
-            />
-          )}
+          <Tooltip
+            text="드래그해서 크기 조절"
+            open={tooltipY !== null}
+            position="left-center"
+            style={{ top: tooltipY ?? lastTooltipYRef.current, transform: 'translateY(-50%)' }}
+          />
         </div>
       </div>
 
@@ -119,7 +125,7 @@ export default function AiChatSidebar({
 
       {/* AI 채팅 컴포넌트 (내부만 스크롤) */}
       <div className="flex-1 min-w-0 overflow-y-auto">
-        <AIChat
+        <AIChatBody
           modelOptions={modelOptions}
           selectedModel={selectedModel}
           onModelChange={onModelChange}

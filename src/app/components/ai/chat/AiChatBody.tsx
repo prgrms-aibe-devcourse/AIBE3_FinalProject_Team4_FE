@@ -76,12 +76,13 @@ export default function AIChat({ modelOptions, selectedModel, onModelChange }: A
 
   return (
     <div className="flex flex-col h-full">
+      {/* 메시지 영역 */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {messages.map((msg) => (
           <ChatBubble key={msg.id} role={msg.role} text={msg.text} />
         ))}
       </div>
-
+      {/* 입력 영역 */}
       <ChatInput
         onSend={sendMessage}
         modelOptions={modelOptions}

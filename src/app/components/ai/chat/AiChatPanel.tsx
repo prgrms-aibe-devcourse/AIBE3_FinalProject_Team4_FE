@@ -1,11 +1,11 @@
 'use client';
 import { useState } from 'react';
-import Tooltip from '../../common/Tooltip';
-import AIChat from './AiChatBody';
+import AIChatBody from './AiChatBody';
 import ChatBotButton from './AiChatBotButton';
 import AiChatHeader from './AiChatHeader';
 import AiChatSidebar from './AiChatSidebar';
 import { ModelOption } from './ModelDropdown';
+import Tooltip from './Tooltip';
 type DisplayMode = 'sidebar' | 'floating';
 
 export default function AiChatSideBar() {
@@ -38,6 +38,7 @@ export default function AiChatSideBar() {
             text="안녕하세요. 블로그 작성 도우미입니다."
             className="bg-white text-[15px] text-gray-700 border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.12)] rounded-[10px] px-3 py-2"
             animationClass="translate-x-1 group-hover:translate-x-0 origin-right"
+            position="top-right"
           />
         </div>
       )}
@@ -58,7 +59,7 @@ export default function AiChatSideBar() {
         <div
           className="
             fixed bottom-6 right-6
-            w-[min(24rem,100vw-3rem)]  /* 작은 화면 대응 */
+            w-[min(28rem,100vw-3rem)]  /* 작은 화면 대응 */
             h-[min(600px,100dvh-3rem)]
             bg-white shadow-lg rounded-3xl border border-gray-200
             z-50 flex flex-col
@@ -68,7 +69,7 @@ export default function AiChatSideBar() {
 
           {/* AI 채팅 컴포넌트 (내부만 스크롤) */}
           <div className="flex-1 min-w-0 overflow-y-auto">
-            <AIChat
+            <AIChatBody
               modelOptions={modelOptions}
               selectedModel={selectedModel}
               onModelChange={handleModelChange}
