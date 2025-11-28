@@ -8,8 +8,8 @@ export default function ChatBubble({ role, text }: Props) {
 
   return (
     <div
-      className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed 
-        ${isUser ? 'ml-auto bg-[#4C445C] text-white' : 'mr-auto bg-white shadow-sm'}
+      className={`w-fit max-w-[85%] px-4 py-1 rounded-3xl text-[15px] leading-relaxed font-extralight break-words
+        ${isUser ? 'ml-auto bg-[#E9EEF6]' : 'mr-auto bg-white shadow-sm'}
       `}
     >
       {text}

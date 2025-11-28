@@ -8,7 +8,7 @@ interface TooltipProps {
 
 export default function Tooltip({
   text,
-  className = 'bg-neutral-800 text-white text-xs px-2 py-1 rounded-md border-none shadow-lg',
+  className = 'bg-neutral-800 text-white text-xs font-light px-2 py-1 rounded-md border-none shadow-lg',
   animationClass,
   positionClass = 'bottom-full right-0 mb-2',
   style,

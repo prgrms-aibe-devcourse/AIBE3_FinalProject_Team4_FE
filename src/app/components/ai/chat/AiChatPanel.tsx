@@ -60,7 +60,7 @@ export default function AiChatSideBar() {
             fixed bottom-6 right-6
             w-[min(24rem,100vw-3rem)]  /* 작은 화면 대응 */
             h-[min(600px,100dvh-3rem)]
-            bg-white shadow-lg rounded-lg border border-gray-200
+            bg-white shadow-lg rounded-3xl border border-gray-200
             z-50 flex flex-col
           "
         >
