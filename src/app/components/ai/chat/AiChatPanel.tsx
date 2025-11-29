@@ -1,4 +1,5 @@
 'use client';
+import { ApiError } from '@/src/api/aiChatApi';
 import { useAiChatStreamMutation } from '@/src/api/useAiChatStream';
 import { useState } from 'react';
 import Tooltip from '../../common/Tooltip';
@@ -11,7 +12,7 @@ type DisplayMode = 'sidebar' | 'floating';
 
 interface ChatMessage {
   id: number;
-  role: 'user' | 'assistant';
+  role: 'user' | 'ai';
   text: string;
 }
 export default function AiChatPanel() {
@@ -47,15 +48,33 @@ export default function AiChatPanel() {
       setMessages((prev) => {
         const last = prev[prev.length - 1];
 
-        if (last?.role === 'assistant') {
+        if (last?.role === 'ai') {
           return [...prev.slice(0, -1), { ...last, text: last.text + chunk }];
         }
-        return [...prev, { id: Date.now(), role: 'assistant', text: chunk }];
+        return [...prev, { id: Date.now(), role: 'ai', text: chunk }];
       });
     },
     onError: (e) => {
-      console.error(e);
-      // 필요하면 마지막 assistant 메시지에 에러 표시
+      if (e instanceof ApiError) {
+        if (e.status === 401) {
+          // 로그인 유도 UI
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: Date.now(),
+              role: 'ai',
+              text: '로그인이 필요해요. 로그인 후 다시 시도해 주세요.',
+            },
+          ]);
+          return;
+        }
+        // 기타 에러 표시
+        // toast.error(e.serverMsg || e.message);
+        console.error(e.serverMsg || e.message);
+      } else {
+        // toast.error('알 수 없는 오류가 발생했어요.');
+        console.error('알 수 없는 오류가 발생했어요.');
+      }
     },
   });
 
@@ -63,7 +82,7 @@ export default function AiChatPanel() {
     setMessages((prev) => [...prev, { id: Date.now(), role: 'user', text }]);
 
     aiChat.start({
-      id: 'temp',
+      id: 1,
       message: text,
       content: text,
       model: selectedModel,

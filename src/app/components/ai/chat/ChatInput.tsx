@@ -118,10 +118,10 @@ export default function ChatInput({
             <div className="relative flex items-center group">
               <button
                 onClick={
-                  message.trim() && !isAnswering && !isModelDisabled
-                    ? submit
-                    : isAnswering
-                      ? aiChat.stop
+                  isAnswering
+                    ? aiChat.stop
+                    : message.trim() && !isModelDisabled
+                      ? submit
                       : undefined
                 }
                 aria-label="전송"
