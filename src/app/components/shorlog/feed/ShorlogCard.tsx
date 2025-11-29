@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ShorlogItem } from './ShorlogFeedPageClient';
+import { Bookmark, Heart, MessageCircle } from 'lucide-react';
 
 interface ShorlogCardProps {
   item: ShorlogItem;
@@ -66,11 +67,11 @@ export default function ShorlogCard({ item, index, allItems }: ShorlogCardProps)
 
         <div className="mt-3 flex items-center justify-center gap-4 text-xs text-slate-500">
           <div className="inline-flex items-center gap-1.5">
-            <LikeIcon />
+            <Heart className="h-4 w-4" />
             <span className="font-medium">{item.likeCount}</span>
           </div>
           <div className="inline-flex items-center gap-1.5">
-            <CommentIcon />
+            <MessageCircle className="h-4 w-4" />
             <span className="font-medium">{item.commentCount}</span>
           </div>
         </div>
@@ -83,34 +84,4 @@ export default function ShorlogCard({ item, index, allItems }: ShorlogCardProps)
   );
 }
 
-function LikeIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 20 20"
-      className="h-4 w-4 text-slate-500"
-      fill="currentColor"
-    >
-      <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
-    </svg>
-  );
-}
 
-function CommentIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 20 20"
-      className="h-4 w-4 text-slate-500"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.6}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M4 6a2 2 0 012-2h8a2 2 0 012 2v5.5a2 2 0 01-2 2h-3.382a1 1 0 00-.632.232L7.5 15.5V13H6a2 2 0 01-2-2V6z"
-      />
-    </svg>
-  );
-}

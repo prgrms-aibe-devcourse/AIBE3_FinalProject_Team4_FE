@@ -195,6 +195,7 @@ export default function ShorlogDetailPageClient({ detail, isOwner = false }: Pro
 
             <section aria-label="리액션" className="mt-2 border-t border-slate-100 pt-3">
               <ShorlogReactionSection
+                shorlogId={detail.id}
                 likeCount={detail.likeCount}
                 commentCount={detail.commentCount}
                 bookmarkCount={detail.bookmarkCount}

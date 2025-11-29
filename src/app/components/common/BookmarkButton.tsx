@@ -1,0 +1,142 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Bookmark } from 'lucide-react';
+import { addBookmark, removeBookmark, getBookmarkStatus } from '@/src/api/shorlogBookmarkApi';
+
+interface BookmarkButtonProps {
+  shorlogId: number;
+  initialBookmarked?: boolean;
+  initialBookmarkCount?: number;
+  onBookmarkChange?: (isBookmarked: boolean, bookmarkCount?: number) => void;
+  variant?: 'default' | 'small';
+  showCount?: boolean;
+}
+
+export default function BookmarkButton({
+  shorlogId,
+  initialBookmarked = false,
+  initialBookmarkCount = 0,
+  onBookmarkChange,
+  variant = 'default',
+  showCount = false,
+}: BookmarkButtonProps) {
+  const router = useRouter();
+  const [isBookmarked, setIsBookmarked] = useState(initialBookmarked);
+  const [bookmarkCount, setBookmarkCount] = useState(initialBookmarkCount);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  // 로그인 상태 확인 및 북마크 상태 확인
+  useEffect(() => {
+    const checkAuthAndBookmark = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'}/api/v1/auth/me`, {
+          credentials: 'include',
+          cache: 'no-store',
+        });
+
+        if (response.ok) {
+          setIsLoggedIn(true);
+
+          // 실제 북마크 상태 확인
+          try {
+            const bookmarkStatus = await getBookmarkStatus(shorlogId);
+            setIsBookmarked(bookmarkStatus.isBookmarked);
+            setBookmarkCount(bookmarkStatus.bookmarkCount);
+          } catch (bookmarkError) {
+            // 북마크 상태 조회 실패 시 기본값 사용
+            console.error('북마크 상태 조회 실패:', bookmarkError);
+          }
+        } else {
+          setIsLoggedIn(false);
+        }
+      } catch (error) {
+        setIsLoggedIn(false);
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuthAndBookmark();
+  }, [shorlogId]);
+
+  // 북마크/북마크 해제 토글
+  const handleToggleBookmark = async () => {
+    // 로그인 확인
+    if (!isLoggedIn) {
+      const confirmLogin = window.confirm(
+        '북마크 기능은 로그인이 필요합니다.\n로그인 페이지로 이동하시겠습니까?'
+      );
+      if (confirmLogin) {
+        router.push('/auth/login');
+      }
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      let result;
+      if (isBookmarked) {
+        result = await removeBookmark(shorlogId);
+      } else {
+        result = await addBookmark(shorlogId);
+      }
+
+      setIsBookmarked(result.isBookmarked);
+      setBookmarkCount(result.bookmarkCount);
+      onBookmarkChange?.(result.isBookmarked, result.bookmarkCount);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
+      alert(`${isBookmarked ? '북마크 해제' : '북마크'} 처리에 실패했어요.\n\n${errorMessage}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 로딩 중일 때 표시할 컴포넌트
+  if (isCheckingAuth) {
+    return (
+      <button disabled className={`flex items-center justify-center ${variant === 'small' ? 'p-1' : 'p-2'}`}>
+        <Bookmark className={`${variant === 'small' ? 'h-4 w-4' : 'h-5 w-5'} text-slate-300 animate-pulse`} />
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={handleToggleBookmark}
+      disabled={isLoading}
+      className={`
+        flex items-center gap-1 transition-all duration-200 hover:scale-105 active:scale-95
+        ${variant === 'small' ? 'text-xs' : 'text-sm'}
+        ${isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
+      `}
+      aria-label={isBookmarked ? '북마크 해제' : '북마크 추가'}
+    >
+      <Bookmark
+        className={`
+          ${variant === 'small' ? 'h-4 w-4' : 'h-5 w-5'}
+          transition-all duration-200
+          ${isBookmarked 
+            ? 'fill-yellow-500 text-yellow-500' 
+            : 'fill-none text-slate-500 hover:text-yellow-400'
+          }
+          ${isLoading ? 'animate-pulse' : ''}
+        `}
+      />
+
+      {showCount && (
+        <span className={`
+          font-medium transition-colors duration-200
+          ${isBookmarked ? 'text-yellow-500' : 'text-slate-600'}
+        `}>
+          {bookmarkCount.toLocaleString()}
+        </span>
+      )}
+    </button>
+  );
+}
