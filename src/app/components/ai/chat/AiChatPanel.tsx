@@ -1,4 +1,5 @@
 'use client';
+import { useAiChatStreamMutation } from '@/src/api/useAiChatStream';
 import { useState } from 'react';
 import Tooltip from '../../common/Tooltip';
 import AIChatBody from './AiChatBody';
@@ -41,6 +42,34 @@ export default function AiChatPanel() {
     setMessages((prev) => [...prev, msg]);
   };
 
+  const aiChat = useAiChatStreamMutation({
+    onChunk: (chunk) => {
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+
+        if (last?.role === 'assistant') {
+          return [...prev.slice(0, -1), { ...last, text: last.text + chunk }];
+        }
+        return [...prev, { id: Date.now(), role: 'assistant', text: chunk }];
+      });
+    },
+    onError: (e) => {
+      console.error(e);
+      // 필요하면 마지막 assistant 메시지에 에러 표시
+    },
+  });
+
+  const handleSend = (text: string) => {
+    setMessages((prev) => [...prev, { id: Date.now(), role: 'user', text }]);
+
+    aiChat.start({
+      id: 'temp',
+      message: text,
+      content: text,
+      model: selectedModel,
+    });
+  };
+
   return (
     <>
       {/* 열기 버튼 */}
@@ -66,6 +95,8 @@ export default function AiChatPanel() {
           onModelChange={handleModelChange}
           messages={messages}
           addMessage={addMessage}
+          onSend={handleSend}
+          aiChat={aiChat}
         />
       )}
 
@@ -91,6 +122,8 @@ export default function AiChatPanel() {
               onModelChange={handleModelChange}
               messages={messages}
               addMessage={addMessage}
+              onSend={handleSend}
+              aiChat={aiChat}
             />
           </div>
         </div>

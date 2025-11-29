@@ -1,5 +1,6 @@
 'use client';
 
+import { useAiChatStreamMutation } from '@/src/api/useAiChatStream';
 import ReactMarkdown from 'react-markdown';
 import ChatBubble from './ChatBubble';
 import ChatInput from './ChatInput';
@@ -17,14 +18,17 @@ interface AIChatBodyProps {
   onModelChange: (value: string) => void;
   messages: Message[];
   addMessage: (msg: Message) => void;
+  onSend?: (text: string) => void;
+  aiChat: ReturnType<typeof useAiChatStreamMutation>;
 }
-
 export default function AIChatBody({
   modelOptions,
   selectedModel,
   onModelChange,
   messages,
   addMessage,
+  onSend,
+  aiChat,
 }: AIChatBodyProps) {
   // user 메시지와 ai 응답 메시지 분리
   const userMessages = messages.filter((msg) => msg.role === 'user');
@@ -49,13 +53,17 @@ export default function AIChatBody({
       </div>
       {/* 입력 영역 */}
       <ChatInput
-        onSend={(text) => {
-          addMessage({ id: Date.now(), role: 'user', text });
-          // 실제 ai 응답은 상위에서 처리 필요 (여기선 예시)
-        }}
+        onSend={
+          onSend
+            ? onSend
+            : (text) => {
+                addMessage({ id: Date.now(), role: 'user', text });
+              }
+        }
         modelOptions={modelOptions}
         selectedModel={selectedModel}
         onModelChange={onModelChange}
+        aiChat={aiChat}
       />
     </div>
   );

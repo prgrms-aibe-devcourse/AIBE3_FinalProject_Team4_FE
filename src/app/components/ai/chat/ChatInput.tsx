@@ -1,4 +1,5 @@
-import { ArrowUp, FileText } from 'lucide-react';
+import { useAiChatStreamMutation } from '@/src/api/useAiChatStream';
+import { ArrowUp, FileText, Square } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import Tooltip from '../../common/Tooltip';
 import ModelDropdown from './ModelDropdown';
@@ -12,19 +13,19 @@ interface ModelOption {
 interface ChatInputProps {
   onSend: (message: string) => void;
   blogTitle?: string;
-  isAnswering?: boolean; // ai가 답변 중인지 여부
   modelOptions: ModelOption[];
   selectedModel: string;
   onModelChange: (value: string) => void;
+  aiChat: ReturnType<typeof useAiChatStreamMutation>;
 }
 
 export default function ChatInput({
   onSend,
   blogTitle,
-  isAnswering,
   modelOptions,
   selectedModel,
   onModelChange,
+  aiChat,
 }: ChatInputProps) {
   // selectedModel, modelOptions, onModelChange는 모두 상위에서 관리
   const selected = modelOptions.find((opt) => opt.value === selectedModel) || modelOptions[0];
@@ -34,6 +35,7 @@ export default function ChatInput({
   const isModelDisabled = !selected.enabled;
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const isAnswering = aiChat.isStreaming;
 
   const submit = useCallback(() => {
     if (!message.trim()) return;
@@ -91,7 +93,11 @@ export default function ChatInput({
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 if (!isModelDisabled) {
-                  submit();
+                  if (isAnswering) {
+                    aiChat.stop();
+                  } else {
+                    submit();
+                  }
                 }
               }
             }}
@@ -100,23 +106,36 @@ export default function ChatInput({
 
         {/* Bottom row: left icons + source label, center edit checkbox, right send */}
         <div className="flex items-center justify-between gap-3">
+          {/* 모델 선택 드롭다운 */}
           <ModelDropdown
             options={modelOptions}
             selected={selected}
             onSelect={handleModelSelect}
             direction="up"
           />
-
+          {/* 전송 버튼 */}
           <div className="flex items-center gap-4">
             <div className="relative flex items-center group">
               <button
-                onClick={message.trim() && !isAnswering && !isModelDisabled ? submit : undefined}
+                onClick={
+                  message.trim() && !isAnswering && !isModelDisabled
+                    ? submit
+                    : isAnswering
+                      ? aiChat.stop
+                      : undefined
+                }
                 aria-label="전송"
                 disabled={!message.trim() || isAnswering || isModelDisabled}
                 className={`w-8 h-8 rounded-full flex items-center justify-center shadow transition
-                  ${message.trim() && !isAnswering && !isModelDisabled ? 'bg-main text-white hover:brightness-95 cursor-pointer' : 'bg-gray-200 text-gray-400'}`}
+                  ${
+                    isAnswering
+                      ? 'bg-slate-900 text-white cursor-pointer'
+                      : message.trim() && !isModelDisabled
+                        ? 'bg-main text-white hover:brightness-95 cursor-pointer'
+                        : 'bg-gray-200 text-gray-400'
+                  }`}
               >
-                <ArrowUp size={18} />
+                {isAnswering ? <Square size={15} fill="white" /> : <ArrowUp size={18} />}
               </button>
               {/* Tooltip: 마우스 호버 시 노출 */}
               {(!message.trim() || isAnswering || isModelDisabled) && (

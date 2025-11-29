@@ -1,7 +1,8 @@
 'use client';
+import { useAiChatStreamMutation } from '@/src/api/useAiChatStream';
 import { useEffect, useRef, useState } from 'react';
 import Tooltip from '../../common/Tooltip';
-import AIChatBody from './AiChatBody';
+import AiChatBody from './AiChatBody';
 import AiChatHeader from './AiChatHeader';
 
 interface AiChatSidebarProps {
@@ -12,6 +13,8 @@ interface AiChatSidebarProps {
   onModelChange: (value: string) => void;
   messages: any[];
   addMessage: (msg: any) => void;
+  onSend?: (text: string) => void;
+  aiChat: ReturnType<typeof useAiChatStreamMutation>;
 }
 export default function AiChatSidebar({
   onToggleMode,
@@ -21,6 +24,8 @@ export default function AiChatSidebar({
   onModelChange,
   messages,
   addMessage,
+  onSend,
+  aiChat,
 }: AiChatSidebarProps) {
   const [sidebarWidth, setSidebarWidth] = useState(384); // 기본 w-96 (384px)
   const [isResizing, setIsResizing] = useState(false);
@@ -128,12 +133,14 @@ export default function AiChatSidebar({
 
       {/* AI 채팅 컴포넌트 (내부만 스크롤) */}
       <div className="flex-1 min-w-0 overflow-y-auto">
-        <AIChatBody
+        <AiChatBody
           modelOptions={modelOptions}
           selectedModel={selectedModel}
           onModelChange={onModelChange}
           messages={messages}
           addMessage={addMessage}
+          onSend={onSend}
+          aiChat={aiChat}
         />
       </div>
     </div>
