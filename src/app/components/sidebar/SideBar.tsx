@@ -5,8 +5,8 @@ import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import MorePanel from './MorePanel';
-import SearchPanel from './SearchPanel';
+import MorePanel from './panel/MorePanel';
+import SearchPanel from './panel/SearchPanel';
 import { guestMenu, loggedInMenu } from './SideBarMenu';
 
 type OpenPanel = 'none' | 'more' | 'search';

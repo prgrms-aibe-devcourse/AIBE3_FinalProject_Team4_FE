@@ -4,7 +4,7 @@ import { useAuth } from '@/src/providers/AuthProvider';
 import { X } from 'lucide-react';
 
 // ⭐ 추가: 모달 import
-import ConfirmLogoutModal from './ConfirmLogoutModal';
+import ConfirmLogoutModal from '../ConfirmLogoutModal';
 
 export default function MorePanel({
   onClose,

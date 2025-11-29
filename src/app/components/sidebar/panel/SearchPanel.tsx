@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/src/providers/AuthProvider';
 import { Clock, Search, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -24,10 +25,10 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
   const [autocomplete, setAutocomplete] = useState<RecommendedKeyword[]>([]);
   const [loading, setLoading] = useState(true);
-
   const debouncedKeyword = useDebounce(keyword, 300); // 0.3초 후 요청
+  const router = useRouter();
 
-  // 🔥 추천 검색어 + 내 검색 기록 병렬 호출
+  // 추천 검색어 + 내 검색 기록 병렬 호출
   useEffect(() => {
     async function loadAll() {
       try {
@@ -49,6 +50,7 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
     loadAll();
   }, [isLogin]);
 
+  // 자동완성
   useEffect(() => {
     async function loadAutocomplete() {
       if (!debouncedKeyword.trim()) {
@@ -63,6 +65,7 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
     loadAutocomplete();
   }, [debouncedKeyword]);
 
+  // 검색 기록 삭제
   const handleDeleteHistory = async (id: number) => {
     const success = await deleteSearchHistory(id);
     if (success) {
@@ -70,16 +73,12 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
     }
   };
 
-  // 자동완성 더미 (나중에 API 연동 가능)
-  const autoList = keyword
-    ? [
-        `${keyword} 강의`,
-        `${keyword} console`,
-        `${keyword} 추천`,
-        `${keyword} ec2`,
-        `${keyword} s3`,
-      ]
-    : [];
+  // 검색어 입력 시 검색 실행
+  const handleSearch = (keyword: string) => {
+    if (!keyword.trim()) return;
+    router.push(`/search/shorlog?keyword=${encodeURIComponent(keyword)}`);
+    onClose();
+  };
 
   const showRecommendedOnly = !keyword && !isLogin;
   const showRecentAndRecommend = !keyword && isLogin;
@@ -112,6 +111,11 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
             placeholder="검색어를 입력하세요"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleSearch(keyword);
+              }
+            }}
             className="
               w-full h-10 bg-gray-100 rounded-full pl-4 pr-10
               text-[15px] outline-none border border-gray-200
@@ -139,6 +143,7 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
                 {autocomplete.map((item) => (
                   <li
                     key={item.keyword}
+                    onClick={() => handleSearch(item.keyword)}
                     className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-gray-100 cursor-pointer"
                   >
                     <Search size={18} className="text-gray-500" />
@@ -159,6 +164,7 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
                   {searchHistory.map((item) => (
                     <li
                       key={item.id}
+                      onClick={() => handleSearch(item.keyword)}
                       className="flex items-center gap-2 px-1 py-1 rounded-lg hover:bg-gray-100 cursor-pointer"
                     >
                       <div className="w-4 h-4 flex items-center justify-center">
@@ -188,6 +194,7 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
                   {top10Keywords.map((item) => (
                     <li
                       key={item.keyword}
+                      onClick={() => handleSearch(item.keyword)}
                       className="px-1 py-1 rounded-lg hover:bg-gray-100 cursor-pointer flex items-center gap-2"
                     >
                       • {item.keyword}
@@ -206,6 +213,7 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
                 {top10Keywords.map((item) => (
                   <li
                     key={item.keyword}
+                    onClick={() => handleSearch(item.keyword)}
                     className="px-1 py-1 rounded-lg hover:bg-gray-100 cursor-pointer"
                   >
                     • {item.keyword}
