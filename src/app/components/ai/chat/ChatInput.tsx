@@ -1,7 +1,7 @@
 import { ArrowUp, FileText } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
+import Tooltip from '../../common/Tooltip';
 import ModelDropdown from './ModelDropdown';
-import Tooltip from './Tooltip';
 
 interface ModelOption {
   label: string;
@@ -36,9 +36,8 @@ export default function ChatInput({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const submit = useCallback(() => {
-    const t = message.trim();
-    if (!t) return;
-    onSend(t);
+    if (!message.trim()) return;
+    onSend(message);
     setMessage('');
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -63,13 +62,12 @@ export default function ChatInput({
           </div>
         </div>
       )}
-      <div className="rounded-3xl border bg-white p-3 shadow-sm">
+      <div className="rounded-3xl border bg-white p-3 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)]">
         {/* Top row: small badges / context */}
         <div className="inline-flex max-w-full items-center gap-2 px-3 py-1 rounded-full bg-slate-50 text-xs text-slate-700 border">
           <FileText size={14} className="text-slate-500" />
           <span className="min-w-0 truncate font-light">{displayTitle}</span>
         </div>
-
         {/* Middle: large input / placeholder */}
         <div className="mb-3 mt-3">
           <label htmlFor="ai-input" className="sr-only">
