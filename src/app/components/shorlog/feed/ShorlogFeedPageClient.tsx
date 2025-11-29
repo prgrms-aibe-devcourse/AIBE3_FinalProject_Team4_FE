@@ -160,12 +160,12 @@ function EmptyState() {
       </div>
       <p className="mt-4 text-sm font-semibold text-slate-800">아직 볼 수 있는 숏로그가 없어요.</p>
       <p className="mt-1 text-xs text-slate-500">첫 숏로그를 남기거나, 더 많은 작가를 팔로우해 보세요.</p>
-      <button
-        type="button"
+      <a
+        href="/shorlog/create"
         className="mt-4 inline-flex items-center rounded-full bg-sky-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-sky-50"
       >
         새 숏로그 쓰기
-      </button>
+      </a>
     </div>
   );
 }
