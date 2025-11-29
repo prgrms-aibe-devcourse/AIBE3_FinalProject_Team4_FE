@@ -43,17 +43,29 @@ export function BlogListPage() {
 
   return (
     <section className="space-y-8">
-      <header className="space-y-4">
-        <h1 className="text-2xl font-bold">블로그</h1>
-        <p className="mt-1 text-sm text-slate-500">다양한 이야기와 생각들을 만나보세요.</p>
-        <BlogToolbar
-          keyword={keyword}
-          onKeywordChange={setKeyword}
-          sortType={sortType}
-          onSortChange={setSortType}
-          scope={scope}
-          onScopeChange={setScope}
-        />
+      <header className="mb-6 space-y-4 md:mb-8">
+        {/* 상단 라벨 */}
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-600">BLOG FEED</p>
+
+        {/* 메인 타이틀 */}
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">블로그</h1>
+
+        {/* 설명 문구 */}
+        <p className="max-w-2xl text-sm text-slate-500 md:text-base">
+          길게 남기고 싶은 생각과 기록을 자유롭게 공유해 보세요. 연결된 짧은 글로 흐름을 느껴 보세요.
+        </p>
+
+        {/* 블로그 툴바 */}
+        <div className="pt-2">
+          <BlogToolbar
+            keyword={keyword}
+            onKeywordChange={setKeyword}
+            sortType={sortType}
+            onSortChange={setSortType}
+            scope={scope}
+            onScopeChange={setScope}
+          />
+        </div>
       </header>
 
       {/* 블로그 리스트 */}
