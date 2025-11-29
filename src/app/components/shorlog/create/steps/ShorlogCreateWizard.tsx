@@ -172,7 +172,7 @@ export default function ShorlogCreateWizard() {
   // 블로그 → 숏로그 변환
   const handleBlogToShorlogClick = async () => {
     // TODO: 블로그 내용 기반 요약 생성 기능 구현
-    // 
+    //
     // [조건] 블로그 생성 후 숏로그 생성 시에만 이 버튼이 보여야 함
     // - URL에서 blogId 파라미터 확인 (예: /shorlog/create?blogId=123)
     // - blogId가 있을 때만 onBlogToShorlogClick prop 전달

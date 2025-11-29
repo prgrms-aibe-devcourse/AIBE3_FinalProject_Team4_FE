@@ -6,6 +6,31 @@ import './globals.css';
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
+      <head>
+        <script
+          src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
+          integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4"
+          crossOrigin="anonymous"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.addEventListener('load', function() {
+                if (window.Kakao && !window.Kakao.isInitialized()) {
+                  const kakaoKey = '${process.env.NEXT_PUBLIC_KAKAO_APP_KEY || ''}';
+                  if (kakaoKey) {
+                    try {
+                      window.Kakao.init(kakaoKey);
+                    } catch (error) {
+                      console.warn('Kakao SDK 초기화 실패');
+                    }
+                  }
+                }
+              });
+            `
+          }}
+        />
+      </head>
       <body>
         <AuthProvider>
           <ReactQueryProvider>

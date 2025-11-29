@@ -199,27 +199,20 @@ export default function ShorlogDetailPageClient({ detail, isOwner = false }: Pro
                 likeCount={detail.likeCount}
                 commentCount={detail.commentCount}
                 bookmarkCount={detail.bookmarkCount}
+                title={`${detail.nickname}님의 숏로그`}
+                description={detail.content.split('\n')[0].trim() || '숏로그를 확인해보세요!'}
+                imageUrl={detail.thumbnailUrls.length > 0 ? detail.thumbnailUrls[0] : null}
+                author={detail.nickname}
               />
 
               {detail.linkedBlogId && (
-                <div className="mt-3 flex items-center gap-2">
+                <div className="mt-3">
                   <a
                     href={`/blog/${detail.linkedBlogId}`}
                     className="inline-flex items-center rounded-full bg-[#2979FF] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#1863db] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                   >
                     블로그 바로가기
                   </a>
-
-                  {isOwner && (
-                    <button
-                      type="button"
-                      onClick={() => alert('썸네일 수정 기능은 추후 제공될 예정입니다.')}
-                      className="inline-flex items-center rounded-full border border-slate-200 px-3.5 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-                    >
-                      {/* TODO: 썸네일 수정 모달 구현 */}
-                      썸네일 수정하기
-                    </button>
-                  )}
                 </div>
               )}
             </section>
