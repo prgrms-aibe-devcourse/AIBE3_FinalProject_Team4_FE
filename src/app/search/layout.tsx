@@ -39,7 +39,7 @@ export default function SearchLayout({ children }: { children: React.ReactNode }
 
   // 탭 이동
   const moveTab = (tab: string) => {
-    router.push(`/search/${tab}?keyword=${encodeURIComponent(keyword)}&sort=${currentSort}`);
+    router.push(`/search/${tab}?keyword=${encodeURIComponent(keyword)}`);
   };
 
   // 정렬 변경
