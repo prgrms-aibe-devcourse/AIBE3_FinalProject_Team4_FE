@@ -3,15 +3,68 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8
 
 export interface AiChatRequest {
   message: string;
-  content: string;
-  model: string;
-  id?: string;
+  content?: string;
+  model?: string;
+  id?: number;
 }
 
 export interface RsData<T> {
   resultCode: string;
   msg: string;
   data: T;
+}
+
+// UI에서 구분해서 쓰기 쉬운 커스텀 에러
+export class ApiError extends Error {
+  status: number;
+  resultCode?: string;
+  serverMsg?: string;
+  bodyText?: string;
+
+  constructor(
+    message: string,
+    status: number,
+    extra?: {
+      resultCode?: string;
+      serverMsg?: string;
+      bodyText?: string;
+    },
+  ) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.resultCode = extra?.resultCode;
+    this.serverMsg = extra?.serverMsg;
+    this.bodyText = extra?.bodyText;
+  }
+}
+
+// 응답 에러 바디를 최대한 RsData로 파싱
+async function parseErrorResponse(res: Response) {
+  const contentType = res.headers.get('content-type') || '';
+  let bodyText = '';
+
+  try {
+    bodyText = await res.text(); // 스트리밍 실패 케이스도 있으니 text로 먼저
+  } catch {
+    bodyText = '';
+  }
+
+  // RsData 형태 JSON이면 msg/resultCode 뽑기
+  if (contentType.includes('application/json') && bodyText) {
+    try {
+      const json = JSON.parse(bodyText) as Partial<RsData<any>>;
+      return {
+        resultCode: json.resultCode,
+        serverMsg: json.msg,
+        bodyText,
+      };
+    } catch {
+      // fallthrough
+    }
+  }
+
+  return { bodyText };
 }
 
 // 스트리밍 응답에서 RsData<String>의 data를 계속 뽑아 콜백으로 전달
@@ -47,11 +100,23 @@ export async function streamAiChat(
     });
 
     if (!res.ok) {
-      throw new Error(`AI chat request failed: ${res.status}`);
+      const extra = await parseErrorResponse(res);
+
+      // ✅ 상태코드별 사용자 친화 메시지
+      const friendly =
+        res.status === 401
+          ? '로그인이 필요해요.'
+          : res.status === 403
+            ? '접근 권한이 없어요.'
+            : res.status >= 500
+              ? '서버 오류가 발생했어요. 잠시 후 다시 시도해 주세요.'
+              : '요청에 실패했어요.';
+
+      throw new ApiError(extra.serverMsg || friendly, res.status, extra);
     }
 
     if (!res.body) {
-      throw new Error('No response body (stream not supported?).');
+      throw new Error('스트리밍을 지원하지 않는 응답이에요.');
     }
 
     const reader = res.body.getReader();
@@ -127,6 +192,4 @@ export async function streamAiChat(
     options?.onError?.(e);
     throw e;
   }
-
-  return fullText;
 }

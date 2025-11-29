@@ -8,7 +8,7 @@ import { ModelOption } from './ModelDropdown';
 
 interface Message {
   id: number;
-  role: 'user' | 'assistant';
+  role: 'user' | 'ai';
   text: string;
 }
 
@@ -30,25 +30,18 @@ export default function AIChatBody({
   onSend,
   aiChat,
 }: AIChatBodyProps) {
-  // user 메시지와 ai 응답 메시지 분리
-  const userMessages = messages.filter((msg) => msg.role === 'user');
-  const aiMessages = messages.filter((msg) => msg.role === 'assistant');
-
-  // 가장 최근 ai 응답만 표시 (여러 개면 마지막 것)
-  const latestAi = aiMessages.length > 0 ? aiMessages[aiMessages.length - 1] : null;
-
   return (
     <div className="flex flex-col h-full">
       {/* 메시지 영역 (user) */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
-        {userMessages.map((msg) => (
-          <ChatBubble key={msg.id} role={msg.role} text={msg.text} />
-        ))}
-        {/* AI 응답은 버블이 아니라 별도 markdown 영역에 */}
-        {latestAi && (
-          <div className="mt-4 p-4 bg-gray-50 border rounded-xl text-[15px] prose max-w-none">
-            <ReactMarkdown>{latestAi.text}</ReactMarkdown>
-          </div>
+        {messages.map((msg) =>
+          msg.role === 'user' ? (
+            <ChatBubble key={msg.id} role={msg.role} text={msg.text} />
+          ) : (
+            <ChatBubble key={msg.id} role={msg.role}>
+              <ReactMarkdown>{msg.text}</ReactMarkdown>
+            </ChatBubble>
+          ),
         )}
       </div>
       {/* 입력 영역 */}

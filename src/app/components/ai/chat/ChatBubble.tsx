@@ -1,28 +1,23 @@
 interface Props {
-  role: 'user' | 'assistant';
-  text: string;
+  role: 'user' | 'ai';
+  text?: string;
+  children?: React.ReactNode;
 }
 
-export default function ChatBubble({ role, text }: Props) {
+export default function ChatBubble({ role, text, children }: Props) {
   const isUser = role === 'user';
 
-  const preserveEdgeSpaces = (s: string) =>
-    s
-      .replace(/^ +/gm, (m) => '\u00A0'.repeat(m.length))
-      .replace(/ +$/gm, (m) => '\u00A0'.repeat(m.length));
-  const safeText = preserveEdgeSpaces(text);
-
   return (
-    <div className={`w-full flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+    <div className={`${isUser ? 'justify-end w-full flex' : 'w-full'}`}>
       <div
         className={`
-          max-w-[85%] px-4 py-1 rounded-2xl
+          ${isUser ? 'max-w-[85%] bg-[#E9EEF6] px-4 py-1 rounded-2xl' : 'w-full bg-transparent m-2'}
           text-[15px] leading-relaxed font-extralight
-          whitespace-pre-wrap break-words [overflow-wrap:anywhere]
-          ${isUser ? 'bg-[#E9EEF6]' : 'bg-white shadow-sm'}
+          break-words [overflow-wrap:anywhere]
         `}
       >
-        {safeText}
+        {/* AI 대답 메시지인 경우 마크다운 렌더링 필요하므로 children 으로 */}
+        {children ?? <div className="whitespace-pre-wrap">{text}</div>}
       </div>
     </div>
   );

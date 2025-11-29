@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useCallback, useRef } from 'react';
-import { AiChatRequest, streamAiChat } from './aiChatApi';
+import { AiChatRequest, ApiError, streamAiChat } from './aiChatApi';
 
 interface UseAiChatStreamOptions {
   onChunk?: (chunk: string) => void;
@@ -40,6 +40,13 @@ export function useAiChatStreamMutation(opts?: UseAiChatStreamOptions) {
 
       return fullText;
     },
+    onError: (e) => {
+      // 여기서 한 번 더 공통 처리 가능
+      if (e instanceof ApiError) {
+        console.warn('API Error:', e.status, e.serverMsg || e.message);
+      }
+      opts?.onError?.(e);
+    },
   });
 
   /** 외부에서 스트리밍 중단할 때 */
@@ -62,6 +69,7 @@ export function useAiChatStreamMutation(opts?: UseAiChatStreamOptions) {
     ...mutation,
     start, // start(req)로 시작
     stop, // stop()으로 중단
-    isStreaming: mutation.isPending, // 이름 더 직관적으로
+    isStreaming: mutation.isPending,
+    lastError: mutation.error as unknown,
   };
 }
