@@ -21,12 +21,14 @@ type SearchHistoryItem = {
 export default function SearchPanel({
   onClose,
   onSearch,
+  initialKeyword = '',
 }: {
   onClose: () => void;
   onSearch: (keyword: string) => void;
+  initialKeyword?: string;
 }) {
   const { isLogin } = useAuth();
-  const [keyword, setKeyword] = useState('');
+  const [keyword, setKeyword] = useState(initialKeyword);
   const [top10Keywords, setTop10Keywords] = useState<RecommendedKeyword[]>([]);
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
   const [autocomplete, setAutocomplete] = useState<RecommendedKeyword[]>([]);

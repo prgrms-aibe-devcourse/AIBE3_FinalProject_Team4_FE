@@ -161,6 +161,7 @@ export default function Sidebar() {
 
         {isSearchOpen && (
           <SearchPanel
+            initialKeyword={sidebarKeyword}
             onClose={closePanelFn}
             onSearch={(keyword: string) => setSidebarKeyword(keyword)}
           />
