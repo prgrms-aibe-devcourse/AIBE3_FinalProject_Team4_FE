@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { requireAuth } from '@/src/lib/auth';
 import { deleteShorlog } from '@/src/app/components/shorlog/edit/api';
+import FollowButton from '../../common/FollowButton';
 
 interface Props {
   username: string;
@@ -23,17 +23,10 @@ export default function ShorlogAuthorHeader({
   userId,
 }: Props) {
   const router = useRouter();
-  const [isFollowing, setIsFollowing] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-
-  const toggleFollow = () => {
-    if (!requireAuth('팔로우')) return;
-    // TODO: 1번(주권영) 팔로우 컴포넌트 연동
-    setIsFollowing((prev) => !prev);
-  };
 
   const handleMenuAction = (action: string) => {
     setMenuOpen(false);
@@ -104,18 +97,8 @@ export default function ShorlogAuthorHeader({
       </div>
 
       <div className="flex items-center gap-1.5">
-        {!isOwner && (
-          <button
-            type="button"
-            onClick={toggleFollow}
-            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
-              isFollowing
-                ? 'bg-slate-100 text-slate-700 ring-1 ring-slate-200 hover:bg-slate-200 focus-visible:ring-slate-300'
-                : 'bg-[#2979FF] text-white hover:bg-[#1863db] focus-visible:ring-[#2979FF]'
-            }`}
-          >
-            {isFollowing ? '팔로잉' : '팔로우'}
-          </button>
+        {!isOwner && userId && (
+          <FollowButton userId={userId} variant="small" />
         )}
 
         {isOwner && (
