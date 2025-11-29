@@ -7,9 +7,15 @@ type BlogWriteHeaderProps = {
   onSaveDraft?: () => void;
   onPublish?: () => void;
   isPublishing?: boolean;
+  onOpenDrafts?: () => void;
 };
 
-export function BlogWriteHeader({ onSaveDraft, onPublish, isPublishing }: BlogWriteHeaderProps) {
+export function BlogWriteHeader({
+  onSaveDraft,
+  onPublish,
+  isPublishing,
+  onOpenDrafts,
+}: BlogWriteHeaderProps) {
   const router = useRouter();
 
   return (
@@ -24,8 +30,16 @@ export function BlogWriteHeader({ onSaveDraft, onPublish, isPublishing }: BlogWr
         </button>
         <h1 className="text-sm font-semibold text-slate-800">블로그 글 작성</h1>
       </div>
-
       <div className="flex items-center gap-2">
+        {onOpenDrafts && (
+          <button
+            type="button"
+            onClick={onOpenDrafts}
+            className="rounded-full bg-slate-200 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-300"
+          >
+            임시저장 목록
+          </button>
+        )}
         {onSaveDraft && (
           <button
             type="button"

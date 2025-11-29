@@ -20,8 +20,8 @@ export type MenuItem = {
 // 비로그인 메뉴
 export const guestMenu: MenuItem[] = [
   { icon: Home, label: '메인', href: '/' },
-  { icon: Image, label: '숏로그', href: '/shorlog' },
-  { icon: FileText, label: '블로그', href: '/blog' },
+  { icon: Image, label: '숏로그', href: '/shorlog/feed' },
+  { icon: FileText, label: '블로그', href: '/blogs' },
   { icon: Users, label: '팔로우', href: '/follow' },
   { icon: PlusSquare, label: '작성', href: '/write' },
   { icon: User, label: '프로필', href: '/profile' },
@@ -31,8 +31,8 @@ export const guestMenu: MenuItem[] = [
 // 로그인 메뉴
 export const loggedInMenu: MenuItem[] = [
   { icon: Home, label: '메인', href: '/' },
-  { icon: Image, label: '숏로그', href: '/shorlog' },
-  { icon: FileText, label: '블로그', href: '/blog' },
+  { icon: Image, label: '숏로그', href: '/shorlog/feed' },
+  { icon: FileText, label: '블로그', href: '/blogs' },
   { icon: Users, label: '팔로우', href: '/follow' },
   { icon: PlusSquare, label: '작성', href: '/write' },
   { icon: MessageCircle, label: '메시지', href: '/messages', alert: true },
