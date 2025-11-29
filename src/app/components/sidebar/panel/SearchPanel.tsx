@@ -18,7 +18,13 @@ type SearchHistoryItem = {
   createdAt: string;
 };
 
-export default function SearchPanel({ onClose }: { onClose: () => void }) {
+export default function SearchPanel({
+  onClose,
+  onSearch,
+}: {
+  onClose: () => void;
+  onSearch: (keyword: string) => void;
+}) {
   const { isLogin } = useAuth();
   const [keyword, setKeyword] = useState('');
   const [top10Keywords, setTop10Keywords] = useState<RecommendedKeyword[]>([]);
@@ -36,9 +42,6 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
           fetchTop10Keywords(),
           isLogin ? fetchSearchHistory() : Promise.resolve([]),
         ]);
-
-        console.log('추천 검색어:', recommended);
-        console.log('내 검색 기록:', history);
 
         if (recommended) setTop10Keywords(recommended);
         if (history) setSearchHistory(history);
@@ -74,8 +77,16 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
   };
 
   // 검색어 입력 시 검색 실행
-  const handleSearch = (keyword: string) => {
+  const handleSearch = async (keyword: string) => {
     if (!keyword.trim()) return;
+
+    try {
+      await saveSearchHistory(keyword);
+    } catch (err) {
+      console.error('검색 기록 저장 실패:', err);
+    }
+
+    onSearch(keyword);
     router.push(`/search/shorlog?keyword=${encodeURIComponent(keyword)}`);
     onClose();
   };
@@ -251,6 +262,25 @@ export async function fetchTop10Keywords() {
   }
 }
 
+export async function fetchRecommendedKeywords(params: string) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/v1/search/trends/recommend?keyword=${params}`, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    if (!res.ok) throw new Error('Failed to fetch recommended keywords');
+
+    const json = await res.json();
+    return json.data as RecommendedKeyword[];
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
 export async function fetchSearchHistory() {
   try {
     const res = await fetch(`${API_BASE_URL}/api/v1/search/history`, {
@@ -265,25 +295,6 @@ export async function fetchSearchHistory() {
 
     const json = await res.json();
     return json.data as SearchHistoryItem[];
-  } catch (err) {
-    console.error(err);
-    return null;
-  }
-}
-
-export async function fetchRecommendedKeywords(params: string) {
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/v1/search/trends/recommend?keyword=${params}`, {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-      },
-    });
-
-    if (!res.ok) throw new Error('Failed to fetch recommended keywords');
-
-    const json = await res.json();
-    return json.data as RecommendedKeyword[];
   } catch (err) {
     console.error(err);
     return null;
@@ -318,4 +329,12 @@ function useDebounce<T>(value: T, delay: number) {
   }, [value, delay]);
 
   return debouncedValue;
+}
+
+export async function saveSearchHistory(keyword: string) {
+  await fetch(`${API_BASE_URL}/api/v1/search?keyword=${encodeURIComponent(keyword)}`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
+  });
 }

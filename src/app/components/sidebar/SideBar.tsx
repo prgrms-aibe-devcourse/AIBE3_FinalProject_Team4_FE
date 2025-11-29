@@ -16,6 +16,7 @@ export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openPanel, setOpenPanel] = useState<OpenPanel>('none');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [sidebarKeyword, setSidebarKeyword] = useState('');
 
   const pathname = usePathname();
   const router = useRouter();
@@ -147,6 +148,7 @@ export default function Sidebar() {
             <input
               type="text"
               readOnly
+              value={sidebarKeyword}
               placeholder="Search"
               className={`
           bg-transparent text-sm outline-none
@@ -166,6 +168,7 @@ export default function Sidebar() {
                 setIsCollapsed(false);
               }
             }}
+            onSearch={(keyword: string) => setSidebarKeyword(keyword)}
           />
         )}
       </div>
