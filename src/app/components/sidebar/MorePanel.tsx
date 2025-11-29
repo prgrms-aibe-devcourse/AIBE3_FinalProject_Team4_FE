@@ -15,7 +15,7 @@ export default function MorePanel({
   showLogoutModal: boolean;
   setShowLogoutModal: (value: boolean) => void;
 }) {
-  const { logout } = useAuth();
+  const { isLogin, logout } = useAuth();
 
   const handleLogout = async () => {
     console.log('로그아웃 처리');
@@ -66,19 +66,21 @@ export default function MorePanel({
           </button>
 
           {/* ⭐ 로그아웃 메뉴 → 모달 오픈 */}
-          <button
-            onClick={() => {
-              console.log('로그아웃 모달 열기');
-              setShowLogoutModal(true);
-            }}
-            className="
-              w-full text-left font-semibold 
-              py-2 px-2 rounded-lg 
-              hover:bg-gray-100 transition
-            "
-          >
-            로그아웃
-          </button>
+          {isLogin && (
+            <button
+              onClick={() => {
+                console.log('로그아웃 모달 열기');
+                setShowLogoutModal(true);
+              }}
+              className="
+                w-full text-left font-semibold 
+                py-2 px-2 rounded-lg 
+                hover:bg-gray-100 transition
+              "
+            >
+              로그아웃
+            </button>
+          )}
         </div>
       </div>
 

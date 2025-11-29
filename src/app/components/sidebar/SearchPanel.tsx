@@ -2,28 +2,52 @@
 
 import { useAuth } from '@/src/providers/AuthProvider';
 import { Clock, Search, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+type RecommendedKeyword = {
+  keyword: string;
+  count: number;
+};
+
+type SearchHistoryItem = {
+  id: number;
+  keyword: string;
+  createdAt: string;
+};
 
 export default function SearchPanel({ onClose }: { onClose: () => void }) {
   const { isLogin } = useAuth();
 
   const [keyword, setKeyword] = useState('');
+  const [recommendedKeywords, setRecommendedKeywords] = useState<RecommendedKeyword[]>([]);
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const recommendedKeywords = [
-    '생활형 베스트',
-    '서울 숨은 맛집',
-    'Spring Boot',
-    '한국 뉴스',
-    'BlackPink',
-    '생성형 AI',
-    '낭동 찾기',
-    '일상 공유',
-  ];
+  // 🔥 추천 검색어 + 내 검색 기록 병렬 호출
+  useEffect(() => {
+    async function loadAll() {
+      try {
+        const [recommended, history] = await Promise.all([
+          fetchRecommendedKeywords(),
+          isLogin ? fetchSearchHistory() : Promise.resolve([]),
+        ]);
 
-  const recentKeywords = isLogin
-    ? ['생물학 테스트', '서울 숨은 맛집', 'Spring Boot', '한국 뉴스']
-    : [];
+        console.log('추천 검색어:', recommended);
+        console.log('내 검색 기록:', history);
 
+        if (recommended) setRecommendedKeywords(recommended);
+        if (history) setSearchHistory(history);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadAll();
+  }, [isLogin]);
+
+  // 자동완성 더미 (나중에 API 연동 가능)
   const autoList = keyword
     ? [
         `${keyword} 강의`,
@@ -40,14 +64,12 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <div>
-      {/* ====== 패널 영역 ====== */}
       <div
         className="
           fixed left-20 top-0 
           w-80 h-screen 
           bg-white border-r border-gray-200 
-          shadow-md 
-          animate-slideIn 
+          shadow-md animate-slideIn 
           z-50
         "
       >
@@ -59,6 +81,7 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
+        {/* 검색 입력 */}
         <div className="flex-1 relative px-4 py-2">
           <input
             type="text"
@@ -67,22 +90,26 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             className="
-                w-full h-10 bg-gray-100 rounded-full pl-4 pr-10
-                text-[15px] outline-none border border-gray-200
-                focus:bg-white focus:ring-2 focus:ring-blue-100 transition
-              "
+              w-full h-10 bg-gray-100 rounded-full pl-4 pr-10
+              text-[15px] outline-none border border-gray-200
+              focus:bg-white focus:ring-2 focus:ring-blue-100 transition
+            "
           />
 
+          {/* 입력 초기화 버튼 */}
           {keyword && (
             <button
               onClick={() => setKeyword('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:bg-gray-200 rounded-full"
-            ></button>
+              className="absolute right-7 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:bg-gray-200 rounded-full"
+            >
+              <X size={14} />
+            </button>
           )}
         </div>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+          {/* 자동완성 */}
           {showAutoResults && (
             <div>
               <ul className="space-y-2">
@@ -99,37 +126,42 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
             </div>
           )}
 
+          {/* 로그인 상태: 최근 검색어 + 추천 검색어 */}
           {showRecentAndRecommend && (
             <>
+              {/* 최근 검색어 */}
               <div>
                 <h3 className="text-sm text-gray-500 mb-2">최근 검색어</h3>
                 <ul className="space-y-1">
-                  {recentKeywords.map((item) => (
+                  {searchHistory.map((item) => (
                     <li
-                      key={item}
+                      key={item.id}
                       className="flex items-center gap-2 px-1 py-1 rounded-lg hover:bg-gray-100 cursor-pointer"
                     >
                       <div className="w-4 h-4 flex items-center justify-center">
                         <Clock size={12} className="text-gray-600" />
                       </div>
-                      {item}
-                      <div className="ml-auto p-1">
-                        <X size={12} className="text-gray-600 hover:bg-gray-200 rounded-full" />
-                      </div>
+
+                      {item.keyword}
+
+                      <button className="ml-auto p-1 hover:bg-gray-200 rounded-full">
+                        <X size={12} className="text-gray-600" />
+                      </button>
                     </li>
                   ))}
                 </ul>
               </div>
 
+              {/* 추천 검색어 */}
               <div>
                 <h3 className="text-sm text-gray-500 mb-2">추천 검색어</h3>
                 <ul className="space-y-1">
                   {recommendedKeywords.map((item) => (
                     <li
-                      key={item}
-                      className="px-1 py-1 rounded-lg hover:bg-gray-100 cursor-pointer"
+                      key={item.keyword}
+                      className="px-1 py-1 rounded-lg hover:bg-gray-100 cursor-pointer flex items-center gap-2"
                     >
-                      • {item}
+                      • {item.keyword}
                     </li>
                   ))}
                 </ul>
@@ -137,13 +169,17 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
             </>
           )}
 
+          {/* 비로그인: 추천 검색어만 */}
           {showRecommendedOnly && (
             <div>
               <h3 className="text-sm text-gray-500 mb-2">추천 검색어</h3>
               <ul className="space-y-1">
                 {recommendedKeywords.map((item) => (
-                  <li key={item} className="px-1 py-1 rounded-lg hover:bg-gray-100 cursor-pointer">
-                    • {item}
+                  <li
+                    key={item.keyword}
+                    className="px-1 py-1 rounded-lg hover:bg-gray-100 cursor-pointer"
+                  >
+                    • {item.keyword}
                   </li>
                 ))}
               </ul>
@@ -153,4 +189,47 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
       </div>
     </div>
   );
+}
+
+/* ================================
+    API FUNCTIONS
+================================ */
+
+export async function fetchRecommendedKeywords() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/v1/search/trends/top10`, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    if (!res.ok) throw new Error('Failed to fetch recommended keywords');
+
+    const json = await res.json();
+    return json.data as RecommendedKeyword[];
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+export async function fetchSearchHistory() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/v1/search/history`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    if (!res.ok) throw new Error('Failed to fetch search history');
+
+    const json = await res.json();
+    return json.data as SearchHistoryItem[];
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
 }
