@@ -1,0 +1,132 @@
+// src/api/aiChat.ts
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+
+export interface AiChatRequest {
+  message: string;
+  content: string;
+  model: string;
+  id?: string;
+}
+
+export interface RsData<T> {
+  resultCode: string;
+  msg: string;
+  data: T;
+}
+
+// 스트리밍 응답에서 RsData<String>의 data를 계속 뽑아 콜백으로 전달
+export async function streamAiChat(
+  req: AiChatRequest,
+  onChunk: (chunk: string, rs?: RsData<string>) => void,
+  options?: {
+    signal?: AbortSignal;
+    onError?: (e: unknown) => void;
+    onComplete?: (fullText: string) => void;
+  },
+) {
+  const controller = new AbortController();
+  const signal = options?.signal ?? controller.signal;
+
+  let fullText = '';
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/v1/ais/chat`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'text/event-stream, application/json',
+      },
+      body: JSON.stringify({
+        id: req.id ?? 'temp',
+        message: req.message,
+        content: req.content,
+        model: req.model,
+      }),
+      signal,
+    });
+
+    if (!res.ok) {
+      throw new Error(`AI chat request failed: ${res.status}`);
+    }
+
+    if (!res.body) {
+      throw new Error('No response body (stream not supported?).');
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+
+    let buffer = '';
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      // ---- 1) SSE 이벤트 단위(\n\n) 우선 파싱 ----
+      // SSE는 보통: "data: {...}\n\n"
+      const sseEvents = buffer.split('\n\n');
+      buffer = sseEvents.pop() ?? ''; // 마지막은 미완성일 수 있음
+
+      for (const evt of sseEvents) {
+        const lines = evt.split('\n');
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+
+          // data: 로 시작하면 SSE
+          if (trimmed.startsWith('data:')) {
+            const payload = trimmed.replace(/^data:\s*/, '');
+            handlePayload(payload);
+          } else {
+            // SSE가 아니면 그냥 라인(JSON일 수도)
+            handlePayload(trimmed);
+          }
+        }
+      }
+    }
+
+    // 스트림 끝났는데 buffer에 JSON/텍스트가 남아있으면 마저 처리
+    if (buffer.trim()) {
+      // 줄바꿈 단위로 추가 처리
+      buffer
+        .split('\n')
+        .map((l) => l.trim())
+        .filter(Boolean)
+        .forEach((l) => handlePayload(l));
+    }
+
+    options?.onComplete?.(fullText);
+    return fullText;
+
+    // ---- 내부 헬퍼 ----
+    function handlePayload(payload: string) {
+      // payload가 "[DONE]" 같은 종료 토큰일 수도 있음
+      if (payload === '[DONE]') return;
+
+      // JSON 파싱 시도
+      try {
+        const rs: RsData<string> = JSON.parse(payload);
+        const chunk = rs?.data ?? '';
+        if (chunk) {
+          fullText += chunk;
+          onChunk(chunk, rs);
+        }
+        return;
+      } catch {
+        // JSON이 아니면 그냥 텍스트로 취급
+        if (payload) {
+          fullText += payload;
+          onChunk(payload);
+        }
+      }
+    }
+  } catch (e) {
+    options?.onError?.(e);
+    throw e;
+  }
+
+  return fullText;
+}
