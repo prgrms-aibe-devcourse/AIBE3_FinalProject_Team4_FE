@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import Tooltip from '../../common/Tooltip';
 import AIChatBody from './AiChatBody';
 import AiChatHeader from './AiChatHeader';
-import Tooltip from './Tooltip';
 
 interface AiChatSidebarProps {
   onToggleMode: () => void;
@@ -10,14 +10,17 @@ interface AiChatSidebarProps {
   modelOptions: import('./ModelDropdown').ModelOption[];
   selectedModel: string;
   onModelChange: (value: string) => void;
+  messages: any[];
+  addMessage: (msg: any) => void;
 }
-
 export default function AiChatSidebar({
   onToggleMode,
   onClose,
   modelOptions,
   selectedModel,
   onModelChange,
+  messages,
+  addMessage,
 }: AiChatSidebarProps) {
   const [sidebarWidth, setSidebarWidth] = useState(384); // 기본 w-96 (384px)
   const [isResizing, setIsResizing] = useState(false);
@@ -129,6 +132,8 @@ export default function AiChatSidebar({
           modelOptions={modelOptions}
           selectedModel={selectedModel}
           onModelChange={onModelChange}
+          messages={messages}
+          addMessage={addMessage}
         />
       </div>
     </div>

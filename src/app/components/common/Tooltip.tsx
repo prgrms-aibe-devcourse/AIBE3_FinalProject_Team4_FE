@@ -59,7 +59,7 @@ export default function Tooltip({
 
   const visibilityClass =
     open === undefined
-      ? 'opacity-0 group-hover:opacity-100 group-hover:delay-200' // scale-95 group-hover:scale-100 추가 가능
+      ? `opacity-0 group-hover:opacity-100 group-hover:delay-200` // scale-95 group-hover:scale-100 추가 가능
       : open
         ? 'opacity-100 scale-100 delay-200'
         : 'opacity-0 scale-90';

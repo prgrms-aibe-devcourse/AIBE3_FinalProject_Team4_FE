@@ -1,6 +1,6 @@
 import { Bot, BotOff, ChevronDown, ChevronUp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import Tooltip from './Tooltip';
+import Tooltip from '../../common/Tooltip';
 
 export interface ModelOption {
   label: string;
@@ -51,7 +51,10 @@ export default function ModelDropdown({
           aria-label="모델 변경"
           className="w-auto h-8 rounded-full flex items-center gap-1 px-2 text-slate-500 hover:bg-slate-100 transition"
           type="button"
-          onClick={() => setOpen((v) => !v)}
+          onClick={(e) => {
+            e.currentTarget.blur(); // ← 클릭 후 포커스 제거
+            setOpen((v) => !v);
+          }}
         >
           {selected.enabled ? (
             <Bot size={20} strokeWidth={1.2} />
@@ -99,7 +102,7 @@ export default function ModelDropdown({
                   ) : (
                     <BotOff size={16} strokeWidth={1.2} />
                   )}
-                  <span className="font-light">{opt.label}</span>
+                  <span className="font-light mr-1.5">{opt.label}</span>
                 </button>
                 {/* 옵션이 enabled=false(오늘 한도 도달)일 때 Tooltip */}
                 {!opt.enabled && <Tooltip text="오늘 한도 도달" side="right" />}

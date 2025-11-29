@@ -1,16 +1,24 @@
 'use client';
 import { useState } from 'react';
+import Tooltip from '../../common/Tooltip';
 import AIChatBody from './AiChatBody';
-import ChatBotButton from './AiChatBotButton';
 import AiChatHeader from './AiChatHeader';
 import AiChatSidebar from './AiChatSidebar';
+import ChatBotButton from './ChatBotButton';
 import { ModelOption } from './ModelDropdown';
-import Tooltip from './Tooltip';
 type DisplayMode = 'sidebar' | 'floating';
 
-export default function AiChatSideBar() {
+interface ChatMessage {
+  id: number;
+  role: 'user' | 'assistant';
+  text: string;
+}
+export default function AiChatPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<DisplayMode>('sidebar');
+
+  // 채팅 메시지 상태 (user/ai 모두)
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   // 모델 옵션/선택값/변경함수 상태를 여기서 관리
   const modelOptions: ModelOption[] = [
@@ -26,6 +34,11 @@ export default function AiChatSideBar() {
 
   const toggleMode = () => {
     setMode((prev) => (prev === 'sidebar' ? 'floating' : 'sidebar'));
+  };
+
+  // 메시지 추가 함수 (user/ai 모두)
+  const addMessage = (msg: ChatMessage) => {
+    setMessages((prev) => [...prev, msg]);
   };
 
   return (
@@ -51,6 +64,8 @@ export default function AiChatSideBar() {
           modelOptions={modelOptions}
           selectedModel={selectedModel}
           onModelChange={handleModelChange}
+          messages={messages}
+          addMessage={addMessage}
         />
       )}
 
@@ -74,6 +89,8 @@ export default function AiChatSideBar() {
               modelOptions={modelOptions}
               selectedModel={selectedModel}
               onModelChange={handleModelChange}
+              messages={messages}
+              addMessage={addMessage}
             />
           </div>
         </div>
