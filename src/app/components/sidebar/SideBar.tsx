@@ -9,19 +9,25 @@ import MorePanel from './MorePanel';
 import SearchPanel from './SearchPanel';
 import { guestMenu, loggedInMenu } from './SideBarMenu';
 
+type OpenPanel = 'none' | 'more' | 'search';
+
 export default function Sidebar() {
-  const { loginUser, isLogin, logout } = useAuth();
+  const { loginUser, isLogin } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isMoreOpen, setIsMoreOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [openPanel, setOpenPanel] = useState<OpenPanel>('none');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const pathname = usePathname();
   const router = useRouter();
+
+  // 패널 ref들 (외부 클릭 감지용)
   const moreModalRef = useRef<HTMLDivElement>(null);
-  const searchPanelRef = useRef<HTMLDivElement>(null);
+  const searchWrapperRef = useRef<HTMLDivElement>(null);
 
   const menu = isLogin ? loggedInMenu : guestMenu;
+
+  const isMoreOpen = openPanel === 'more';
+  const isSearchOpen = openPanel === 'search';
 
   // 화면 크기에 따라 자동으로 collapse
   useEffect(() => {
@@ -38,28 +44,39 @@ export default function Sidebar() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // 외부 클릭 시 popover 닫기
+  // 외부 클릭 시 패널 공통 닫기 (More, Search 모두 여기서 처리)
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (showLogoutModal) return;
 
-      if (searchPanelRef.current && !searchPanelRef.current.contains(e.target as Node)) {
-        setIsSearchOpen(false);
+      const target = e.target as Node;
+
+      const clickedInsideMore = moreModalRef.current && moreModalRef.current.contains(target);
+      const clickedInsideSearch =
+        searchWrapperRef.current && searchWrapperRef.current.contains(target);
+
+      // 🔹 검색 패널이 열려 있을 때 바깥 클릭 → 닫기
+      if (openPanel === 'search' && !clickedInsideSearch) {
+        setOpenPanel('none');
         if (window.innerWidth >= 1280) {
           setIsCollapsed(false);
         }
+        return;
       }
 
-      if (moreModalRef.current && !moreModalRef.current.contains(e.target as Node)) {
-        setIsMoreOpen(false);
+      // 🔹 더보기 패널이 열려 있을 때 바깥 클릭 → 닫기
+      if (openPanel === 'more' && !clickedInsideMore) {
+        setOpenPanel('none');
         if (window.innerWidth >= 1280) {
           setIsCollapsed(false);
         }
+        return;
       }
     }
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showLogoutModal]);
+  }, [showLogoutModal, openPanel]);
 
   return (
     <aside
@@ -69,8 +86,8 @@ export default function Sidebar() {
       `}
     >
       {/* ======================= HEADER ======================= */}
-      <div className="p-5 border-b border-gray-200 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="p-5 flex items-center justify-between">
+        <div className="flex items-center gap-6">
           {/* FIXED: 아이콘 크기 고정 */}
           <div className="w-10 h-10 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
             📝
@@ -89,55 +106,68 @@ export default function Sidebar() {
       </div>
 
       {/* ======================= SEARCH AREA ======================= */}
-      <div className="px-4 py-3 flex justify-start">
-        <div
-          onClick={() => {
-            if (isSearchOpen) {
-              setIsSearchOpen(false);
+      {/* ======================= SEARCH AREA + PANEL WRAPPER ======================= */}
+      <div ref={searchWrapperRef}>
+        <div className="px-4 py-1 flex justify-start">
+          <div
+            onClick={() => {
+              if (isSearchOpen) {
+                // 이미 열려있으면 → 닫기 + 사이드바 확장
+                setOpenPanel('none');
+                if (window.innerWidth >= 1280) {
+                  setIsCollapsed(false);
+                }
+                return;
+              }
+              // 닫혀있으면 → 열기 + 사이드바 축소
+              setOpenPanel('search');
+              setIsCollapsed(true);
+            }}
+            className={`
+        relative flex items-center 
+        transition-all duration-300 ease-in-out 
+        overflow-hidden cursor-pointer
+        ${
+          isCollapsed
+            ? 'w-10 h-10 rounded-full justify-center'
+            : 'w-full h-10 rounded-full bg-gray-100 pl-12 pr-3 border border-gray-200'
+        }
+      `}
+          >
+            {/* 🔍 아이콘 */}
+            <div
+              className="
+          absolute left-3 top-1/2 -translate-y-1/2 
+          flex items-center justify-center w-7 h-7 pointer-events-none
+        "
+            >
+              <Search size={22} />
+            </div>
+
+            <input
+              type="text"
+              readOnly
+              placeholder="Search"
+              className={`
+          bg-transparent text-sm outline-none
+          transition-all duration-300 ease-in-out
+          ${isCollapsed ? 'w-0 opacity-0' : 'w-full opacity-100'}
+        `}
+            />
+          </div>
+        </div>
+
+        {/* 검색 패널 */}
+        {isSearchOpen && (
+          <SearchPanel
+            onClose={() => {
+              setOpenPanel('none');
               if (window.innerWidth >= 1280) {
                 setIsCollapsed(false);
               }
-              return;
-            }
-            setIsCollapsed(true);
-            setTimeout(() => {
-              setIsSearchOpen(true);
-            }, 150);
-          }}
-          className={`
-            relative flex items-center 
-            transition-all duration-300 ease-in-out 
-            overflow-hidden cursor-pointer
-            ${
-              isCollapsed
-                ? 'w-10 h-10 rounded-full justify-center'
-                : 'w-full h-10 rounded-full bg-gray-100 pl-12 pr-3 border border-gray-200'
-            }
-          `}
-        >
-          {/* 🔍 아이콘 (항상 같은 위치에 고정) */}
-          <div
-            className="
-              absolute left-3 top-1/2 -translate-y-1/2 
-              flex items-center justify-center w-7 h-7 pointer-events-none
-            "
-          >
-            <Search size={22} />
-          </div>
-
-          {/* input은 확장 모드일 때만 렌더
-        collapse에서는 width:0 되도록 해서 자연스럽게 사라짐 */}
-          <input
-            type="text"
-            readOnly
-            placeholder="Search"
-            className={`
-              bg-transparent text-sm outline-none
-              transition-all duration-300 ease-in-out
-              ${isCollapsed ? 'w-0 opacity-0' : 'w-full opacity-100'}
-            `}
+            }}
           />
-        </div>
+        )}
       </div>
 
       {/* ======================= MENU LIST ======================= */}
@@ -147,23 +177,23 @@ export default function Sidebar() {
             item.href === '/profile' ? pathname.startsWith('/profile') : pathname === item.href;
 
           if (item.label === '더보기') {
-            const isMoreActive = isMoreOpen;
-
             return (
               <div key={item.label} className="relative group" ref={moreModalRef}>
                 <button
                   onClick={() => {
                     if (isMoreOpen) {
-                      setIsMoreOpen(false);
+                      // 이미 열려있으면 → 닫기
+                      setOpenPanel('none');
                       if (window.innerWidth >= 1280) setIsCollapsed(false);
                     } else {
+                      // 더보기 패널 열기
+                      setOpenPanel('more');
                       setIsCollapsed(true);
-                      setTimeout(() => setIsMoreOpen(true), 150);
                     }
                   }}
                   className={`
                     flex items-center gap-3 px-4 py-2 rounded-lg transition-all
-                    ${isMoreActive ? 'text-blue-600 font-medium' : 'text-gray-800 hover:bg-gray-100'}
+                    ${isMoreOpen ? 'text-blue-600 font-medium' : 'text-gray-800 hover:bg-gray-100'}
                   `}
                 >
                   <div className="flex items-center justify-center w-7 h-7 flex-shrink-0">
@@ -194,13 +224,11 @@ export default function Sidebar() {
                   </span>
                 )}
 
-                {/* ⭐ 패널을 wrapper 안으로 이동 — 이제 패널 내부 클릭은 ref 내부로 인식됨! */}
+                {/* 더보기 패널 */}
                 {isMoreOpen && (
                   <MorePanel
                     onClose={() => {
-                      setIsMoreOpen(false);
-
-                      // 🔥 화면이 넓으면 다시 확장 상태로 돌아가기
+                      setOpenPanel('none');
                       if (window.innerWidth >= 1280) {
                         setIsCollapsed(false);
                       }
@@ -274,20 +302,6 @@ export default function Sidebar() {
           </div>
         )}
       </nav>
-
-      {isSearchOpen && (
-        <div ref={searchPanelRef}>
-          <SearchPanel
-            onClose={() => {
-              setIsSearchOpen(false);
-
-              if (window.innerWidth >= 1280) {
-                setIsCollapsed(false);
-              }
-            }}
-          />
-        </div>
-      )}
     </aside>
   );
 }
