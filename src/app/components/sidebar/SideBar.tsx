@@ -6,17 +6,20 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import MorePanel from './MorePanel';
+import SearchPanel from './SearchPanel';
 import { guestMenu, loggedInMenu } from './SideBarMenu';
 
 export default function Sidebar() {
   const { loginUser, isLogin, logout } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const pathname = usePathname();
   const router = useRouter();
   const moreModalRef = useRef<HTMLDivElement>(null);
+  const searchPanelRef = useRef<HTMLDivElement>(null);
 
   const menu = isLogin ? loggedInMenu : guestMenu;
 
@@ -38,12 +41,17 @@ export default function Sidebar() {
   // 외부 클릭 시 popover 닫기
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      // 로그아웃 모달이 열려있으면 외부 클릭 무시
       if (showLogoutModal) return;
+
+      if (searchPanelRef.current && !searchPanelRef.current.contains(e.target as Node)) {
+        setIsSearchOpen(false);
+        if (window.innerWidth >= 1280) {
+          setIsCollapsed(false);
+        }
+      }
 
       if (moreModalRef.current && !moreModalRef.current.contains(e.target as Node)) {
         setIsMoreOpen(false);
-        // 패널이 닫힐 때 화면이 크면 확대모드로 전환
         if (window.innerWidth >= 1280) {
           setIsCollapsed(false);
         }
@@ -83,11 +91,23 @@ export default function Sidebar() {
       {/* ======================= SEARCH AREA ======================= */}
       <div className="px-4 py-3 flex justify-start">
         <div
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={() => {
+            if (isSearchOpen) {
+              setIsSearchOpen(false);
+              if (window.innerWidth >= 1280) {
+                setIsCollapsed(false);
+              }
+              return;
+            }
+            setIsCollapsed(true);
+            setTimeout(() => {
+              setIsSearchOpen(true);
+            }, 150);
+          }}
           className={`
-                relative flex items-center 
-                transition-all duration-300 ease-in-out 
-                overflow-hidden cursor-pointer
+            relative flex items-center 
+            transition-all duration-300 ease-in-out 
+            overflow-hidden cursor-pointer
             ${
               isCollapsed
                 ? 'w-10 h-10 rounded-full justify-center'
@@ -254,6 +274,20 @@ export default function Sidebar() {
           </div>
         )}
       </nav>
+
+      {isSearchOpen && (
+        <div ref={searchPanelRef}>
+          <SearchPanel
+            onClose={() => {
+              setIsSearchOpen(false);
+
+              if (window.innerWidth >= 1280) {
+                setIsCollapsed(false);
+              }
+            }}
+          />
+        </div>
+      )}
     </aside>
   );
 }
