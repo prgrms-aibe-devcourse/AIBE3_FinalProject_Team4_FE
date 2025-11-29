@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useInView } from 'react-intersection-observer';
-import FilterTabs from '../../common/FilterTabs';
-import SortButton from '../../common/SortButton';
+import ShorlogFilterTabs from './ShorlogFilterTabs';
+import ShorlogSortButton from './ShorlogSortButton';
 import LoadingSpinner from '../../common/LoadingSpinner';
 import ShorlogCard from './ShorlogCard';
 
@@ -94,8 +94,8 @@ export default function ShorlogFeedPageClient() {
   return (
     <section aria-label="숏 피드">
       <div className="flex items-center justify-between">
-        <FilterTabs value={filter} onChange={setFilter} />
-        {filter === 'all' && <SortButton value={sort} onChange={setSort} />}
+        <ShorlogFilterTabs value={filter} onChange={setFilter} />
+        {filter === 'all' && <ShorlogSortButton value={sort} onChange={setSort} />}
       </div>
 
       <div className="mt-4 md:mt-6">
