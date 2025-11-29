@@ -19,25 +19,27 @@ type SearchHistoryItem = {
 
 export default function SearchPanel({ onClose }: { onClose: () => void }) {
   const { isLogin } = useAuth();
-
   const [keyword, setKeyword] = useState('');
-  const [recommendedKeywords, setRecommendedKeywords] = useState<RecommendedKeyword[]>([]);
+  const [top10Keywords, setTop10Keywords] = useState<RecommendedKeyword[]>([]);
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
+  const [autocomplete, setAutocomplete] = useState<RecommendedKeyword[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const debouncedKeyword = useDebounce(keyword, 300); // 0.3초 후 요청
 
   // 🔥 추천 검색어 + 내 검색 기록 병렬 호출
   useEffect(() => {
     async function loadAll() {
       try {
         const [recommended, history] = await Promise.all([
-          fetchRecommendedKeywords(),
+          fetchTop10Keywords(),
           isLogin ? fetchSearchHistory() : Promise.resolve([]),
         ]);
 
         console.log('추천 검색어:', recommended);
         console.log('내 검색 기록:', history);
 
-        if (recommended) setRecommendedKeywords(recommended);
+        if (recommended) setTop10Keywords(recommended);
         if (history) setSearchHistory(history);
       } finally {
         setLoading(false);
@@ -46,6 +48,27 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
 
     loadAll();
   }, [isLogin]);
+
+  useEffect(() => {
+    async function loadAutocomplete() {
+      if (!debouncedKeyword.trim()) {
+        setAutocomplete([]);
+        return;
+      }
+
+      const auto = await fetchRecommendedKeywords(debouncedKeyword);
+      if (auto) setAutocomplete(auto);
+    }
+
+    loadAutocomplete();
+  }, [debouncedKeyword]);
+
+  const handleDeleteHistory = async (id: number) => {
+    const success = await deleteSearchHistory(id);
+    if (success) {
+      setSearchHistory((prev) => prev.filter((item) => item.id !== id));
+    }
+  };
 
   // 자동완성 더미 (나중에 API 연동 가능)
   const autoList = keyword
@@ -60,7 +83,7 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
 
   const showRecommendedOnly = !keyword && !isLogin;
   const showRecentAndRecommend = !keyword && isLogin;
-  const showAutoResults = keyword.length > 0;
+  const showAutoResults = autocomplete.length > 0 && keyword.length > 0;
 
   return (
     <div>
@@ -113,13 +136,13 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
           {showAutoResults && (
             <div>
               <ul className="space-y-2">
-                {autoList.map((item) => (
+                {autocomplete.map((item) => (
                   <li
-                    key={item}
+                    key={item.keyword}
                     className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-gray-100 cursor-pointer"
                   >
                     <Search size={18} className="text-gray-500" />
-                    {item}
+                    {item.keyword}
                   </li>
                 ))}
               </ul>
@@ -144,7 +167,13 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
 
                       {item.keyword}
 
-                      <button className="ml-auto p-1 hover:bg-gray-200 rounded-full">
+                      <button
+                        className="ml-auto p-1 hover:bg-gray-200 rounded-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteHistory(item.id);
+                        }}
+                      >
                         <X size={12} className="text-gray-600" />
                       </button>
                     </li>
@@ -156,7 +185,7 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
               <div>
                 <h3 className="text-sm text-gray-500 mb-2">추천 검색어</h3>
                 <ul className="space-y-1">
-                  {recommendedKeywords.map((item) => (
+                  {top10Keywords.map((item) => (
                     <li
                       key={item.keyword}
                       className="px-1 py-1 rounded-lg hover:bg-gray-100 cursor-pointer flex items-center gap-2"
@@ -174,7 +203,7 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
             <div>
               <h3 className="text-sm text-gray-500 mb-2">추천 검색어</h3>
               <ul className="space-y-1">
-                {recommendedKeywords.map((item) => (
+                {top10Keywords.map((item) => (
                   <li
                     key={item.keyword}
                     className="px-1 py-1 rounded-lg hover:bg-gray-100 cursor-pointer"
@@ -195,7 +224,7 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
     API FUNCTIONS
 ================================ */
 
-export async function fetchRecommendedKeywords() {
+export async function fetchTop10Keywords() {
   try {
     const res = await fetch(`${API_BASE_URL}/api/v1/search/trends/top10`, {
       method: 'GET',
@@ -204,7 +233,7 @@ export async function fetchRecommendedKeywords() {
       },
     });
 
-    if (!res.ok) throw new Error('Failed to fetch recommended keywords');
+    if (!res.ok) throw new Error('Failed to fetch top 10 keywords');
 
     const json = await res.json();
     return json.data as RecommendedKeyword[];
@@ -232,4 +261,53 @@ export async function fetchSearchHistory() {
     console.error(err);
     return null;
   }
+}
+
+export async function fetchRecommendedKeywords(params: string) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/v1/search/trends/recommend?keyword=${params}`, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    if (!res.ok) throw new Error('Failed to fetch recommended keywords');
+
+    const json = await res.json();
+    return json.data as RecommendedKeyword[];
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+export async function deleteSearchHistory(id: number) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/v1/search/history/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    if (!res.ok) throw new Error('Failed to delete search history item');
+
+    return true;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+}
+
+function useDebounce<T>(value: T, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+
+  return debouncedValue;
 }
