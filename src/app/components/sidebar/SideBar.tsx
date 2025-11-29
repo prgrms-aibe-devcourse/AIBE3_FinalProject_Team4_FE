@@ -13,6 +13,7 @@ type OpenPanel = 'none' | 'more' | 'search';
 
 export default function Sidebar() {
   const { loginUser, isLogin } = useAuth();
+
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openPanel, setOpenPanel] = useState<OpenPanel>('none');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -21,7 +22,6 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  // 패널 ref들 (외부 클릭 감지용)
   const moreModalRef = useRef<HTMLDivElement>(null);
   const searchWrapperRef = useRef<HTMLDivElement>(null);
 
@@ -30,22 +30,35 @@ export default function Sidebar() {
   const isMoreOpen = openPanel === 'more';
   const isSearchOpen = openPanel === 'search';
 
-  // 화면 크기에 따라 자동으로 collapse
+  const openPanelFn = (panel: OpenPanel) => {
+    setOpenPanel(panel);
+    setIsCollapsed(true); // 패널 열면 자동 축소
+  };
+
+  const closePanelFn = () => {
+    setOpenPanel('none');
+    setIsCollapsed(false); // 패널 닫으면 원래 크기
+  };
+
   useEffect(() => {
     function handleResize() {
       if (window.innerWidth < 1280) {
         setIsCollapsed(true);
       } else {
-        setIsCollapsed(false);
+        // 패널이 열려있으면 collapsed 유지
+        if (openPanel === 'none') {
+          setIsCollapsed(false);
+        }
       }
     }
-
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [openPanel]);
 
-  // 외부 클릭 시 패널 공통 닫기 (More, Search 모두 여기서 처리)
+  /* ============================================================
+        외부 클릭 시 패널 닫기 (collapse는 변경 금지!)
+     ============================================================ */
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (showLogoutModal) return;
@@ -56,48 +69,49 @@ export default function Sidebar() {
       const clickedInsideSearch =
         searchWrapperRef.current && searchWrapperRef.current.contains(target);
 
-      // 🔹 검색 패널이 열려 있을 때 바깥 클릭 → 닫기
       if (openPanel === 'search' && !clickedInsideSearch) {
-        setOpenPanel('none');
-        if (window.innerWidth >= 1280) {
-          setIsCollapsed(false);
-        }
+        closePanelFn();
         return;
       }
 
-      // 🔹 더보기 패널이 열려 있을 때 바깥 클릭 → 닫기
       if (openPanel === 'more' && !clickedInsideMore) {
-        setOpenPanel('none');
-        if (window.innerWidth >= 1280) {
-          setIsCollapsed(false);
-        }
+        closePanelFn();
         return;
       }
     }
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showLogoutModal, openPanel]);
+  }, [openPanel, showLogoutModal]);
+
+  /* ============================================================
+        검색 페이지 벗어난 경우 사이드바 검색어 초기화
+     ============================================================ */
+  useEffect(() => {
+    if (!pathname.startsWith('/search')) {
+      setSidebarKeyword('');
+    }
+  }, [pathname]);
 
   return (
     <aside
       className={`
         ${isCollapsed ? 'w-20' : 'w-60'}
-        bg-white border-r border-gray-200 h-screen fixed flex flex-col transition-all duration-300
+        bg-white border-r border-gray-200
+        h-screen fixed flex flex-col
+        transition-all duration-300
       `}
     >
-      {/* ======================= HEADER ======================= */}
+      {/* ================= HEADER ================= */}
       <div className="p-5 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          {/* FIXED: 아이콘 크기 고정 */}
           <div className="w-10 h-10 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
             📝
           </div>
 
-          {/* label만 나타나고 사라짐 — 아이콘 위치는 고정 */}
           <div
             className={`
-              overflow-hidden transition-all 
+              transition-all overflow-hidden
               ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}
             `}
           >
@@ -106,41 +120,27 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* ======================= SEARCH AREA ======================= */}
-      {/* ======================= SEARCH AREA + PANEL WRAPPER ======================= */}
+      {/* =============== SEARCH + PANEL WRAPPER =============== */}
       <div ref={searchWrapperRef}>
         <div className="px-4 py-1 flex justify-start">
           <div
             onClick={() => {
-              if (isSearchOpen) {
-                // 이미 열려있으면 → 닫기 + 사이드바 확장
-                setOpenPanel('none');
-                if (window.innerWidth >= 1280) {
-                  setIsCollapsed(false);
-                }
-                return;
-              }
-              // 닫혀있으면 → 열기 + 사이드바 축소
-              setOpenPanel('search');
-              setIsCollapsed(true);
+              if (isSearchOpen) closePanelFn();
+              else openPanelFn('search');
             }}
             className={`
-        relative flex items-center 
-        transition-all duration-300 ease-in-out 
-        overflow-hidden cursor-pointer
-        ${
-          isCollapsed
-            ? 'w-10 h-10 rounded-full justify-center'
-            : 'w-full h-10 rounded-full bg-gray-100 pl-12 pr-3 border border-gray-200'
-        }
-      `}
+              relative flex items-center cursor-pointer overflow-hidden
+              transition-all duration-300 ease-in-out
+              ${
+                isCollapsed
+                  ? 'w-10 h-10 rounded-full justify-center'
+                  : 'w-full h-10 rounded-full bg-gray-100 pl-12 pr-3 border border-gray-200'
+              }
+            `}
           >
-            {/* 🔍 아이콘 */}
             <div
-              className="
-          absolute left-3 top-1/2 -translate-y-1/2 
-          flex items-center justify-center w-7 h-7 pointer-events-none
-        "
+              className="absolute left-3 top-1/2 -translate-y-1/2 
+                         flex items-center justify-center w-7 h-7 pointer-events-none"
             >
               <Search size={22} />
             </div>
@@ -151,23 +151,17 @@ export default function Sidebar() {
               value={sidebarKeyword}
               placeholder="Search"
               className={`
-          bg-transparent text-sm outline-none
-          transition-all duration-300 ease-in-out
-          ${isCollapsed ? 'w-0 opacity-0' : 'w-full opacity-100'}
-        `}
+                bg-transparent text-sm outline-none
+                transition-all duration-300
+                ${isCollapsed ? 'w-0 opacity-0' : 'w-full opacity-100'}
+              `}
             />
           </div>
         </div>
 
-        {/* 검색 패널 */}
         {isSearchOpen && (
           <SearchPanel
-            onClose={() => {
-              setOpenPanel('none');
-              if (window.innerWidth >= 1280) {
-                setIsCollapsed(false);
-              }
-            }}
+            onClose={closePanelFn}
             onSearch={(keyword: string) => setSidebarKeyword(keyword)}
           />
         )}
@@ -184,15 +178,8 @@ export default function Sidebar() {
               <div key={item.label} className="relative group" ref={moreModalRef}>
                 <button
                   onClick={() => {
-                    if (isMoreOpen) {
-                      // 이미 열려있으면 → 닫기
-                      setOpenPanel('none');
-                      if (window.innerWidth >= 1280) setIsCollapsed(false);
-                    } else {
-                      // 더보기 패널 열기
-                      setOpenPanel('more');
-                      setIsCollapsed(true);
-                    }
+                    if (isMoreOpen) closePanelFn();
+                    else openPanelFn('more');
                   }}
                   className={`
                     flex items-center gap-3 px-4 py-2 rounded-lg transition-all
@@ -213,29 +200,21 @@ export default function Sidebar() {
                   </span>
                 </button>
 
-                {/* 축소 모드 툴팁 */}
                 {isCollapsed && (
                   <span
                     className="
                       absolute left-20 top-1/2 -translate-y-1/2
-                      px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0
-                      group-hover:opacity-100 transition pointer-events-none 
-                      whitespace-nowrap
+                      px-2 py-1 bg-gray-900 text-white text-xs rounded
+                      opacity-0 group-hover:opacity-100 transition pointer-events-none
                     "
                   >
                     {item.label}
                   </span>
                 )}
 
-                {/* 더보기 패널 */}
                 {isMoreOpen && (
                   <MorePanel
-                    onClose={() => {
-                      setOpenPanel('none');
-                      if (window.innerWidth >= 1280) {
-                        setIsCollapsed(false);
-                      }
-                    }}
+                    onClose={closePanelFn}
                     showLogoutModal={showLogoutModal}
                     setShowLogoutModal={setShowLogoutModal}
                   />
@@ -253,7 +232,6 @@ export default function Sidebar() {
                   ${isActive ? 'text-blue-600 font-medium' : 'text-gray-800 hover:bg-gray-100'}
                 `}
               >
-                {/* FIXED: 아이콘 위치 완전 고정 */}
                 <div className="flex items-center justify-center w-7 h-7 flex-shrink-0">
                   {item.label === '프로필' && isLogin ? (
                     <img
@@ -266,7 +244,6 @@ export default function Sidebar() {
                   )}
                 </div>
 
-                {/* label만 사라짐 — 아이콘은 그대로 */}
                 <span
                   className={`
                     whitespace-nowrap transition-all
@@ -277,14 +254,12 @@ export default function Sidebar() {
                 </span>
               </Link>
 
-              {/* 축소 모드 툴팁 */}
               {isCollapsed && (
                 <span
                   className="
                     absolute left-20 top-1/2 -translate-y-1/2
-                    px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0
-                    group-hover:opacity-100 transition pointer-events-none 
-                    whitespace-nowrap
+                    px-2 py-1 bg-gray-900 text-white text-xs rounded
+                    opacity-0 group-hover:opacity-100 transition pointer-events-none
                   "
                 >
                   {item.label}
