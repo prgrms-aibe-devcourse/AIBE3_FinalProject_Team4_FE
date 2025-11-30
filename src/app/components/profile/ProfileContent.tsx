@@ -1,45 +1,17 @@
 'use client';
 
+import {
+  getBookmarkedBlogs,
+  getBookmarkedShorlogs,
+  getMyBlogs,
+  getMyShorlogs,
+  getUserBlogs,
+  getUserShorlogs,
+} from '@/src/api/profileApi';
+import type { ShorlogItem } from '@/src/app/components/shorlog/feed/ShorlogFeedPageClient';
 import { useAuth } from '@/src/providers/AuthProvider';
+import type { BlogSummary } from '@/src/types/blog';
 import { useEffect, useState } from 'react';
-
-/* =========================================================
-   1) 프로필 페이지 전용 타입 정의
-   ========================================================= */
-
-export interface ProfileShorlog {
-  id: number;
-  thumbnailUrl: string | null;
-  profileImgUrl: string;
-  nickname: string;
-  hashtags: string[];
-  likeCount: number;
-  commentCount: number;
-  firstLine: string;
-}
-
-export interface ProfileBlog {
-  id: number;
-  userId: number;
-  nickname: string;
-  profileImageUrl: string | null;
-  title: string;
-  contentPre: string;
-  thumbnailUrl: string | null;
-  hashtagNames: string[];
-  viewCount: number;
-  likeCount: number;
-  bookmarkCount: number;
-  commentCount: number;
-  createdAt: string;
-  modifiedAt: string;
-  likedByMe: boolean;
-  bookmarkedByMe: boolean;
-}
-
-/* =========================================================
-   2) 기본 타입/상태
-   ========================================================= */
 
 type SortKey = 'latest' | 'popular' | 'oldest';
 type PrimaryTab = 'mine' | 'bookmark';
@@ -50,15 +22,6 @@ interface ProfileContentProps {
   isMyPage: boolean;
 }
 
-const API = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-const apiSort = (k: SortKey) =>
-  k === 'latest' ? 'LATEST' : k === 'popular' ? 'POPULAR' : 'OLDEST';
-
-/* =========================================================
-   3) 메인 컴포넌트
-   ========================================================= */
-
 export default function ProfileContent({ userId, isMyPage }: ProfileContentProps) {
   const { loginUser, isLogin } = useAuth();
   const isMe = isLogin && loginUser?.id === Number(userId);
@@ -67,13 +30,9 @@ export default function ProfileContent({ userId, isMyPage }: ProfileContentProps
   const [secondaryTab, setSecondaryTab] = useState<SecondaryTab>('short');
   const [sortKey, setSortKey] = useState<SortKey>('latest');
 
-  const [shorlogs, setShorlogs] = useState<ProfileShorlog[]>([]);
-  const [blogs, setBlogs] = useState<ProfileBlog[]>([]);
+  const [shorlogs, setShorlogs] = useState<ShorlogItem[]>([]);
+  const [blogs, setBlogs] = useState<BlogSummary[]>([]);
   const [loading, setLoading] = useState(false);
-
-  /* =========================================================
-     4) API 호출
-     ========================================================= */
 
   useEffect(() => {
     async function load() {
@@ -223,7 +182,7 @@ export default function ProfileContent({ userId, isMyPage }: ProfileContentProps
    6) 리스트 UI
    ========================================================= */
 
-function ShorlogListView({ items }: { items: ProfileShorlog[] }) {
+function ShorlogListView({ items }: { items: ShorlogItem[] }) {
   if (items.length === 0) return <p className="mt-8 text-sm text-slate-600">쇼로그가 없어요.</p>;
 
   return (
@@ -235,7 +194,7 @@ function ShorlogListView({ items }: { items: ProfileShorlog[] }) {
   );
 }
 
-function BlogListView({ items }: { items: ProfileBlog[] }) {
+function BlogListView({ items }: { items: BlogSummary[] }) {
   if (items.length === 0) return <p className="mt-8 text-sm text-slate-600">블로그가 없어요.</p>;
 
   return (
@@ -251,7 +210,7 @@ function BlogListView({ items }: { items: ProfileBlog[] }) {
    7) 블로그 카드 (Figma 기반 UI)
    ========================================================= */
 
-function BlogListItem({ item }: { item: ProfileBlog }) {
+function BlogListItem({ item }: { item: BlogSummary }) {
   return (
     <a
       href={`/blogs/${item.id}`}
@@ -272,7 +231,7 @@ function BlogListItem({ item }: { item: ProfileBlog }) {
 
         <div className="flex-1 space-y-1">
           <div className="flex items-center gap-2 text-xs text-slate-500">
-            <span>{item.nickname}</span>
+            <span>{item.userNickname}</span>
             <span>•</span>
             <span>{formatDate(item.createdAt)}</span>
           </div>
@@ -311,7 +270,7 @@ function BlogListItem({ item }: { item: ProfileBlog }) {
    8) 숏로그 카드 (프로필 버전)
    ========================================================= */
 
-function ShorlogCardProfile({ item }: { item: ProfileShorlog }) {
+function ShorlogCardProfile({ item }: { item: ShorlogItem }) {
   return (
     <a
       href={`/shorlog/${item.id}`}
@@ -380,158 +339,4 @@ function formatDate(dateStr: string) {
   if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
   return `${Math.floor(diff / 86400)}일 전`;
-}
-
-/* =========================================================
-   11) API 구현
-   ========================================================= */
-
-async function getMyShorlogs(sort: SortKey): Promise<ProfileShorlog[]> {
-  const res = await fetch(`${API}/api/v1/shorlog/my?sort=${sort}&page=0`, {
-    credentials: 'include',
-  });
-  const json = await res.json();
-
-  return (
-    json.data?.content?.map((i: any) => ({
-      id: i.id,
-      thumbnailUrl: i.thumbnailUrl,
-      profileImgUrl: i.profileImgUrl,
-      nickname: i.nickname,
-      hashtags: i.hashtags,
-      likeCount: i.likeCount,
-      commentCount: i.commentCount,
-      firstLine: i.firstLine,
-    })) ?? []
-  );
-}
-
-async function getMyBlogs(sort: SortKey): Promise<ProfileBlog[]> {
-  const res = await fetch(`${API}/api/v1/blogs/my?page=0&size=20&sortType=${apiSort(sort)}`, {
-    credentials: 'include',
-  });
-
-  const json = await res.json(); // BlogSliceResponse
-  const items = json.content ?? [];
-
-  return items.map((i: any) => ({
-    id: i.id,
-    userId: i.userId,
-    nickname: i.nickname,
-    profileImageUrl: i.profileImageUrl,
-    title: i.title,
-    contentPre: i.contentPre ?? i.content ?? '',
-    thumbnailUrl: i.thumbnailUrl,
-    hashtagNames: i.hashtagNames,
-    viewCount: i.viewCount,
-    likeCount: i.likeCount,
-    bookmarkCount: i.bookmarkCount,
-    commentCount: i.commentCount,
-    createdAt: i.createdAt,
-    modifiedAt: i.modifiedAt,
-    likedByMe: i.likedByMe,
-    bookmarkedByMe: i.bookmarkedByMe,
-  }));
-}
-
-async function getBookmarkedShorlogs(sort: SortKey): Promise<ProfileShorlog[]> {
-  const res = await fetch(`${API}/api/v1/shorlog/bookmark?sort=${sort}&page=0`, {
-    credentials: 'include',
-  });
-  const json = await res.json();
-
-  return (
-    json.data?.bookmarks?.map((i: any) => ({
-      id: i.id,
-      thumbnailUrl: i.thumbnailUrl,
-      profileImgUrl: i.profileImgUrl,
-      nickname: i.nickname,
-      hashtags: i.hashtags ?? [],
-      likeCount: i.likeCount,
-      commentCount: i.commentCount,
-      firstLine: i.firstLine,
-    })) ?? []
-  );
-}
-
-async function getBookmarkedBlogs(sort: SortKey): Promise<ProfileBlog[]> {
-  const res = await fetch(
-    `${API}/api/v1/blogs/bookmarks?page=0&size=20&sortType=${apiSort(sort)}`,
-    {
-      credentials: 'include',
-    },
-  );
-
-  const json = await res.json(); // BlogSliceResponse
-  const items = json.content ?? [];
-
-  return items.map((i: any) => ({
-    id: i.id,
-    userId: i.userId,
-    nickname: i.nickname,
-    profileImageUrl: i.profileImageUrl,
-    title: i.title,
-    contentPre: i.contentPre ?? i.content ?? '',
-    thumbnailUrl: i.thumbnailUrl,
-    hashtagNames: i.hashtagNames,
-    viewCount: i.viewCount,
-    likeCount: i.likeCount,
-    bookmarkCount: i.bookmarkCount,
-    commentCount: i.commentCount,
-    createdAt: i.createdAt,
-    modifiedAt: i.modifiedAt,
-    likedByMe: i.likedByMe,
-    bookmarkedByMe: i.bookmarkedByMe,
-  }));
-}
-
-async function getUserShorlogs(userId: string, sort: SortKey): Promise<ProfileShorlog[]> {
-  const res = await fetch(`${API}/api/v1/shorlog/user/${userId}?sort=${sort}&page=0`, {
-    credentials: 'include',
-  });
-  const json = await res.json();
-
-  return (
-    json.data?.content?.map((i: any) => ({
-      id: i.id,
-      thumbnailUrl: i.thumbnailUrl,
-      profileImgUrl: i.profileImgUrl,
-      nickname: i.nickname,
-      hashtags: i.hashtags,
-      likeCount: i.likeCount,
-      commentCount: i.commentCount,
-      firstLine: i.firstLine,
-    })) ?? []
-  );
-}
-
-async function getUserBlogs(userId: string, sort: SortKey): Promise<ProfileBlog[]> {
-  const res = await fetch(
-    `${API}/api/v1/users/${userId}/blogs?page=0&size=20&sortType=${apiSort(sort)}`,
-    {
-      credentials: 'include',
-    },
-  );
-
-  const json = await res.json(); // BlogSliceResponse
-  const items = json.content ?? [];
-
-  return items.map((i: any) => ({
-    id: i.id,
-    userId: i.userId,
-    nickname: i.nickname,
-    profileImageUrl: i.profileImageUrl,
-    title: i.title,
-    contentPre: i.contentPre ?? i.content ?? '',
-    thumbnailUrl: i.thumbnailUrl,
-    hashtagNames: i.hashtagNames,
-    viewCount: i.viewCount,
-    likeCount: i.likeCount,
-    bookmarkCount: i.bookmarkCount,
-    commentCount: i.commentCount,
-    createdAt: i.createdAt,
-    modifiedAt: i.modifiedAt,
-    likedByMe: i.likedByMe,
-    bookmarkedByMe: i.bookmarkedByMe,
-  }));
 }
