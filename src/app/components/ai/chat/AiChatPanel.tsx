@@ -15,7 +15,7 @@ interface ChatMessage {
   role: 'user' | 'ai';
   text: string;
 }
-export default function AiChatPanel() {
+export default function AiChatPanel({ title, content }: { title?: string; content?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<DisplayMode>('sidebar');
 
@@ -116,6 +116,7 @@ export default function AiChatPanel() {
           addMessage={addMessage}
           onSend={handleSend}
           aiChat={aiChat}
+          blogTitle={title}
         />
       )}
 
@@ -143,6 +144,7 @@ export default function AiChatPanel() {
               addMessage={addMessage}
               onSend={handleSend}
               aiChat={aiChat}
+              blogTitle={title}
             />
           </div>
         </div>

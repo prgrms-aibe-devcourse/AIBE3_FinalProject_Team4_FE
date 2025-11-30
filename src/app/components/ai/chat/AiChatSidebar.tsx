@@ -15,6 +15,7 @@ interface AiChatSidebarProps {
   addMessage: (msg: any) => void;
   onSend?: (text: string) => void;
   aiChat: ReturnType<typeof useAiChatStreamMutation>;
+  blogTitle?: string;
 }
 export default function AiChatSidebar({
   onToggleMode,
@@ -26,6 +27,7 @@ export default function AiChatSidebar({
   addMessage,
   onSend,
   aiChat,
+  blogTitle,
 }: AiChatSidebarProps) {
   const [sidebarWidth, setSidebarWidth] = useState(384); // 기본 w-96 (384px)
   const [isResizing, setIsResizing] = useState(false);
@@ -141,6 +143,7 @@ export default function AiChatSidebar({
           addMessage={addMessage}
           onSend={onSend}
           aiChat={aiChat}
+          blogTitle={blogTitle}
         />
       </div>
     </div>
