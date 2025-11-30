@@ -20,6 +20,7 @@ interface AIChatBodyProps {
   addMessage: (msg: Message) => void;
   onSend?: (text: string) => void;
   aiChat: ReturnType<typeof useAiChatStreamMutation>;
+  blogTitle?: string;
 }
 export default function AIChatBody({
   modelOptions,
@@ -29,6 +30,7 @@ export default function AIChatBody({
   addMessage,
   onSend,
   aiChat,
+  blogTitle,
 }: AIChatBodyProps) {
   return (
     <div className="flex flex-col h-full">
@@ -57,6 +59,7 @@ export default function AIChatBody({
         selectedModel={selectedModel}
         onModelChange={onModelChange}
         aiChat={aiChat}
+        blogTitle={blogTitle}
       />
     </div>
   );
