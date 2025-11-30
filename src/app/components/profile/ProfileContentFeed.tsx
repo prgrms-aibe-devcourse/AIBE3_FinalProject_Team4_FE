@@ -2,37 +2,13 @@
 
 import type { ShorlogItem } from '@/src/app/components/shorlog/feed/ShorlogFeedPageClient';
 import type { BlogSummary } from '@/src/types/blog';
-
-export function ShorlogCardProfile({ item }: { item: ShorlogItem }) {
-  return (
-    <a
-      href={`/shorlog/${item.id}`}
-      className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 transition hover:-translate-y-1 hover:shadow-md"
-    >
-      <div className="aspect-[3/4] w-full overflow-hidden bg-slate-100">
-        <img
-          src={item.thumbnailUrl ?? '/images/default-thumbnail.jpg'}
-          className="h-full w-full object-cover group-hover:scale-105 transition"
-          alt={item.firstLine}
-        />
-      </div>
-
-      <div className="px-3 py-2">
-        <p className="text-sm font-medium text-slate-800 line-clamp-2">{item.firstLine}</p>
-        <div className="flex items-center justify-start gap-4 mt-2 text-xs text-slate-500">
-          <span>♡ {item.likeCount}</span>
-          <span>💬 {item.commentCount}</span>
-        </div>
-      </div>
-    </a>
-  );
-}
+import { Bookmark, Eye, Heart, MessageCircle } from 'lucide-react';
 
 export function ShorlogListView({ items }: { items: ShorlogItem[] }) {
   if (items.length === 0) return <p className="mt-8 text-sm text-slate-600">쇼로그가 없어요.</p>;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
       {items.map((item) => (
         <ShorlogCardProfile key={item.id} item={item} />
       ))}
@@ -40,53 +16,40 @@ export function ShorlogListView({ items }: { items: ShorlogItem[] }) {
   );
 }
 
-export function BlogListItem({ item }: { item: BlogSummary }) {
+export function ShorlogCardProfile({ item }: { item: ShorlogItem }) {
   return (
     <a
-      href={`/blogs/${item.id}`}
-      className="block w-full rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 p-4 hover:shadow-md transition"
+      href={`/shorlog/${item.id}`}
+      className="group flex flex-col overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-slate-100 hover:-translate-y-1 hover:shadow-md transition-all"
     >
-      <div className="flex gap-4">
+      {/* 이미지 영역: 3:4 비율 유지 */}
+      <div className="relative w-full overflow-hidden bg-slate-100 aspect-[3/4]">
         {item.thumbnailUrl ? (
           <img
             src={item.thumbnailUrl}
-            alt={item.title}
-            className="h-24 w-24 rounded-md object-cover"
+            alt={item.firstLine}
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <div className="h-24 w-24 rounded-md bg-slate-200 flex items-center justify-center text-xs text-slate-500">
-            썸네일 없음
-          </div>
+          <div className="absolute inset-0 bg-slate-200" />
         )}
 
-        <div className="flex-1 space-y-1">
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <span>{item.userNickname}</span>
-            <span>•</span>
-            <span>{formatDate(item.createdAt)}</span>
-          </div>
-
-          <p className="text-base font-semibold text-slate-900 line-clamp-1">{item.title}</p>
-          <p className="text-sm text-slate-600 line-clamp-1">{item.contentPre}</p>
-
-          <div className="flex gap-1 flex-wrap mt-1">
-            {item.hashtagNames.map((tag) => (
-              <span
-                key={tag}
-                className="text-[11px] bg-slate-100 px-2 py-0.5 rounded-md text-slate-600"
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-4 text-xs text-slate-500 mt-2">
-            <span>👁 {item.viewCount}</span>
-            <span>♡ {item.likeCount}</span>
-            <span>💬 {item.commentCount}</span>
-            <span>🔖 {item.bookmarkCount}</span>
+        {/* 오버레이 */}
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/25 via-black/10 to-transparent px-4 pb-3 pt-10 text-white text-[13px]">
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1">
+              <Heart className="h-4 w-4 text-white" /> {item.likeCount}
+            </span>
+            <span className="flex items-center gap-1">
+              <MessageCircle className="h-3.5 w-3.5 text-white" /> {item.commentCount}
+            </span>
           </div>
         </div>
+      </div>
+
+      {/* 텍스트 영역: 연한 회색 background */}
+      <div className="px-3 pb-3 pt-2 bg-slate-50 flex-1">
+        <p className="line-clamp-2 text-[13px] leading-snug text-slate-800">{item.firstLine}</p>
       </div>
     </a>
   );
@@ -101,6 +64,89 @@ export function BlogListView({ items }: { items: BlogSummary[] }) {
         <BlogListItem key={item.id} item={item} />
       ))}
     </div>
+  );
+}
+
+export function BlogListItem({ item }: { item: BlogSummary }) {
+  const hasThumbnail = !!item.thumbnailUrl;
+
+  return (
+    <a
+      href={`/blogs/${item.id}`}
+      className="block w-full rounded-lg bg-white shadow-sm ring-1 ring-slate-100 p-2 hover:-translate-y-0.5 hover:shadow-md transition"
+    >
+      <div className="flex gap-4 items-start">
+        {/* 썸네일 */}
+        <div className="flex-shrink-0">
+          {hasThumbnail ? (
+            <div className="relative h-24 w-24 overflow-hidden rounded-md bg-slate-100">
+              <img
+                src={item.thumbnailUrl!}
+                alt={item.title}
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+            </div>
+          ) : (
+            <div className="flex h-24 w-24 items-center justify-center rounded-md bg-slate-200 text-[11px] text-slate-500">
+              썸네일 없음
+            </div>
+          )}
+        </div>
+
+        {/* 텍스트 */}
+        <div className="flex-1 space-y-3">
+          {/* 제목 + 날짜 (좌/우 배치) */}
+          <div className="flex items-center justify-between">
+            <h2 className="line-clamp-1 text-sm font-semibold text-slate-900 sm:text-base">
+              {item.title}
+            </h2>
+
+            <div className="flex items-center gap-2 text-[11px] text-slate-500 whitespace-nowrap mr-3">
+              <span className="h-1 w-1 rounded-full bg-slate-300" />
+              <span>{formatDate(item.createdAt)}</span>
+            </div>
+          </div>
+
+          {/* 요약 */}
+          <p className="line-clamp-1 text-xs text-slate-500 sm:text-sm">{item.contentPre}</p>
+
+          {/* 태그 */}
+          <div className="flex flex-wrap gap-1">
+            {item.hashtagNames.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-slate-50 px-2 py-0.5 text-[11px] text-slate-500"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+
+          {/* 통계 */}
+          <div className="flex items-center gap-4 text-[11px] text-slate-400">
+            <span className="flex items-center gap-1">
+              <Eye size={14} className="text-slate-400" />
+              {item.viewCount}
+            </span>
+
+            <span className="flex items-center gap-1">
+              <Heart size={14} className="text-slate-400" />
+              {item.likeCount}
+            </span>
+
+            <span className="flex items-center gap-1">
+              <MessageCircle size={14} className="text-slate-400" />
+              {item.commentCount}
+            </span>
+
+            <span className="flex items-center gap-1">
+              <Bookmark size={14} className="text-slate-400" />
+              {item.bookmarkCount}
+            </span>
+          </div>
+        </div>
+      </div>
+    </a>
   );
 }
 

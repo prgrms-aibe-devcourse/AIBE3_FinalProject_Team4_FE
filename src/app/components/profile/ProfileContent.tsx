@@ -41,28 +41,31 @@ export default function ProfileContent({ userId, isMyPage }: ProfileContentProps
 
       try {
         if (isMyPage) {
-          // 내 페이지
           if (primaryTab === 'mine') {
-            if (secondaryTab === 'short') {
-              setShorlogs(await getMyShorlogs(sortKey));
-            } else {
-              setBlogs(await getMyBlogs(sortKey));
-            }
+            const shortPromise = getMyShorlogs(sortKey);
+            const longPromise = getMyBlogs(sortKey);
+
+            const [shorts, longs] = await Promise.all([shortPromise, longPromise]);
+
+            setShorlogs(shorts);
+            setBlogs(longs);
           } else {
-            // 북마크
-            if (secondaryTab === 'short') {
-              setShorlogs(await getBookmarkedShorlogs(sortKey));
-            } else {
-              setBlogs(await getBookmarkedBlogs(sortKey));
-            }
+            const shortPromise = getBookmarkedShorlogs(sortKey);
+            const longPromise = getBookmarkedBlogs(sortKey);
+
+            const [shorts, longs] = await Promise.all([shortPromise, longPromise]);
+
+            setShorlogs(shorts);
+            setBlogs(longs);
           }
         } else {
-          // 다른 사람 페이지
-          if (secondaryTab === 'short') {
-            setShorlogs(await getUserShorlogs(userId, sortKey));
-          } else {
-            setBlogs(await getUserBlogs(userId, sortKey));
-          }
+          const shortPromise = getUserShorlogs(userId, sortKey);
+          const longPromise = getUserBlogs(userId, sortKey);
+
+          const [shorts, longs] = await Promise.all([shortPromise, longPromise]);
+
+          setShorlogs(shorts);
+          setBlogs(longs);
         }
       } finally {
         setLoading(false);
@@ -70,7 +73,7 @@ export default function ProfileContent({ userId, isMyPage }: ProfileContentProps
     }
 
     load();
-  }, [userId, isMyPage, primaryTab, secondaryTab, sortKey]);
+  }, [userId, isMyPage, primaryTab, sortKey]);
 
   const shortCount = shorlogs.length;
   const longCount = blogs.length;
