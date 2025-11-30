@@ -1,24 +1,18 @@
 'use client';
 
 import { useAiChatStreamMutation } from '@/src/api/useAiChatStream';
+import { ChatMessage as Message, ModelOption } from '@/src/types/ai';
 import ReactMarkdown from 'react-markdown';
 import ChatBubble from './ChatBubble';
 import ChatInput from './ChatInput';
-import { ModelOption } from './ModelDropdown';
-
-interface Message {
-  id: number;
-  role: 'user' | 'ai';
-  text: string;
-}
 
 interface AIChatBodyProps {
   modelOptions: ModelOption[];
-  selectedModel: string;
-  onModelChange: (value: string) => void;
+  selectedModel: ModelOption['value'];
+  onModelChange: (value: ModelOption['value']) => void;
   messages: Message[];
   addMessage: (msg: Message) => void;
-  onSend?: (text: string) => void;
+  onSend: (text: string) => void;
   aiChat: ReturnType<typeof useAiChatStreamMutation>;
   blogTitle?: string;
 }
@@ -48,13 +42,7 @@ export default function AIChatBody({
       </div>
       {/* 입력 영역 */}
       <ChatInput
-        onSend={
-          onSend
-            ? onSend
-            : (text) => {
-                addMessage({ id: Date.now(), role: 'user', text });
-              }
-        }
+        onSend={onSend}
         modelOptions={modelOptions}
         selectedModel={selectedModel}
         onModelChange={onModelChange}

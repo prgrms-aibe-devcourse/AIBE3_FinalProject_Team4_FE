@@ -1,21 +1,16 @@
 import { useAiChatStreamMutation } from '@/src/api/useAiChatStream';
+import { ModelOption } from '@/src/types/ai';
 import { ArrowUp, FileText, Square } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import Tooltip from '../../common/Tooltip';
 import ModelDropdown from './ModelDropdown';
 
-interface ModelOption {
-  label: string;
-  value: string;
-  enabled: boolean;
-}
-
 interface ChatInputProps {
   onSend: (message: string) => void;
   blogTitle?: string;
   modelOptions: ModelOption[];
-  selectedModel: string;
-  onModelChange: (value: string) => void;
+  selectedModel: ModelOption['value'];
+  onModelChange: (value: ModelOption['value']) => void;
   aiChat: ReturnType<typeof useAiChatStreamMutation>;
 }
 
@@ -29,7 +24,7 @@ export default function ChatInput({
 }: ChatInputProps) {
   // selectedModel, modelOptions, onModelChange는 모두 상위에서 관리
   const selected = modelOptions.find((opt) => opt.value === selectedModel) || modelOptions[0];
-  const handleModelSelect = (value: string) => {
+  const handleModelSelect = (value: ModelOption['value']) => {
     onModelChange(value);
   };
   const isModelDisabled = !selected.enabled;
