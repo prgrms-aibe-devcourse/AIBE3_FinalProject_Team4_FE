@@ -1,17 +1,12 @@
+import { ModelOption } from '@/src/types/ai';
 import { Bot, BotOff, ChevronDown, ChevronUp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import Tooltip from '../../common/Tooltip';
 
-export interface ModelOption {
-  label: string;
-  value: string;
-  enabled: boolean;
-}
-
 interface ModelDropdownProps {
   options: ModelOption[];
   selected: ModelOption;
-  onSelect: (value: string) => void;
+  onSelect: (value: ModelOption['value']) => void;
   direction?: 'down' | 'up';
 }
 

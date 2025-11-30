@@ -1,5 +1,6 @@
 'use client';
 import { useAiChatStreamMutation } from '@/src/api/useAiChatStream';
+import { ModelOption } from '@/src/types/ai';
 import { useEffect, useRef, useState } from 'react';
 import Tooltip from '../../common/Tooltip';
 import AiChatBody from './AiChatBody';
@@ -8,12 +9,12 @@ import AiChatHeader from './AiChatHeader';
 interface AiChatSidebarProps {
   onToggleMode: () => void;
   onClose: () => void;
-  modelOptions: import('./ModelDropdown').ModelOption[];
-  selectedModel: string;
-  onModelChange: (value: string) => void;
+  modelOptions: ModelOption[];
+  selectedModel: ModelOption['value'];
+  onModelChange: (value: ModelOption['value']) => void;
   messages: any[];
   addMessage: (msg: any) => void;
-  onSend?: (text: string) => void;
+  onSend: (text: string) => void;
   aiChat: ReturnType<typeof useAiChatStreamMutation>;
   blogTitle?: string;
 }

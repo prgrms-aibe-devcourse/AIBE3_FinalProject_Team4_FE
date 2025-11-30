@@ -1,6 +1,8 @@
+import { ChatMessage } from '@/src/types/ai';
+
 interface Props {
-  role: 'user' | 'ai';
-  text?: string;
+  role: ChatMessage['role'];
+  text?: ChatMessage['text'];
   children?: React.ReactNode;
 }
 

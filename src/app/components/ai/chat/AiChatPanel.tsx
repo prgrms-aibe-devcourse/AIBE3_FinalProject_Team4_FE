@@ -1,20 +1,16 @@
 'use client';
 import { ApiError } from '@/src/api/aiChatApi';
 import { useAiChatStreamMutation } from '@/src/api/useAiChatStream';
+import { ChatMessage, ModelOption } from '@/src/types/ai';
 import { useState } from 'react';
 import Tooltip from '../../common/Tooltip';
 import AIChatBody from './AiChatBody';
 import AiChatHeader from './AiChatHeader';
 import AiChatSidebar from './AiChatSidebar';
 import ChatBotButton from './ChatBotButton';
-import { ModelOption } from './ModelDropdown';
+
 type DisplayMode = 'sidebar' | 'floating';
 
-interface ChatMessage {
-  id: number;
-  role: 'user' | 'ai';
-  text: string;
-}
 export default function AiChatPanel({ title, content }: { title?: string; content?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<DisplayMode>('sidebar');
@@ -28,9 +24,9 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
     { label: '추가 예정', value: '추가 예정', enabled: true },
     { label: '추가 예정2', value: '추가 예정2', enabled: false },
   ];
-  const [selectedModel, setSelectedModel] = useState<string>(modelOptions[0].value);
+  const [selectedModel, setSelectedModel] = useState<ModelOption['value']>(modelOptions[0].value);
 
-  const handleModelChange = (value: string) => {
+  const handleModelChange = (value: ModelOption['value']) => {
     setSelectedModel(value);
   };
 
@@ -51,7 +47,10 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
         if (last?.role === 'ai') {
           return [...prev.slice(0, -1), { ...last, text: last.text + chunk }];
         }
-        return [...prev, { id: Date.now(), role: 'ai', text: chunk }];
+        if (last?.role === 'user') {
+          return [...prev, { id: Date.now(), role: 'ai', text: chunk, model: last.model }];
+        }
+        return prev;
       });
     },
     onError: (e) => {
@@ -62,7 +61,7 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
             ...prev,
             {
               id: Date.now(),
-              role: 'ai',
+              role: 'system',
               text: '로그인이 필요해요. 로그인 후 다시 시도해 주세요.',
             },
           ]);
@@ -79,12 +78,12 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
   });
 
   const handleSend = (text: string) => {
-    setMessages((prev) => [...prev, { id: Date.now(), role: 'user', text }]);
+    setMessages((prev) => [...prev, { id: Date.now(), role: 'user', text, model: selectedModel }]);
 
     aiChat.start({
       id: 1,
       message: text,
-      content: text,
+      content: content,
       model: selectedModel,
     });
   };
