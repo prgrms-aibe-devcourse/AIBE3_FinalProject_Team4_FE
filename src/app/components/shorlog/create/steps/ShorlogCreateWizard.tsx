@@ -7,6 +7,7 @@ import ThumbnailSelectStep from './ThumbnailSelectStep';
 import ImageEditStep from './ImageEditStep';
 import ContentComposeStep from './ContentComposeStep';
 import FreeImageSelectModal from './FreeImageSelectModal';
+import ShorlogConnectBlogModal from './ShorlogConnectBlogModal';
 import { useShorlogCreate } from '../hooks/useShorlogCreate';
 import { useHashtag } from '../hooks/useHashtag';
 import { useFreeImageModal } from '../hooks/useFreeImageModal';
@@ -179,6 +180,15 @@ export default function ShorlogCreateWizard() {
             maxSelect={MAX_FILES - shorlogCreate.images.length}
           />
         )}
+
+        {/* 숏로그 생성 완료 후 블로그 연결 모달 */}
+        <ShorlogConnectBlogModal
+          isOpen={shorlogCreate.showBlogConnectModal}
+          recentBlogs={shorlogCreate.recentBlogs}
+          onSelectBlog={shorlogCreate.handleSelectBlog}
+          onCreateNewBlog={shorlogCreate.handleCreateNewBlog}
+          onSkip={shorlogCreate.handleSkipConnection}
+        />
 
         {shorlogCreate.error && (
           <p className="pointer-events-none absolute bottom-3 left-4 text-xs text-red-500 md:left-6 lg:left-8">

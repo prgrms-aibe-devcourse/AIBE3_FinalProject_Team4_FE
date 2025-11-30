@@ -35,3 +35,10 @@ export interface CreateShorlogRequest {
   imageIds: number[];
   hashtags: string[];
 }
+
+export interface ShorlogRelatedBlogSummary {
+  id: number;
+  title: string;
+  hashtagNames: string[];
+  modifiedAt: string;
+}

@@ -34,6 +34,7 @@ export default function Sidebar() {
     await logout(); // 로그아웃 로직 실행 (라우터 이동 포함)
   };
 
+
   return (
     <aside className="w-60 bg-white border-r border-gray-200 h-screen fixed flex flex-col">
       {/* 로고 영역 */}
@@ -94,6 +95,7 @@ export default function Sidebar() {
               )
             );
           }
+
 
           return (
             <Link
