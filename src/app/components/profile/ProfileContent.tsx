@@ -1,9 +1,45 @@
 'use client';
 
 import { useAuth } from '@/src/providers/AuthProvider';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+/* =========================================================
+   1) 프로필 페이지 전용 타입 정의
+   ========================================================= */
+
+export interface ProfileShorlog {
+  id: number;
+  thumbnailUrl: string | null;
+  profileImgUrl: string;
+  nickname: string;
+  hashtags: string[];
+  likeCount: number;
+  commentCount: number;
+  firstLine: string;
+}
+
+export interface ProfileBlog {
+  id: number;
+  userId: number;
+  nickname: string;
+  profileImageUrl: string | null;
+  title: string;
+  contentPre: string;
+  thumbnailUrl: string | null;
+  hashtagNames: string[];
+  viewCount: number;
+  likeCount: number;
+  bookmarkCount: number;
+  commentCount: number;
+  createdAt: string;
+  modifiedAt: string;
+  likedByMe: boolean;
+  bookmarkedByMe: boolean;
+}
+
+/* =========================================================
+   2) 기본 타입/상태
+   ========================================================= */
 
 type SortKey = 'latest' | 'popular' | 'oldest';
 type PrimaryTab = 'mine' | 'bookmark';
@@ -14,19 +50,14 @@ interface ProfileContentProps {
   isMyPage: boolean;
 }
 
-/** 공통 피드 구조 */
-export interface ProfileFeedPost {
-  id: number;
-  type: 'short' | 'long';
-  title: string;
-  excerpt: string;
-  nickname: string;
-  thumbnailUrl: string | null;
-  likeCount: number;
-  commentCount: number;
-  createdAt?: string;
-  popularityScore: number;
-}
+const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+const apiSort = (k: SortKey) =>
+  k === 'latest' ? 'LATEST' : k === 'popular' ? 'POPULAR' : 'OLDEST';
+
+/* =========================================================
+   3) 메인 컴포넌트
+   ========================================================= */
 
 export default function ProfileContent({ userId, isMyPage }: ProfileContentProps) {
   const { loginUser, isLogin } = useAuth();
@@ -35,98 +66,111 @@ export default function ProfileContent({ userId, isMyPage }: ProfileContentProps
   const [primaryTab, setPrimaryTab] = useState<PrimaryTab>('mine');
   const [secondaryTab, setSecondaryTab] = useState<SecondaryTab>('short');
   const [sortKey, setSortKey] = useState<SortKey>('latest');
-  const [posts, setPosts] = useState<ProfileFeedPost[]>([]);
+
+  const [shorlogs, setShorlogs] = useState<ProfileShorlog[]>([]);
+  const [blogs, setBlogs] = useState<ProfileBlog[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const sortForApi = (key: SortKey) =>
-    key === 'latest' ? 'LATEST' : key === 'popular' ? 'POPULAR' : 'OLDEST';
+  /* =========================================================
+     4) API 호출
+     ========================================================= */
 
-  /* 🔥 API 호출 */
   useEffect(() => {
     async function load() {
       setLoading(true);
 
-      let data: ProfileFeedPost[] = [];
-
-      // ⭐ 내 페이지일 때 : 기존 로직 그대로 유지
-      if (isMyPage) {
-        if (primaryTab === 'mine') {
-          if (secondaryTab === 'short') data = await getMyShorlogs(sortKey);
-          else data = await getMyBlogs(sortKey);
+      try {
+        if (isMyPage) {
+          // 내 페이지
+          if (primaryTab === 'mine') {
+            if (secondaryTab === 'short') {
+              setShorlogs(await getMyShorlogs(sortKey));
+            } else {
+              setBlogs(await getMyBlogs(sortKey));
+            }
+          } else {
+            // 북마크
+            if (secondaryTab === 'short') {
+              setShorlogs(await getBookmarkedShorlogs(sortKey));
+            } else {
+              setBlogs(await getBookmarkedBlogs(sortKey));
+            }
+          }
         } else {
-          if (!isMe) data = [];
-          else
-            data =
-              secondaryTab === 'short' ? await getBookmarkedShorlogs() : await getBookmarkedBlogs();
+          // 다른 사람 페이지
+          if (secondaryTab === 'short') {
+            setShorlogs(await getUserShorlogs(userId, sortKey));
+          } else {
+            setBlogs(await getUserBlogs(userId, sortKey));
+          }
         }
-      } else {
-        // 다른사람 페이지 : primaryTab 대신 secondaryTab만 사용 (1차=short/long)
-        if (secondaryTab === 'short') {
-          data = await getUserShorlogs(userId);
-        } else {
-          data = await getUserBlogs(userId);
-        }
+      } finally {
+        setLoading(false);
       }
-
-      setPosts(data);
-      setLoading(false);
     }
 
     load();
-  }, [isMyPage, primaryTab, secondaryTab, sortKey, isMe, userId]);
+  }, [userId, isMyPage, primaryTab, secondaryTab, sortKey]);
 
-  /* 🔥 정렬 + 필터 */
-  const filteredAndSorted = useMemo(() => {
-    return [...posts].sort((a, b) => {
-      if (sortKey === 'latest') return +new Date(b.createdAt ?? 0) - +new Date(a.createdAt ?? 0);
-      if (sortKey === 'oldest') return +new Date(a.createdAt ?? 0) - +new Date(b.createdAt ?? 0);
-      return b.popularityScore - a.popularityScore;
-    });
-  }, [posts, sortKey]);
+  const shortCount = shorlogs.length;
+  const longCount = blogs.length;
 
-  const shortCount = posts.filter((p) => p.type === 'short').length;
-  const longCount = posts.filter((p) => p.type === 'long').length;
+  /* =========================================================
+     5) 렌더링
+     ========================================================= */
 
   return (
     <section className="space-y-4">
+      {/* 상단 탭 */}
       {isMyPage ? (
-        /* 내 페이지 */
         <div className="flex items-end justify-between border-b border-slate-200">
-          <div className="flex gap-0 text-lg">
+          <div className="flex text-lg">
             <button
               onClick={() => setPrimaryTab('mine')}
-              className={`px-8 pb-2 border-b-2 ${primaryTab === 'mine' ? 'border-slate-900 font-semibold' : 'border-transparent text-slate-500'}`}
+              className={`px-8 pb-2 border-b-2 ${
+                primaryTab === 'mine'
+                  ? 'border-slate-900 font-semibold'
+                  : 'border-transparent text-slate-500'
+              }`}
             >
               내 글
             </button>
 
-            {isMe && (
-              <button
-                onClick={() => setPrimaryTab('bookmark')}
-                className={`px-8 pb-2 border-b-2 ${primaryTab === 'bookmark' ? 'border-slate-900 font-semibold' : 'border-transparent text-slate-500'}`}
-              >
-                북마크
-              </button>
-            )}
+            <button
+              onClick={() => setPrimaryTab('bookmark')}
+              className={`px-8 pb-2 border-b-2 ${
+                primaryTab === 'bookmark'
+                  ? 'border-slate-900 font-semibold'
+                  : 'border-transparent text-slate-500'
+              }`}
+            >
+              북마크
+            </button>
           </div>
 
-          {/* 정렬 */}
           <SortButtons sortKey={sortKey} setSortKey={setSortKey} />
         </div>
       ) : (
-        /* 다른사람 페이지 */
         <div className="flex items-end justify-between border-b border-slate-200">
-          <div className="flex gap-0 text-lg">
+          <div className="flex text-lg">
             <button
               onClick={() => setSecondaryTab('short')}
-              className={`px-8 pb-2 border-b-2 ${secondaryTab === 'short' ? 'border-slate-900 font-semibold' : 'border-transparent text-slate-500'}`}
+              className={`px-8 pb-2 border-b-2 ${
+                secondaryTab === 'short'
+                  ? 'border-slate-900 font-semibold'
+                  : 'border-transparent text-slate-500'
+              }`}
             >
               숏로그
             </button>
 
             <button
               onClick={() => setSecondaryTab('long')}
-              className={`px-8 pb-2 border-b-2 ${secondaryTab === 'long' ? 'border-slate-900 font-semibold' : 'border-transparent text-slate-500'}`}
+              className={`px-8 pb-2 border-b-2 ${
+                secondaryTab === 'long'
+                  ? 'border-slate-900 font-semibold'
+                  : 'border-transparent text-slate-500'
+              }`}
             >
               블로그
             </button>
@@ -136,6 +180,7 @@ export default function ProfileContent({ userId, isMyPage }: ProfileContentProps
         </div>
       )}
 
+      {/* 서브 탭 (내 페이지일 때만) */}
       {isMyPage && (
         <div className="inline-flex items-center rounded-md p-0.5 text-[14px]">
           <button
@@ -162,24 +207,138 @@ export default function ProfileContent({ userId, isMyPage }: ProfileContentProps
         </div>
       )}
 
+      {/* 리스트 */}
       {loading ? (
         <div className="mt-8 text-center text-sm text-slate-600">불러오는 중…</div>
-      ) : filteredAndSorted.length === 0 ? (
-        <div className="mt-8 text-center text-sm text-slate-600">
-          {isMyPage && primaryTab === 'bookmark'
-            ? '아직 북마크 글이 없어요.'
-            : '아직 작성한 글이 없어요.'}
-        </div>
+      ) : secondaryTab === 'short' ? (
+        <ShorlogListView items={shorlogs} />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-4">
-          {filteredAndSorted.map((post) => (
-            <FeedCard key={post.id} post={post} />
-          ))}
-        </div>
+        <BlogListView items={blogs} />
       )}
     </section>
   );
 }
+
+/* =========================================================
+   6) 리스트 UI
+   ========================================================= */
+
+function ShorlogListView({ items }: { items: ProfileShorlog[] }) {
+  if (items.length === 0) return <p className="mt-8 text-sm text-slate-600">쇼로그가 없어요.</p>;
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      {items.map((item) => (
+        <ShorlogCardProfile key={item.id} item={item} />
+      ))}
+    </div>
+  );
+}
+
+function BlogListView({ items }: { items: ProfileBlog[] }) {
+  if (items.length === 0) return <p className="mt-8 text-sm text-slate-600">블로그가 없어요.</p>;
+
+  return (
+    <div className="space-y-4">
+      {items.map((item) => (
+        <BlogListItem key={item.id} item={item} />
+      ))}
+    </div>
+  );
+}
+
+/* =========================================================
+   7) 블로그 카드 (Figma 기반 UI)
+   ========================================================= */
+
+function BlogListItem({ item }: { item: ProfileBlog }) {
+  return (
+    <a
+      href={`/blogs/${item.id}`}
+      className="block w-full rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 p-4 hover:shadow-md transition"
+    >
+      <div className="flex gap-4">
+        {item.thumbnailUrl ? (
+          <img
+            src={item.thumbnailUrl}
+            alt={item.title}
+            className="h-24 w-24 rounded-md object-cover"
+          />
+        ) : (
+          <div className="h-24 w-24 rounded-md bg-slate-200 flex items-center justify-center text-xs text-slate-500">
+            썸네일 없음
+          </div>
+        )}
+
+        <div className="flex-1 space-y-1">
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            <span>{item.nickname}</span>
+            <span>•</span>
+            <span>{formatDate(item.createdAt)}</span>
+          </div>
+
+          <p className="text-base font-semibold text-slate-900 line-clamp-1">{item.title}</p>
+          <p className="text-sm text-slate-600 line-clamp-1">{item.contentPre}</p>
+
+          <div className="flex gap-1 flex-wrap mt-1">
+            {item.hashtagNames.map((tag) => (
+              <span
+                key={tag}
+                className="text-[11px] bg-slate-100 px-2 py-0.5 rounded-md text-slate-600"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-4 text-xs text-slate-500 mt-2">
+            <span>👁 {item.viewCount}</span>
+            <span>♡ {item.likeCount}</span>
+            <span>💬 {item.commentCount}</span>
+            <span>🔖 {item.bookmarkCount}</span>
+          </div>
+        </div>
+
+        <button className="self-start text-[12px] text-[#2979FF] font-medium whitespace-nowrap">
+          연결 쇼로그
+        </button>
+      </div>
+    </a>
+  );
+}
+
+/* =========================================================
+   8) 숏로그 카드 (프로필 버전)
+   ========================================================= */
+
+function ShorlogCardProfile({ item }: { item: ProfileShorlog }) {
+  return (
+    <a
+      href={`/shorlog/${item.id}`}
+      className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 transition hover:-translate-y-1 hover:shadow-md"
+    >
+      <div className="aspect-[3/4] w-full overflow-hidden bg-slate-100">
+        <img
+          src={item.thumbnailUrl ?? '/images/default-thumbnail.jpg'}
+          className="h-full w-full object-cover group-hover:scale-105 transition"
+          alt={item.firstLine}
+        />
+      </div>
+
+      <div className="px-3 py-2">
+        <p className="text-sm font-medium text-slate-800 line-clamp-2">{item.firstLine}</p>
+        <div className="flex items-center justify-start gap-4 mt-2 text-xs text-slate-500">
+          <span>♡ {item.likeCount}</span>
+          <span>💬 {item.commentCount}</span>
+        </div>
+      </div>
+    </a>
+  );
+}
+
+/* =========================================================
+   9) 정렬 탭
+   ========================================================= */
 
 function SortButtons({
   sortKey,
@@ -209,121 +368,170 @@ function SortButtons({
   );
 }
 
-function FeedCard({ post }: { post: ProfileFeedPost }) {
+/* =========================================================
+   10) 상대 날짜 포맷
+   ========================================================= */
+
+function formatDate(dateStr: string) {
+  const date = new Date(dateStr);
+  const diff = (Date.now() - date.getTime()) / 1000;
+
+  if (diff < 60) return '방금 전';
+  if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+  return `${Math.floor(diff / 86400)}일 전`;
+}
+
+/* =========================================================
+   11) API 구현
+   ========================================================= */
+
+async function getMyShorlogs(sort: SortKey): Promise<ProfileShorlog[]> {
+  const res = await fetch(`${API}/api/v1/shorlog/my?sort=${sort}&page=0`, {
+    credentials: 'include',
+  });
+  const json = await res.json();
+
   return (
-    <a
-      href={`/posts/${post.id}`}
-      className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 hover:-translate-y-1 hover:shadow-md transition"
-    >
-      <div className="relative w-full bg-slate-100 overflow-hidden">
-        {post.thumbnailUrl ? (
-          <img
-            src={post.thumbnailUrl}
-            alt={`${post.title} 썸네일`}
-            className="h-60 w-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="h-60 w-full bg-slate-200" />
-        )}
-
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-3 pb-2 pt-10 text-white text-[11px]">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1">♡ {post.likeCount}</span>
-            <span className="flex items-center gap-1">💬 {post.commentCount}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-3 pb-3 pt-2">
-        <p className="line-clamp-2 text-[13px] leading-snug text-slate-800">{post.excerpt}</p>
-
-        <span className="mt-2 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500">
-          {post.type === 'short' ? '숏로그' : '블로그'}
-        </span>
-      </div>
-    </a>
+    json.data?.content?.map((i: any) => ({
+      id: i.id,
+      thumbnailUrl: i.thumbnailUrl,
+      profileImgUrl: i.profileImgUrl,
+      nickname: i.nickname,
+      hashtags: i.hashtags,
+      likeCount: i.likeCount,
+      commentCount: i.commentCount,
+      firstLine: i.firstLine,
+    })) ?? []
   );
 }
 
-// 블로그: /api/v1/blogs/my
-async function getMyBlogs(sortKey: SortKey): Promise<ProfileFeedPost[]> {
-  const page = 0;
-  const size = 20;
-  const sortType = sortKey; // LATEST / POPULAR / OLDEST
+async function getMyBlogs(sort: SortKey): Promise<ProfileBlog[]> {
+  const res = await fetch(`${API}/api/v1/blogs/my?page=0&size=20&sortType=${apiSort(sort)}`, {
+    credentials: 'include',
+  });
 
+  const json = await res.json(); // BlogSliceResponse
+  const items = json.content ?? [];
+
+  return items.map((i: any) => ({
+    id: i.id,
+    userId: i.userId,
+    nickname: i.nickname,
+    profileImageUrl: i.profileImageUrl,
+    title: i.title,
+    contentPre: i.contentPre ?? i.content ?? '',
+    thumbnailUrl: i.thumbnailUrl,
+    hashtagNames: i.hashtagNames,
+    viewCount: i.viewCount,
+    likeCount: i.likeCount,
+    bookmarkCount: i.bookmarkCount,
+    commentCount: i.commentCount,
+    createdAt: i.createdAt,
+    modifiedAt: i.modifiedAt,
+    likedByMe: i.likedByMe,
+    bookmarkedByMe: i.bookmarkedByMe,
+  }));
+}
+
+async function getBookmarkedShorlogs(sort: SortKey): Promise<ProfileShorlog[]> {
+  const res = await fetch(`${API}/api/v1/shorlog/bookmark?sort=${sort}&page=0`, {
+    credentials: 'include',
+  });
+  const json = await res.json();
+
+  return (
+    json.data?.bookmarks?.map((i: any) => ({
+      id: i.id,
+      thumbnailUrl: i.thumbnailUrl,
+      profileImgUrl: i.profileImgUrl,
+      nickname: i.nickname,
+      hashtags: i.hashtags ?? [],
+      likeCount: i.likeCount,
+      commentCount: i.commentCount,
+      firstLine: i.firstLine,
+    })) ?? []
+  );
+}
+
+async function getBookmarkedBlogs(sort: SortKey): Promise<ProfileBlog[]> {
   const res = await fetch(
-    `${API_BASE_URL}/api/v1/blogs/my?page=${page}&size=${size}&sortType=${sortType}`,
+    `${API}/api/v1/blogs/bookmarks?page=0&size=20&sortType=${apiSort(sort)}`,
     {
-      method: 'GET',
       credentials: 'include',
     },
   );
 
-  const json = await res.json();
-  const content = json.data?.content ?? json.content ?? [];
+  const json = await res.json(); // BlogSliceResponse
+  const items = json.content ?? [];
 
-  return content.map(
-    (item: any): ProfileFeedPost => ({
-      id: item.id,
-      type: 'long',
-      title: item.title,
-      excerpt: item.content,
-      thumbnailUrl: item.thumbnailUrl ?? null,
-      nickname: item.nickname,
-      likeCount: item.likeCount,
-      commentCount: item.commentCount,
-      createdAt: item.createdAt,
-      // 간단한 인기 점수: 좋아요*2 + 북마크*3 + 조회수
-      popularityScore:
-        (item.likeCount ?? 0) * 2 + (item.bookmarkCount ?? 0) * 3 + (item.viewCount ?? 0),
-    }),
-  );
+  return items.map((i: any) => ({
+    id: i.id,
+    userId: i.userId,
+    nickname: i.nickname,
+    profileImageUrl: i.profileImageUrl,
+    title: i.title,
+    contentPre: i.contentPre ?? i.content ?? '',
+    thumbnailUrl: i.thumbnailUrl,
+    hashtagNames: i.hashtagNames,
+    viewCount: i.viewCount,
+    likeCount: i.likeCount,
+    bookmarkCount: i.bookmarkCount,
+    commentCount: i.commentCount,
+    createdAt: i.createdAt,
+    modifiedAt: i.modifiedAt,
+    likedByMe: i.likedByMe,
+    bookmarkedByMe: i.bookmarkedByMe,
+  }));
 }
 
-// 숏로그: /api/v1/shorlog/my
-async function getMyShorlogs(sortKey: SortKey): Promise<ProfileFeedPost[]> {
-  const sort = sortKey === 'latest' ? 'latest' : sortKey === 'popular' ? 'popular' : 'oldest';
-  const page = 0;
-
-  const res = await fetch(`${API_BASE_URL}/api/v1/shorlog/my?sort=${sort}&page=${page}`, {
-    method: 'GET',
+async function getUserShorlogs(userId: string, sort: SortKey): Promise<ProfileShorlog[]> {
+  const res = await fetch(`${API}/api/v1/shorlog/user/${userId}?sort=${sort}&page=0`, {
     credentials: 'include',
   });
-
   const json = await res.json();
-  const content = json.data?.content ?? json.content ?? [];
 
-  return content.map(
-    (item: any): ProfileFeedPost => ({
-      id: item.id,
-      type: 'short',
-      title: item.firstLine,
-      excerpt: item.firstLine,
-      thumbnailUrl: item.thumbnailUrl ?? null,
-      nickname: item.nickname,
-      likeCount: item.likeCount,
-      commentCount: item.commentCount,
-      // 숏로그에는 createdAt이 없으니 생략
-      createdAt: undefined,
-      // 간단한 인기 점수: 좋아요 + 댓글*2
-      popularityScore: (item.likeCount ?? 0) + (item.commentCount ?? 0) * 2,
-    }),
+  return (
+    json.data?.content?.map((i: any) => ({
+      id: i.id,
+      thumbnailUrl: i.thumbnailUrl,
+      profileImgUrl: i.profileImgUrl,
+      nickname: i.nickname,
+      hashtags: i.hashtags,
+      likeCount: i.likeCount,
+      commentCount: i.commentCount,
+      firstLine: i.firstLine,
+    })) ?? []
   );
 }
 
-async function getUserShorlogs(userId: string): Promise<ProfileFeedPost[]> {
-  return [];
-}
+async function getUserBlogs(userId: string, sort: SortKey): Promise<ProfileBlog[]> {
+  const res = await fetch(
+    `${API}/api/v1/users/${userId}/blogs?page=0&size=20&sortType=${apiSort(sort)}`,
+    {
+      credentials: 'include',
+    },
+  );
 
-async function getUserBlogs(userId: string): Promise<ProfileFeedPost[]> {
-  return [];
-}
+  const json = await res.json(); // BlogSliceResponse
+  const items = json.content ?? [];
 
-// 북마크는 아직 API 없으니 임시 구현
-async function getBookmarkedShorlogs(): Promise<ProfileFeedPost[]> {
-  return [];
-}
-
-async function getBookmarkedBlogs(): Promise<ProfileFeedPost[]> {
-  return [];
+  return items.map((i: any) => ({
+    id: i.id,
+    userId: i.userId,
+    nickname: i.nickname,
+    profileImageUrl: i.profileImageUrl,
+    title: i.title,
+    contentPre: i.contentPre ?? i.content ?? '',
+    thumbnailUrl: i.thumbnailUrl,
+    hashtagNames: i.hashtagNames,
+    viewCount: i.viewCount,
+    likeCount: i.likeCount,
+    bookmarkCount: i.bookmarkCount,
+    commentCount: i.commentCount,
+    createdAt: i.createdAt,
+    modifiedAt: i.modifiedAt,
+    likedByMe: i.likedByMe,
+    bookmarkedByMe: i.bookmarkedByMe,
+  }));
 }
