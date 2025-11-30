@@ -48,7 +48,7 @@ export function ShorlogCardProfile({ item }: { item: ShorlogItem }) {
       </div>
 
       {/* 텍스트 영역: 연한 회색 background */}
-      <div className="px-3 pb-3 pt-2 bg-slate-50 flex-1">
+      <div className="px-2 py-1.5 bg-slate-50 flex-1">
         <p className="line-clamp-2 text-[13px] leading-snug text-slate-800">{item.firstLine}</p>
       </div>
     </a>
