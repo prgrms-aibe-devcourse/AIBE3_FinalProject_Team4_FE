@@ -39,7 +39,7 @@ export default function BlogDetailPage() {
   };
 
   const handleEdit = () => {
-    router.push(`/blogs/${blogId}/write`);
+    router.push(`/blogs/${blogId}/edit`);
   };
 
   const handleToggleLike = async () => {

@@ -15,10 +15,15 @@ import { BlogMetaForm } from '../../components/blogs/write/BlogMetaForm';
 import { BlogWriteHeader } from '../../components/blogs/write/BlogWriteHeader';
 import { DraftListModal } from '../../components/blogs/write/DraftListModal';
 import { MarkdownEditor } from '../../components/blogs/write/MarkdownEditor';
-import { isUnauthorizedError } from '@/src/api/ApiError';
 import ImageSelector from '../../components/ImageSelector/ImageSelector';
+import apiClient from '@/src/api/clientForRs';
+import { LoginRequiredModal } from '../../components/common/LoginRequireModal';
 
-export default function NewBlogPage() {
+type NewBlogPageProps = {
+  editId?: number;
+};
+
+export default function NewBlogPage({ editId }: NewBlogPageProps) {
   const router = useRouter();
 
   const [form, setForm] = useState<BlogFormValues>({
@@ -29,43 +34,86 @@ export default function NewBlogPage() {
     visibility: 'PRIVATE',
   });
 
-  const [blogId, setBlogId] = useState<number | null>(null);
+  const [blogId, setBlogId] = useState<number | null>(editId ?? null);
+  // 이미지/썸네일 상태
+  const [blogImages, setBlogImages] = useState<BlogFileDto[]>([]);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  // 발행 버튼 상태
   const [isPublishing, setIsPublishing] = useState(false);
+  // 임시저장 목록 모달 상태
   const [isDraftModalOpen, setIsDraftModalOpen] = useState(false);
   const [drafts, setDrafts] = useState<BlogDraftDto[]>([]);
   const [isLoadingDrafts, setIsLoadingDrafts] = useState(false);
-  const [blogImages, setBlogImages] = useState<BlogFileDto[]>([]);
-  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  // ---------------- 인증 상태 ----------------
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // 백엔드의 로그인 유저 조회 엔드포인트 사용
+        // 예: GET /api/v1/users/me → RsData<UserDto>
+        const me = await apiClient<any>('/api/v1/users/me', {
+          method: 'GET',
+        });
 
+        if (me) {
+          setIsLoggedIn(true);
+        } else {
+          setIsLoggedIn(false);
+          setShowLoginModal(true);
+        }
+      } catch (e: any) {
+        // 401 포함: 비로그인으로 간주
+        setIsLoggedIn(false);
+        setShowLoginModal(true);
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+
+    checkAuth();
+  }, []);
+  /* 폼 업데이트 헬퍼 */
+  const update = <K extends keyof BlogFormValues>(key: K, value: BlogFormValues[K]) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
   const buildReqBody = (status: BlogStatus): BlogWriteReqBody => ({
     title: form.title.trim(),
     content: form.contentMarkdown.trim(),
     status,
     hashtagNames: form.tags,
   });
-  const update = <K extends keyof BlogFormValues>(key: K, value: BlogFormValues[K]) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  };
 
   useEffect(() => {
-    if (!blogId) return;
-    if (isPublishing) return;
-    if (form.status !== 'DRAFT') return;
-    if (!form.title && !form.contentMarkdown && form.tags.length === 0) return;
-    const handler = setTimeout(async () => {
+    if (!editId) return;
+
+    const load = async () => {
       try {
-        await updateBlog(blogId, buildReqBody('DRAFT'));
+        const detail = await fetchBlogDetail(editId);
+
+        setBlogId(detail.id);
+        setForm((prev) => ({
+          ...prev,
+          title: detail.title ?? '',
+          contentMarkdown: detail.content ?? '',
+          tags: detail.hashtagNames ?? [],
+          status: (detail.status as BlogStatus) ?? 'DRAFT',
+        }));
+        setBlogImages(detail.images ?? []);
+        setThumbnailUrl(detail.thumbnailUrl ?? null);
       } catch (e) {
         console.error(e);
-      } finally {
-      }
-    }, 1500);
+        alert('글 정보를 불러오지 못했습니다.');
 
-    return () => clearTimeout(handler);
-  }, [blogId, form.title, form.contentMarkdown, form.tags, form.status, isPublishing]);
+        router.push('/blogs');
+      }
+    };
+
+    load();
+  }, [editId, router]);
 
   const ensureDraft = async (): Promise<number> => {
-    // 이미 draft 있으면 그대로 사용
     if (blogId) return blogId;
 
     // 없으면 새로 생성
@@ -79,6 +127,7 @@ export default function NewBlogPage() {
 
   const handleSaveDraft = async () => {
     try {
+      // if (!requireAuth('임시저장')) return;
       const id = await ensureDraft(); // 없으면 새 draft 생성, 있으면 그거 사용
       const dto = await updateBlog(id, buildReqBody('DRAFT'));
 
@@ -92,12 +141,6 @@ export default function NewBlogPage() {
 
       alert('임시저장 되었습니다.');
     } catch (e) {
-
-    // if (isUnauthorizedError(e)) {
-    //   alert('로그인이 필요합니다.');
-    //   router.push(`/login?next=/blogs/write`);
-    //   return;
-    // }
       console.error(e);
       alert('임시저장 중 오류가 발생했습니다.');
     }
@@ -113,28 +156,27 @@ export default function NewBlogPage() {
       return;
     }
 
-  setIsPublishing(true);
-  try {
-    const id = await ensureDraft();
-    const dto = await updateBlog(id, buildReqBody('PUBLISHED'));
-    router.push(`/blogs/${dto.id}`);
-  } catch (e) {
-
-    // if (isUnauthorizedError(e)) {
-    //   alert('로그인이 필요합니다.');
-    //   router.push(`/login?next=/blogs/write`);
-    //   return;
-    // }
-    console.error(e);
-    alert('발행 중 오류가 발생했습니다.');
-  } finally {
-    setIsPublishing(false);
-  }
+    setIsPublishing(true);
+    try {
+      // if (!requireAuth('발행')) {
+      //   setIsPublishing(false);
+      //   return;
+      // }
+      const id = await ensureDraft();
+      const dto = await updateBlog(id, buildReqBody('PUBLISHED'));
+      router.push(`/blogs/${dto.id}`);
+    } catch (e) {
+      console.error(e);
+      alert('발행 중 오류가 발생했습니다.');
+    } finally {
+      setIsPublishing(false);
+    }
   };
   // 임시저장 목록 관련 로직
   const openDraftModal = async () => {
+    // if (!requireAuth('임시저장 목록 보기')) return;
+
     setIsDraftModalOpen(true);
-   // if (drafts.length > 0) return; // 이미 로딩된 경우 재요청 스킵
     setIsLoadingDrafts(true);
     try {
       const list = await fetchDrafts();
@@ -189,9 +231,16 @@ export default function NewBlogPage() {
       alert('삭제 중 오류가 발생했습니다.');
     }
   };
+   if (!authChecked) {
+     return (
+       <div className="flex min-h-screen items-center justify-center bg-slate-50">
+         <p className="text-sm text-slate-500">로그인 상태를 확인 중입니다…</p>
+       </div>
+     );
+   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-sky-50/40 to-slate-50">
       <BlogWriteHeader
         onSaveDraft={handleSaveDraft}
         onPublish={handlePublish}
@@ -220,7 +269,14 @@ export default function NewBlogPage() {
         </section>
 
         <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
-          <ImageSelector blogId={blogId} blogImages={blogImages}/>
+          <ImageSelector
+            blogId={blogId}
+            blogImages={blogImages}
+            thumbnailUrl={thumbnailUrl}
+            onChangeImages={setBlogImages}
+            onChangeThumbnail={setThumbnailUrl}
+            ensureDraft={ensureDraft}
+          />
         </section>
       </main>
       <DraftListModal
@@ -230,6 +286,14 @@ export default function NewBlogPage() {
         isLoading={isLoadingDrafts}
         onSelectDraft={handleSelectDraft}
         onDeleteDraft={handleDeleteDraft}
+      />
+      <LoginRequiredModal
+        open={showLoginModal && !isLoggedIn}
+        onClose={() => router.push(`/blogs`)}
+        onConfirmLogin={() => {
+          // TODO: 배포 환경에서는 바꾸기
+          router.push(`/auth/login`);
+        }}
       />
     </div>
   );
