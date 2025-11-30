@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import apiClient from '@/src/api/apiClient';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { fetchBlogDetail, deleteBlog, toggleBookmark, toggleLike } from '@/src/api/blogDetail';
 
 import type { BlogDetailDto } from '@/src/types/blog';
@@ -90,12 +91,12 @@ export default function BlogDetailPage() {
             }}
           />
 
-          
-
           {/* 본문 */}
           <section className="px-5 py-8 sm:px-8">
             <div className="prose prose-slate max-w-none leading-relaxed">
-              <p className="whitespace-pre-wrap text-slate-700">{blog.content}</p>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+               {blog.content}
+              </ReactMarkdown>
             </div>
 
             {/* 태그 */}

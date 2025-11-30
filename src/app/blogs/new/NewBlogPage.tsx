@@ -1,6 +1,7 @@
 'use client';
 import { fetchBlogDetail } from '@/src/api/blogDetail';
-import { createDraft, deleteBlog, fetchDrafts, updateBlog } from '@/src/api/blogWrite';
+import { createDraft, deleteBlog, fetchDrafts, updateBlog,  } from '@/src/api/blogWrite';
+import { uploadBlogImage } from '@/src/api/blogImageApi';
 import type {
   BlogDraftDto,
   BlogFileDto,
@@ -8,6 +9,8 @@ import type {
   BlogStatus,
   BlogVisibility,
   BlogWriteReqBody,
+  BlogMediaUploadResponse,
+  RsData
 } from '@/src/types/blog';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -51,8 +54,7 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // 백엔드의 로그인 유저 조회 엔드포인트 사용
-        // 예: GET /api/v1/users/me → RsData<UserDto>
+        // 로그인 유저 조회 엔드포인트 사용
         const me = await apiClient<any>('/api/v1/users/me', {
           method: 'GET',
         });
@@ -238,6 +240,29 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
        </div>
      );
    }
+   // 이미지 업로드 함수
+   const handleUploadContentImage = async (file: File): Promise<string> => {
+  const id = await ensureDraft(); // draft 없으면 여기서 생성
+  const formData = new FormData();
+  formData.append('files', file);
+  formData.append('type', 'CONTENT');
+
+  // TODO: aspectRatios 추후 적용
+  const res = await uploadBlogImage(id, formData);
+
+  if (!res.ok) {
+    throw new Error(`이미지 업로드 실패 (status: ${res.status})`);
+  }
+
+  const rs: RsData<BlogMediaUploadResponse> = await res.json();
+  if (!rs.data) {
+    throw new Error('이미지 업로드 응답이 올바르지 않습니다.');
+  }
+
+  const dto = rs.data;
+
+  return dto.url;
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-sky-50/40 to-slate-50">
@@ -265,6 +290,7 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
             value={form.contentMarkdown}
             onChange={(v) => update('contentMarkdown', v)}
             placeholder="마크다운으로 블로그 내용을 작성해 주세요."
+            onUploadImage={handleUploadContentImage}
           />
         </section>
 
