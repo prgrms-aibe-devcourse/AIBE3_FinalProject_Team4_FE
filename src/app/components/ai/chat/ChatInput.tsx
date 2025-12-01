@@ -1,6 +1,6 @@
 import { useAiChatStreamMutation } from '@/src/api/useAiChatStream';
 import { ModelOption } from '@/src/types/ai';
-import { ArrowUp, FileText, Square } from 'lucide-react';
+import { ArrowDown, ArrowUp, FileText, Square } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import Tooltip from '../../common/Tooltip';
 import ModelDropdown from './ModelDropdown';
@@ -12,6 +12,8 @@ interface ChatInputProps {
   selectedModel: ModelOption['value'];
   onModelChange: (value: ModelOption['value']) => void;
   aiChat: ReturnType<typeof useAiChatStreamMutation>;
+  showScrollBtn?: boolean;
+  onScrollDown?: () => void;
 }
 
 export default function ChatInput({
@@ -21,6 +23,8 @@ export default function ChatInput({
   selectedModel,
   onModelChange,
   aiChat,
+  showScrollBtn = false,
+  onScrollDown,
 }: ChatInputProps) {
   // selectedModel, modelOptions, onModelChange는 모두 상위에서 관리
   const selected = modelOptions.find((opt) => opt.value === selectedModel) || modelOptions[0];
@@ -50,7 +54,7 @@ export default function ChatInput({
   }, [blogTitle]);
 
   return (
-    <div className="p-4">
+    <div className="p-4 relative">
       {/* 모델 한도 초과 안내문구 */}
       {isModelDisabled && (
         <div className="mb-2 flex justify-center">
@@ -58,6 +62,24 @@ export default function ChatInput({
             모델 사용 한도에 도달했습니다. 다음 날 한도가 초기화될 때까지 다른 모델을 사용하세요.
           </div>
         </div>
+      )}
+      {/* 스크롤 다운 버튼 */}
+      {showScrollBtn && onScrollDown && (
+        <button
+          type="button"
+          onClick={onScrollDown}
+          aria-label="맨 아래로"
+          className="
+          absolute left-1/2 -translate-x-1/2
+          -top-1   /* <- 살짝 위로 떠있게. 필요하면 -top-2/-top-3 조절 */
+          bg-white border border-gray-300 rounded-full
+          w-7 h-7 flex items-center justify-center
+          text-gray-700 hover:bg-gray-100 transition
+          z-20 shadow
+        "
+        >
+          <ArrowDown size={14} />
+        </button>
       )}
       <div className="rounded-3xl border bg-white p-3 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)]">
         {/* Top row: small badges / context */}
