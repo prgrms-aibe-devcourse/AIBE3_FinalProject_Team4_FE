@@ -11,12 +11,14 @@ import type {
 } from '@/src/types/blog';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import AiChatPanel from '../../components/ai/chat/AiChatPanel';
 import { BlogMetaForm } from '../../components/blogs/write/BlogMetaForm';
 import { BlogWriteHeader } from '../../components/blogs/write/BlogWriteHeader';
 import { DraftListModal } from '../../components/blogs/write/DraftListModal';
 import { MarkdownEditor } from '../../components/blogs/write/MarkdownEditor';
-import { isUnauthorizedError } from '@/src/api/ApiError';
+// import { isUnauthorizedError } from '@/src/api/ApiError';
 import ImageSelector from '../../components/ImageSelector/ImageSelector';
+import { useChatPanelSlot } from '../Slot';
 
 export default function NewBlogPage() {
   const router = useRouter();
@@ -36,6 +38,13 @@ export default function NewBlogPage() {
   const [isLoadingDrafts, setIsLoadingDrafts] = useState(false);
   const [blogImages, setBlogImages] = useState<BlogFileDto[]>([]);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  const { setChatPanel } = useChatPanelSlot();
+
+  // AI 채팅 패널
+  useEffect(() => {
+    setChatPanel(<AiChatPanel title={form.title} content={form.contentMarkdown} />);
+    return () => setChatPanel(null); // 페이지 벗어나면 제거
+  }, [form.title, form.contentMarkdown, setChatPanel]);
 
   const buildReqBody = (status: BlogStatus): BlogWriteReqBody => ({
     title: form.title.trim(),
@@ -92,12 +101,11 @@ export default function NewBlogPage() {
 
       alert('임시저장 되었습니다.');
     } catch (e) {
-
-    // if (isUnauthorizedError(e)) {
-    //   alert('로그인이 필요합니다.');
-    //   router.push(`/login?next=/blogs/write`);
-    //   return;
-    // }
+      // if (isUnauthorizedError(e)) {
+      //   alert('로그인이 필요합니다.');
+      //   router.push(`/login?next=/blogs/write`);
+      //   return;
+      // }
       console.error(e);
       alert('임시저장 중 오류가 발생했습니다.');
     }
@@ -113,28 +121,27 @@ export default function NewBlogPage() {
       return;
     }
 
-  setIsPublishing(true);
-  try {
-    const id = await ensureDraft();
-    const dto = await updateBlog(id, buildReqBody('PUBLISHED'));
-    router.push(`/blogs/${dto.id}`);
-  } catch (e) {
-
-    // if (isUnauthorizedError(e)) {
-    //   alert('로그인이 필요합니다.');
-    //   router.push(`/login?next=/blogs/write`);
-    //   return;
-    // }
-    console.error(e);
-    alert('발행 중 오류가 발생했습니다.');
-  } finally {
-    setIsPublishing(false);
-  }
+    setIsPublishing(true);
+    try {
+      const id = await ensureDraft();
+      const dto = await updateBlog(id, buildReqBody('PUBLISHED'));
+      router.push(`/blogs/${dto.id}`);
+    } catch (e) {
+      // if (isUnauthorizedError(e)) {
+      //   alert('로그인이 필요합니다.');
+      //   router.push(`/login?next=/blogs/write`);
+      //   return;
+      // }
+      console.error(e);
+      alert('발행 중 오류가 발생했습니다.');
+    } finally {
+      setIsPublishing(false);
+    }
   };
   // 임시저장 목록 관련 로직
   const openDraftModal = async () => {
     setIsDraftModalOpen(true);
-   // if (drafts.length > 0) return; // 이미 로딩된 경우 재요청 스킵
+    // if (drafts.length > 0) return; // 이미 로딩된 경우 재요청 스킵
     setIsLoadingDrafts(true);
     try {
       const list = await fetchDrafts();
@@ -220,7 +227,7 @@ export default function NewBlogPage() {
         </section>
 
         <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
-          <ImageSelector blogId={blogId} blogImages={blogImages}/>
+          <ImageSelector blogId={blogId} blogImages={blogImages} />
         </section>
       </main>
       <DraftListModal
