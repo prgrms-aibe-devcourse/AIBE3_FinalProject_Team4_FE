@@ -15,6 +15,10 @@ export default function LoginModal() {
   const [id, setId] = useState('');
   const [pw, setPw] = useState('');
 
+  const handleSocialLogin = (provider: 'google' | 'naver' | 'kakao') => {
+    window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/oauth2/authorization/${provider}`;
+  };
+
   useEffect(() => {
     if (isOpen) close();
   }, [pathname]);
@@ -104,6 +108,7 @@ export default function LoginModal() {
         <div className="space-y-2 mt-4">
           {/* Google */}
           <button
+            onClick={() => handleSocialLogin('google')}
             className="w-full flex items-center justify-center gap-3 py-2.5 
                     border border-gray-300 rounded-lg bg-white 
                     hover:shadow-sm hover:bg-gray-50 transition"
@@ -114,6 +119,7 @@ export default function LoginModal() {
 
           {/* Naver */}
           <button
+            onClick={() => handleSocialLogin('naver')}
             className="w-full flex items-center justify-center gap-3 py-2.5 
                     border border-gray-300 rounded-lg bg-white 
                     hover:shadow-sm hover:bg-gray-50 transition"
@@ -124,6 +130,7 @@ export default function LoginModal() {
 
           {/* Kakao */}
           <button
+            onClick={() => handleSocialLogin('kakao')}
             className="w-full flex items-center justify-center gap-3 py-2.5 
                     border border-gray-300 rounded-lg bg-white 
                     hover:shadow-sm hover:bg-gray-50 transition"
