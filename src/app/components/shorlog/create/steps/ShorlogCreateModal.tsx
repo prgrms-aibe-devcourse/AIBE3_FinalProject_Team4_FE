@@ -17,7 +17,7 @@ export default function ShorlogCreateModal() {
         <ShorlogCreateWizard />
 
         {showConfirmExit && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/30">
             <div className="w-[320px] overflow-hidden rounded-3xl bg-white text-center shadow-xl">
               <div className="px-6 pt-6 pb-3">
                 <p className="text-sm font-semibold text-slate-900">

@@ -128,6 +128,22 @@ export function useShorlogCreate() {
     }
   };
 
+  // 이미지만 업로드하는 메서드 (임시저장용)
+  const uploadImages = async () => {
+    if (!images.length) {
+      throw new Error('편집할 이미지가 없습니다.');
+    }
+
+    try {
+      const uploaded = await uploadImagesBatch(images);
+      setUploadedImages(uploaded);
+      return uploaded;
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  };
+
   const handleSubmit = async (content: string, hashtags: string[]) => {
     const trimmed = content.trim();
 
@@ -248,6 +264,7 @@ export function useShorlogCreate() {
     addFiles,
     goToStep,
     handleNextFromStep2,
+    uploadImages,
     handleSubmit,
     changeAspectRatio,
     deleteImage,

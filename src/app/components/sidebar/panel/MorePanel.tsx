@@ -33,7 +33,7 @@ export default function MorePanel({
           bg-white border-r border-gray-200 
           shadow-md 
           animate-slideIn 
-          z-50
+          z-[110]
         "
       >
         {/* Header */}
