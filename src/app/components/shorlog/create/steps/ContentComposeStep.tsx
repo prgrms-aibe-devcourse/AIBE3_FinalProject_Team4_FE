@@ -19,9 +19,15 @@ interface ContentComposeStepProps {
   onBlogToShorlogClick?: () => void;
   isBlogConverting?: boolean;
   onPrev: () => void;
-  onSaveDraft: () => void;
+  onSaveDraft?: () => void; // 수정 모드에서는 선택적
   onSubmit: () => void;
   isSubmitting: boolean;
+  // 수정 모드용 props (선택적)
+  isEditMode?: boolean;
+  linkedBlogId?: number | null;
+  linkedBlogTitle?: string;
+  onDisconnectBlog?: () => void;
+  onConnectBlog?: () => void;
 }
 
 export default function ContentComposeStep({
@@ -42,6 +48,11 @@ export default function ContentComposeStep({
                                              onSaveDraft,
                                              onSubmit,
                                              isSubmitting,
+                                             isEditMode = false,
+                                             linkedBlogId,
+                                             linkedBlogTitle,
+                                             onDisconnectBlog,
+                                             onConnectBlog,
                                            }: ContentComposeStepProps) {
   const length = content.length;
   const isNearLimit = length > MAX_CONTENT_LENGTH - 40;
@@ -163,6 +174,44 @@ export default function ContentComposeStep({
           )}
         </div>
 
+        {/* 블로그 연결 관리 (수정 모드) */}
+        {isEditMode && (
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-slate-700">
+              블로그 연결
+            </label>
+            {linkedBlogId ? (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-slate-700">
+                      {linkedBlogTitle || `블로그 #${linkedBlogId}`}
+                    </p>
+                    <p className="mt-0.5 text-[10px] text-slate-500">
+                      현재 연결된 블로그
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onDisconnectBlog}
+                    className="rounded-full border border-red-200 bg-white px-2.5 py-1 text-[10px] font-medium text-red-600 shadow-sm hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                  >
+                    연결 해제
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={onConnectBlog}
+                className="w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50/40 px-3 py-3 text-xs font-medium text-slate-600 hover:border-[#2979FF] hover:bg-[#2979FF]/5 hover:text-[#2979FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]"
+              >
+                + 블로그 추가 연결
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="mt-auto flex items-center justify-between gap-2 pt-1">
           <button
             type="button"
@@ -172,13 +221,15 @@ export default function ContentComposeStep({
             이전
           </button>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onSaveDraft}
-              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]"
-            >
-              임시 저장
-            </button>
+            {!isEditMode && onSaveDraft && (
+              <button
+                type="button"
+                onClick={onSaveDraft}
+                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]"
+              >
+                임시 저장
+              </button>
+            )}
             <button
               type="button"
               onClick={onSubmit}
@@ -188,10 +239,10 @@ export default function ContentComposeStep({
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
                   <LoadingSpinner size="sm" inline theme="light" />
-                  <span>작성 중...</span>
+                  <span>{isEditMode ? '수정 중...' : '작성 중...'}</span>
                 </span>
               ) : (
-                '작성 완료'
+                isEditMode ? '수정 완료' : '작성 완료'
               )}
             </button>
           </div>
