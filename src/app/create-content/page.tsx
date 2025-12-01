@@ -12,7 +12,7 @@ export default function CreateContentPage() {
   };
 
   const handleSelectBlog = () => {
-    router.push('/blogs/new');
+    router.push('/blogs/write');
   };
 
   const handleGoBack = () => {

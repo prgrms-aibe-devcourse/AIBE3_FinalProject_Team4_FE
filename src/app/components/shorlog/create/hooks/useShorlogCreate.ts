@@ -214,7 +214,7 @@ export function useShorlogCreate() {
 
   const handleCreateNewBlog = () => {
     setShowBlogConnectModal(false);
-    router.push('/blogs/new');
+    router.push('/blogs/write');
   };
 
   const handleSkipConnection = () => {
