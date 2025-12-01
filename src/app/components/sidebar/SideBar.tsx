@@ -100,6 +100,7 @@ export default function Sidebar() {
         bg-white border-r border-gray-200
         h-screen fixed flex flex-col
         transition-all duration-300
+        z-[60]
       `}
     >
       {/* ================= HEADER ================= */}
@@ -132,14 +133,14 @@ export default function Sidebar() {
               relative flex items-center cursor-pointer overflow-hidden
               transition-all duration-300 ease-in-out
               ${
-                isCollapsed
-                  ? 'w-10 h-10 rounded-full justify-center'
-                  : 'w-full h-10 rounded-full bg-gray-100 pl-12 pr-3 border border-gray-200'
-              }
+              isCollapsed
+                ? 'w-10 h-10 rounded-full justify-center'
+                : 'w-full h-10 rounded-full bg-gray-100 pl-12 pr-3 border border-gray-200'
+            }
             `}
           >
             <div
-              className="absolute left-3 top-1/2 -translate-y-1/2 
+              className="absolute left-3 top-1/2 -translate-y-1/2
                          flex items-center justify-center w-7 h-7 pointer-events-none"
             >
               <Search size={22} />
@@ -228,12 +229,19 @@ export default function Sidebar() {
             <div key={item.label} className="relative group">
               <Link
                 href={item.href}
+                onClick={(e) => {
+                  // 숏피드 링크 클릭 시 이미 숏피드 페이지에 있으면 강제 새로고침
+                  if (item.href === '/shorlog/feed' && pathname.startsWith('/shorlog')) {
+                    e.preventDefault();
+                    window.location.href = '/shorlog/feed';
+                  }
+                }}
                 className={`
                   flex items-center gap-3 px-4 py-2 rounded-lg transition-all
                   ${isActive ? 'text-blue-600 font-medium' : 'text-gray-800 hover:bg-gray-100'}
                 `}
               >
-                <div className="flex items-center justify-center w-7 h-7 flex-shrink-0">
+                <div className="flex items-center justify-center w-7 h-7 flex-shrink-0 relative">
                   {item.label === '프로필' && isLogin ? (
                     <img
                       src={loginUser?.profileImgUrl || '/tmpProfile.png'}
@@ -241,7 +249,12 @@ export default function Sidebar() {
                       className="w-7 h-7 rounded-full object-cover"
                     />
                   ) : (
-                    <item.icon size={24} />
+                    <>
+                      <item.icon size={24} />
+                      {item.alert && (
+                        <span className="absolute -top-1.5 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                      )}
+                    </>
                   )}
                 </div>
 

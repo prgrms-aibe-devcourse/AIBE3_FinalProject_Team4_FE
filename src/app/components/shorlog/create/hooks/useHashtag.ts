@@ -67,6 +67,7 @@ export function useHashtag(initialHashtags: string[] = []) {
 
   return {
     hashtags,
+    setHashtags,
     hashtagInput,
     setHashtagInput,
     isAiLoading,
