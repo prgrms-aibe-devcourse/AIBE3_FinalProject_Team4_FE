@@ -10,6 +10,7 @@ interface ShorlogConnectBlogModalProps {
   onSelectBlog: (blogId: ShorlogRelatedBlogSummary['id']) => void;
   onCreateNewBlog: () => void;
   onSkip: () => void;
+  isEditMode?: boolean; // 수정 모드인지 여부
 }
 
 export default function ShorlogConnectBlogModal({
@@ -18,6 +19,7 @@ export default function ShorlogConnectBlogModal({
                                                   onSelectBlog,
                                                   onCreateNewBlog,
                                                   onSkip,
+                                                  isEditMode = false,
                                                 }: ShorlogConnectBlogModalProps) {
   if (!isOpen) return null;
 
@@ -40,7 +42,7 @@ export default function ShorlogConnectBlogModal({
               id="shorlog-connect-blog-title"
               className="text-lg font-semibold text-slate-900"
             >
-              숏로그 작성완료!
+              {isEditMode ? '블로그 추가 연결' : '숏로그 작성완료!'}
             </h2>
             <p className="mt-2 text-sm text-slate-500">
               연관된 블로그와 연결하시겠어요?
