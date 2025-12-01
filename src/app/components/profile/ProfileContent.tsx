@@ -176,7 +176,7 @@ export default function ProfileContent({ userId, isMyPage }: ProfileContentProps
       {loading ? (
         <div className="mt-8 text-center text-sm text-slate-600">불러오는 중…</div>
       ) : secondaryTab === 'short' ? (
-        <ShorlogListView items={shorlogs} />
+        <ShorlogListView items={shorlogs} profileUserId={userId} />
       ) : (
         <BlogListView items={blogs} />
       )}

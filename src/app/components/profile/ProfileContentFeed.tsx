@@ -3,23 +3,55 @@
 import type { ShorlogItem } from '@/src/app/components/shorlog/feed/ShorlogFeedPageClient';
 import type { BlogSummary } from '@/src/types/blog';
 import { Bookmark, Eye, Heart, MessageCircle } from 'lucide-react';
+import Link from 'next/link';
 
-export function ShorlogListView({ items }: { items: ShorlogItem[] }) {
+export function ShorlogListView({ items, profileUserId }: { items: ShorlogItem[]; profileUserId: string }) {
   if (items.length === 0) return <p className="mt-8 text-sm text-slate-600">쇼로그가 없어요.</p>;
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-      {items.map((item) => (
-        <ShorlogCardProfile key={item.id} item={item} />
+      {items.map((item, index) => (
+        <ShorlogCardProfile key={item.id} item={item} index={index} allItems={items} profileUserId={profileUserId} />
       ))}
     </div>
   );
 }
 
-export function ShorlogCardProfile({ item }: { item: ShorlogItem }) {
+export function ShorlogCardProfile({
+  item,
+  index,
+  allItems,
+  profileUserId
+}: {
+  item: ShorlogItem;
+  index: number;
+  allItems: ShorlogItem[];
+  profileUserId: string;
+}) {
+  const prevItem = index > 0 ? allItems[index - 1] : null;
+  const nextItem = index < allItems.length - 1 ? allItems[index + 1] : null;
+
+  const queryParams = new URLSearchParams();
+  if (prevItem) queryParams.set('prev', prevItem.id.toString());
+  if (nextItem) queryParams.set('next', nextItem.id.toString());
+  queryParams.set('profileId', profileUserId);
+
+  const href = `/shorlog/${item.id}?${queryParams.toString()}`;
+
+  const handleClick = () => {
+    if (typeof window !== 'undefined') {
+      const feedIds = allItems.map(item => item.id);
+      sessionStorage.setItem('shorlog_feed_ids', JSON.stringify(feedIds));
+      sessionStorage.setItem('shorlog_current_index', index.toString());
+      sessionStorage.setItem('shorlog_source', 'profile');
+      sessionStorage.setItem('shorlog_profile_user_id', profileUserId);
+    }
+  };
+
   return (
-    <a
-      href={`/shorlog/${item.id}`}
+    <Link
+      href={href}
+      onClick={handleClick}
       className="group flex flex-col overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-slate-100 hover:-translate-y-1 hover:shadow-md transition-all"
     >
       {/* 이미지 영역: 3:4 비율 유지 */}
@@ -51,7 +83,7 @@ export function ShorlogCardProfile({ item }: { item: ShorlogItem }) {
       <div className="px-2 py-1.5 bg-slate-50 flex-1">
         <p className="line-clamp-2 text-[13px] leading-snug text-slate-800">{item.firstLine}</p>
       </div>
-    </a>
+    </Link>
   );
 }
 
