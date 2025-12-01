@@ -9,7 +9,6 @@ type BlogOwnerActionSheetProps = {
   onDelete: () => void;
   onEdit: () => void;
   onConnectShorlog: () => void;
-  onShare: () => void;
 };
 
 export function BlogOwnerActionSheet({
@@ -18,7 +17,6 @@ export function BlogOwnerActionSheet({
   onDelete,
   onEdit,
   onConnectShorlog,
-  onShare,
 }: BlogOwnerActionSheetProps) {
   return (
     <Transition show={open} as={Fragment}>

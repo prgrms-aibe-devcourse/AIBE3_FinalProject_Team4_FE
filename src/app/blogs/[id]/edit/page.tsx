@@ -1,5 +1,7 @@
 import NewBlogPage from '../../write/NewBlogPage';
-export default function Page({ params }: { params: { id: string } }) {
-  const editId = Number(params.id);
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const editId = Number(id);
+
   return <NewBlogPage editId={editId} />;
 }

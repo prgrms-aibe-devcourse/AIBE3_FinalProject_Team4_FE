@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { fetchBlogDetail, deleteBlog } from '@/src/api/blogDetail';
+import { deleteBlog, fetchBlogDetail } from '@/src/api/blogDetail';
+import { fetchMe } from '@/src/api/user';
 import type { BlogDetailDto } from '@/src/types/blog';
-import BlogDetailClient from './BlogDetailClient'; // ✅ 실제 화면 담당
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import BlogDetailClient from './BlogDetailClient';
 
 export default function BlogDetailPage() {
   const params = useParams();
@@ -12,6 +13,7 @@ export default function BlogDetailPage() {
   const blogId = Number(params.id);
 
   const [blog, setBlog] = useState<BlogDetailDto | null>(null);
+  const [me, setMe] = useState<{ id: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<Error | null>(null);
 
@@ -20,9 +22,13 @@ export default function BlogDetailPage() {
 
     async function load() {
       try {
-        const data = await fetchBlogDetail(blogId);
+        const [blogData, meData] = await Promise.all([
+          fetchBlogDetail(blogId),
+          fetchMe().catch(() => null), // 비로그인 → null
+        ]);
         if (!cancelled) {
-          setBlog(data);
+          setBlog(blogData);
+          setMe(meData);
         }
       } catch (e: any) {
         console.error('블로그 단건 조회 실패', e);
@@ -42,6 +48,9 @@ export default function BlogDetailPage() {
       cancelled = true;
     };
   }, [blogId]);
+  //TODO: 로딩스피너 도입
+  if (loading) return <p className="p-8">로딩 중...</p>;
+  if (!blog) return <p className="p-8">존재하지 않는 게시글입니다.</p>;
 
   const handleDelete = async () => {
     if (!confirm('정말 삭제하시겠습니까?')) return;
@@ -66,8 +75,7 @@ export default function BlogDetailPage() {
 
   if (!blog) return <p className="p-8">존재하지 않는 게시글입니다.</p>;
 
-  // TODO: 실제 로그인 유저와 비교해서 isOwner 계산
-  const isOwner = true;
+  const isOwner = me?.id === blog.userId;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-50 via-sky-50/40 to-slate-50">
