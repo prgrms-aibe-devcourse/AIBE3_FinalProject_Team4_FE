@@ -1,5 +1,6 @@
 export type BlogSortType = 'LATEST' | 'VIEWS' | 'POPULAR' | 'RECOMMEND';
 export type BlogScope = 'ALL' | 'FOLLOWING';
+export type BlogStatus = 'DRAFT' | 'PUBLISHED';
 
 export type RsData<T> = {
   resultCode: string;
@@ -49,20 +50,20 @@ export type BlogDetailDto = {
   isLiked: boolean | null;
   isBookmarked: boolean | null;
   comments: unknown[];
-  images: unknown[];
+  images: BlogFileDto[];
   linkedShorlogCount: number;
   hasLinkedShorlogs: boolean;
-  createdAt: string; // LocalDateTime → ISO string
+  createdAt: string;
   updatedAt: string;
 };
 
-export interface BlogWriteRequest {
+// 작성 dto
+export type BlogWriteReqBody = {
   title: string;
   content: string;
-  thumbnailUrl?: string | null;
+  status: BlogStatus;
   hashtagNames: string[];
-  status?: 'DRAFT' | 'PUBLISHED';
-}
+};
 
 export interface BlogWriteDto {
   id: number;
@@ -76,15 +77,40 @@ export interface BlogWriteDto {
   createdAt: string;
   modifiedAt: string;
 }
+
 export interface BlogFileDto {
-  image: string;
+  imageId: number;
+  url: string;
+  sortOrder: number;
+  contentType: string;
 }
+
+// 프론트용 이름
+export type BlogImage = BlogFileDto;
+
 export type BlogVisibility = 'PUBLIC' | 'PRIVATE';
 
 export type BlogFormValues = {
   title: string;
   contentMarkdown: string;
   tags: string[];
-  visibility: BlogVisibility;
-  thumbnailUrl?: string;
+  status: BlogStatus;
+  visibility: 'PUBLIC' | 'PRIVATE';
 };
+export type MediaKind = 'IMAGE' | 'VIDEO';
+export type ImageType = 'THUMBNAIL' | 'CONTENT';
+
+export type BlogMediaUploadResponse = {
+  imageId: number;
+  url: string;
+  kind: MediaKind;
+};
+export interface BlogDraftDto {
+  id: number;
+  title: string;
+  content: string;
+  thumbnailUrl: string | null;
+  isPublic: boolean;
+  status: BlogStatus; // Java의 BlogStatus enum
+  modifiedAt: string; // LocalDateTime -> ISO string
+}
