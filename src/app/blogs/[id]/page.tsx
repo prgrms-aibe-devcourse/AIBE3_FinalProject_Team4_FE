@@ -1,6 +1,7 @@
 'use client';
 
 import { deleteBlog, fetchBlogDetail } from '@/src/api/blogDetail';
+import { fetchIsFollowing } from '@/src/api/follow';
 import { fetchMe } from '@/src/api/user';
 import type { BlogDetailDto } from '@/src/types/blog';
 import { useParams, useRouter } from 'next/navigation';
@@ -16,6 +17,8 @@ export default function BlogDetailPage() {
   const [me, setMe] = useState<{ id: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<Error | null>(null);
+  const [initialIsFollowing, setInitialIsFollowing] = useState(false);
+  // 팔로잉
 
   useEffect(() => {
     let cancelled = false;
@@ -26,9 +29,18 @@ export default function BlogDetailPage() {
           fetchBlogDetail(blogId),
           fetchMe().catch(() => null), // 비로그인 → null
         ]);
+        let following = false;
+        if (meData && blogData.userId !== meData.id) {
+          try {
+            following = await fetchIsFollowing(blogData.userId);
+          } catch (err) {
+            console.error('팔로우 여부 조회 실패', err);
+          }
+        }
         if (!cancelled) {
           setBlog(blogData);
           setMe(meData);
+          setInitialIsFollowing(following);
         }
       } catch (e: any) {
         console.error('블로그 단건 조회 실패', e);
@@ -83,6 +95,7 @@ export default function BlogDetailPage() {
         <BlogDetailClient
           initialData={blog}
           isOwner={isOwner}
+          initialIsFollowing={initialIsFollowing}
           onDelete={handleDelete}
           onEdit={handleEdit}
         />

@@ -4,27 +4,24 @@ import { useState } from 'react';
 import type { BlogDetailDto } from '@/src/types/blog';
 import { BlogOwnerActionSheet } from './BlogOwnerActionSheet';
 import { EllipsisVertical, UserPlus, Check } from 'lucide-react';
+import { BlogAuthorFollowSection } from './BlogAuthorFolowingSection';
 
 type BlogDetailHeaderProps = {
   blog: BlogDetailDto;
   isOwner: boolean;
-  isFollowing?: boolean;
-  onToggleFollow?: () => Promise<void> | void;
+  initialIsFollowing: boolean;
   onDelete?: () => Promise<void> | void;
   onEdit?: () => void;
   onConnectShorlog?: () => void;
-  onShare?: () => void;
 };
 
 export function BlogDetailHeader({
   blog,
   isOwner,
-  isFollowing = false,
-  onToggleFollow,
+  initialIsFollowing,
   onDelete,
   onEdit,
   onConnectShorlog,
-  onShare,
 }: BlogDetailHeaderProps) {
   const [ownerSheetOpen, setOwnerSheetOpen] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
@@ -39,15 +36,6 @@ export function BlogDetailHeader({
     minute: '2-digit',
   });
 
-  const handleFollowClick = async () => {
-    if (!onToggleFollow) return;
-    try {
-      setFollowLoading(true);
-      await onToggleFollow();
-    } finally {
-      setFollowLoading(false);
-    }
-  };
 
   return (
     <>
@@ -110,21 +98,11 @@ export function BlogDetailHeader({
             </div>
 
             <div className="flex items-center gap-2">
-              {!isOwner && (
-                <button
-                  type="button"
-                  disabled={followLoading}
-                  onClick={handleFollowClick}
-                  className={[
-                    'inline-flex items-center gap-1 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors',
-                    isFollowing
-                      ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                      : 'bg-[#2979FF] text-white hover:bg-[#1f5ecc]',
-                  ].join(' ')}
-                >
-                  {isFollowing ? '팔로잉' : '팔로우'}
-                </button>
-              )}
+              <BlogAuthorFollowSection
+                blog={blog}
+                isOwner={isOwner}
+                initialIsFollowing={initialIsFollowing}
+              />
 
               {isOwner && (
                 <button

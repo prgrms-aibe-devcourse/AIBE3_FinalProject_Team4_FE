@@ -9,21 +9,27 @@ import {
 } from '@/src/api/blogDetail';
 import { BlogDetailHeader } from '@/src/app/components/blogs/detail/BlogDetailHeader';
 import { BlogReactionBar } from '@/src/app/components/blogs/detail/BlogReactionBar';
+import { handleApiError } from '@/src/lib/handleApiError';
 import type { BlogDetailDto } from '@/src/types/blog';
 import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { handleApiError } from '@/src/lib/handleApiError';
-import { showGlobalToast } from '@/src/lib/toastStore';
 
 type Props = {
   initialData: BlogDetailDto;
   isOwner: boolean;
+  initialIsFollowing: boolean;
   onDelete: () => void;
   onEdit: () => void;
 };
 
-export default function BlogDetailClient({ initialData, isOwner, onDelete, onEdit }: Props) {
+export default function BlogDetailClient({
+  initialData,
+  isOwner,
+  initialIsFollowing,
+  onDelete,
+  onEdit,
+}: Props) {
   const [blog] = useState<BlogDetailDto>(initialData); // 지금은 수정 안 하니까 그대로 유지
   const [viewCount, setViewCount] = useState(initialData.viewCount ?? 0);
   const [likeCount, setLikeCount] = useState(initialData.likeCount ?? 0);
@@ -43,8 +49,8 @@ export default function BlogDetailClient({ initialData, isOwner, onDelete, onEdi
         }
       })
       .catch((e) => {
-        console.error('조회수 증가 실패', e);
-        // 여기서는 토스트 안 띄우고 로그만, 혹은 필요하면 handleApiError(e, '조회수 증가');
+        //console.error('조회수 증가 실패', e);
+       // handleApiError(e, '조회수 증가');
       });
 
     return () => {
@@ -113,13 +119,10 @@ export default function BlogDetailClient({ initialData, isOwner, onDelete, onEdi
       <BlogDetailHeader
         blog={{ ...blog, viewCount }}
         isOwner={isOwner}
+        initialIsFollowing={initialIsFollowing}
         onDelete={onDelete}
         onEdit={onEdit}
         onConnectShorlog={() => alert('숏로그 연결 예정')}
-        onShare={() => {
-          navigator.clipboard.writeText(location.href);
-          alert('링크가 복사되었습니다');
-        }}
       />
 
       {/* 본문 */}
