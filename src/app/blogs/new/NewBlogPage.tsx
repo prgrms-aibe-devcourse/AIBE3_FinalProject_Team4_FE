@@ -1,26 +1,28 @@
 'use client';
 import { fetchBlogDetail } from '@/src/api/blogDetail';
-import { createDraft, deleteBlog, fetchDrafts, updateBlog,  } from '@/src/api/blogWrite';
 import { uploadBlogImage } from '@/src/api/blogImageApi';
+import { createDraft, deleteBlog, fetchDrafts, updateBlog } from '@/src/api/blogWrite';
+import apiClient from '@/src/api/clientForRs';
 import type {
   BlogDraftDto,
   BlogFileDto,
   BlogFormValues,
+  BlogMediaUploadResponse,
   BlogStatus,
   BlogVisibility,
   BlogWriteReqBody,
-  BlogMediaUploadResponse,
-  RsData
+  RsData,
 } from '@/src/types/blog';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import AiChatPanel from '../../components/ai/chat/AiChatPanel';
 import { BlogMetaForm } from '../../components/blogs/write/BlogMetaForm';
 import { BlogWriteHeader } from '../../components/blogs/write/BlogWriteHeader';
 import { DraftListModal } from '../../components/blogs/write/DraftListModal';
 import { MarkdownEditor } from '../../components/blogs/write/MarkdownEditor';
-import ImageSelector from '../../components/ImageSelector/ImageSelector';
-import apiClient from '@/src/api/clientForRs';
 import { LoginRequiredModal } from '../../components/common/LoginRequireModal';
+import ImageSelector from '../../components/ImageSelector/ImageSelector';
+import { useChatPanelSlot } from '../Slot';
 
 type NewBlogPageProps = {
   editId?: number;
@@ -36,6 +38,13 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
     status: 'DRAFT',
     visibility: 'PRIVATE',
   });
+  const { setChatPanel } = useChatPanelSlot();
+
+  // AI 채팅 패널
+  useEffect(() => {
+    setChatPanel(<AiChatPanel title={form.title} content={form.contentMarkdown} />);
+    return () => setChatPanel(null); // 페이지 벗어나면 제거
+  }, [form.title, form.contentMarkdown, setChatPanel]);
 
   const [blogId, setBlogId] = useState<number | null>(editId ?? null);
   // 이미지/썸네일 상태
@@ -233,36 +242,36 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
       alert('삭제 중 오류가 발생했습니다.');
     }
   };
-   if (!authChecked) {
-     return (
-       <div className="flex min-h-screen items-center justify-center bg-slate-50">
-         <p className="text-sm text-slate-500">로그인 상태를 확인 중입니다…</p>
-       </div>
-     );
-   }
-   // 이미지 업로드 함수
-   const handleUploadContentImage = async (file: File): Promise<string> => {
-  const id = await ensureDraft(); // draft 없으면 여기서 생성
-  const formData = new FormData();
-  formData.append('files', file);
-  formData.append('type', 'CONTENT');
-
-  // TODO: aspectRatios 추후 적용
-  const res = await uploadBlogImage(id, formData);
-
-  if (!res.ok) {
-    throw new Error(`이미지 업로드 실패 (status: ${res.status})`);
+  if (!authChecked) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <p className="text-sm text-slate-500">로그인 상태를 확인 중입니다…</p>
+      </div>
+    );
   }
+  // 이미지 업로드 함수
+  const handleUploadContentImage = async (file: File): Promise<string> => {
+    const id = await ensureDraft(); // draft 없으면 여기서 생성
+    const formData = new FormData();
+    formData.append('files', file);
+    formData.append('type', 'CONTENT');
 
-  const rs: RsData<BlogMediaUploadResponse> = await res.json();
-  if (!rs.data) {
-    throw new Error('이미지 업로드 응답이 올바르지 않습니다.');
-  }
+    // TODO: aspectRatios 추후 적용
+    const res = await uploadBlogImage(id, formData);
 
-  const dto = rs.data;
+    if (!res.ok) {
+      throw new Error(`이미지 업로드 실패 (status: ${res.status})`);
+    }
 
-  return dto.url;
-};
+    const rs: RsData<BlogMediaUploadResponse> = await res.json();
+    if (!rs.data) {
+      throw new Error('이미지 업로드 응답이 올바르지 않습니다.');
+    }
+
+    const dto = rs.data;
+
+    return dto.url;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-sky-50/40 to-slate-50">
