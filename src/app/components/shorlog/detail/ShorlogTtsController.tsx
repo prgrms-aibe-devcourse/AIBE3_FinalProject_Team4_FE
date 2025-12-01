@@ -69,9 +69,29 @@ export default function ShorlogTtsController({ shorlogId, content, progress, set
               토큰: {tokens.token}/100
             </span>
           )}
+
+          {/* 모드 표시 뱃지 */}
+          {mode === 'ai' && (
+            <span className="px-2 py-0.5 text-[10px] font-medium bg-blue-100 text-blue-700 rounded-full">
+              AI 음성
+            </span>
+          )}
+          {mode === 'web' && (
+            <span className="px-2 py-0.5 text-[10px] font-medium bg-gray-100 text-gray-700 rounded-full">
+              기본 음성
+            </span>
+          )}
         </div>
         <span className="text-[11px] text-slate-400">진행률 {percentage}%</span>
       </div>
+
+      {/* 로딩 상태 - 음성 생성 중 메시지 */}
+      {isLoading && mode !== 'web' && (
+        <div className="mt-2 flex items-center gap-2 text-[12px] text-blue-700 bg-blue-50 px-2 py-1 rounded">
+          <div className="w-3 h-3 border border-blue-300 border-t-blue-700 rounded-full animate-spin"></div>
+          <span>음성 생성 중...</span>
+        </div>
+      )}
 
       {/* 에러 메시지 */}
       {error && (
