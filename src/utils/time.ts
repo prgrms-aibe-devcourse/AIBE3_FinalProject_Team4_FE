@@ -6,5 +6,13 @@ dayjs.extend(relativeTime);
 dayjs.locale('ko');
 
 export function formatRelativeTime(date: string) {
-  return dayjs(date).fromNow();
+  const d = dayjs(date);
+  const now = dayjs();
+  const diffDays = now.diff(d, 'day');
+
+  if (diffDays < 7) {
+    return d.fromNow();
+  }
+
+  return d.format('YYYY.MM.DD');
 }
