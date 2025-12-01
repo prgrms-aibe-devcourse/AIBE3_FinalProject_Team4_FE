@@ -89,31 +89,31 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
               <>
                 <button
                   onClick={() => setEditOpen(true)}
-                  className="rounded-md bg-[#2979FF] px-5 py-2 text-sm font-medium text-white hover:bg-[#1f62cc]"
+                  className="rounded-md bg-[#2979FF] px-5 h-10 text-sm font-medium text-white hover:bg-[#1f62cc]"
                 >
                   프로필 편집
                 </button>
 
                 <button
                   aria-label="더보기"
-                  className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 hover:bg-slate-200"
+                  className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 border border-slate-300 hover:bg-slate-200"
                 >
                   ⋯
                 </button>
               </>
             ) : (
               <>
-                <button className="rounded-md bg-[#2979FF] px-8 py-2 text-sm font-medium text-white hover:bg-[#1f62cc]">
+                <button className="rounded-md bg-[#2979FF] px-8 h-10 text-sm font-medium text-white hover:bg-[#1f62cc]">
                   팔로우
                 </button>
 
-                <button className="rounded-md border border-slate-300 px-8 py-2 text-sm font-medium hover:bg-slate-200">
+                <button className="rounded-md border border-slate-300 bg-slate-100 px-8 h-10 text-sm font-medium hover:bg-slate-200">
                   메시지
                 </button>
 
                 <button
                   aria-label="더보기"
-                  className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 hover:bg-slate-200"
+                  className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 border border-slate-300 hover:bg-slate-200"
                 >
                   ⋯
                 </button>
