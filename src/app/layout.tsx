@@ -1,5 +1,7 @@
 import { AuthProvider } from '../providers/AuthProvider';
+import { LoginModalProvider } from '../providers/LoginModalProvider';
 import ReactQueryProvider from '../providers/ReactQueryProvider';
+import LoginModal from './components/auth/LoginModal';
 import { ToastContainer } from './components/common/ToastContainer';
 import Sidebar from './components/sidebar/SideBar';
 import './globals.css';
@@ -10,18 +12,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <AuthProvider>
           <ReactQueryProvider>
-            <div className="flex min-h-screen">
-              <Sidebar />
-              <main
-                className="flex-1 bg-slate-50
+            <LoginModalProvider>
+              <div className="flex min-h-screen">
+                <Sidebar />
+                <main
+                  className="
+                  flex-1 bg-white 
                   pl-20 
                   xl:pl-60
-                  transition-all duration-300"
-              >
-                {children}
-              </main>
-              <ToastContainer />
-            </div>
+                  transition-all duration-300
+                "
+                >
+                  {children}
+                </main>
+                <ToastContainer />
+              </div>
+              <LoginModal />
+            </LoginModalProvider>
           </ReactQueryProvider>
         </AuthProvider>
       </body>
