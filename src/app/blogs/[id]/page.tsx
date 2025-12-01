@@ -18,7 +18,6 @@ export default function BlogDetailPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<Error | null>(null);
   const [initialIsFollowing, setInitialIsFollowing] = useState(false);
-  // 팔로잉
 
   useEffect(() => {
     let cancelled = false;

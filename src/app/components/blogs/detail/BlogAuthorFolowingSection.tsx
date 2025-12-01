@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import { followUser, unfollowUser } from '@/src/api/follow';
 import { handleApiError } from '@/src/lib/handleApiError';
 import { showGlobalToast } from '@/src/lib/toastStore';
 import type { BlogDetailDto } from '@/src/types/blog';
+import { useState } from 'react';
 
 type Props = {
   blog: BlogDetailDto;
@@ -59,7 +59,7 @@ export function BlogAuthorFollowSection({ blog, isOwner, initialIsFollowing }: P
             followLoading ? 'opacity-70 cursor-not-allowed' : '',
           ].join(' ')}
         >
-          {isFollowing ? '팔로잉' : '팔로우'}
+          {isFollowing ? '팔로잉 중' : '팔로잉'}
         </button>
       )}
     </div>

@@ -16,6 +16,7 @@ export function BlogListPage() {
   useEffect(() => {
     async function loadBlogs() {
       try {
+        setLoading(true);
         const params = new URLSearchParams();
         params.set('sort', sortType);
         params.set('scope', scope);
@@ -37,7 +38,7 @@ export function BlogListPage() {
     }
 
     loadBlogs();
-  }, [sortType, keyword]);
+  }, [sortType, keyword, scope]);
 
   if (loading) return <p>로딩 중...</p>;
 
