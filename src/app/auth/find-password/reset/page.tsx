@@ -103,7 +103,7 @@ export default function ResetPasswordPage() {
       sessionStorage.removeItem('fp_email');
       sessionStorage.removeItem('resetPasswordToken');
 
-      router.replace('/auth/find-password/reset-success');
+      router.replace('/auth/success/password-reset');
     } catch {
       setFormError('서버 오류가 발생했습니다.');
     }

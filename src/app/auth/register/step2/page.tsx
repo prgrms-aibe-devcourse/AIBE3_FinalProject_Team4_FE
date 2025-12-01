@@ -217,7 +217,7 @@ export default function RegisterStep2Page() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API}/api/v1/auth/register/success`, {
+      const res = await fetch(`${API}/api/v1/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -233,7 +233,7 @@ export default function RegisterStep2Page() {
 
       // 가입 성공
       sessionStorage.removeItem('register_step1');
-      router.replace('/auth/login');
+      router.replace('/auth/success/register');
     } catch {
       setFormError('서버 오류가 발생했습니다.');
     } finally {
