@@ -97,7 +97,7 @@ export default function ModelDropdown({
                   ) : (
                     <BotOff size={16} strokeWidth={1.2} />
                   )}
-                  <span className="font-light mr-1.5">{opt.label}</span>
+                  <span className="font-light mr-2">{opt.label}</span>
                 </button>
                 {/* 옵션이 enabled=false(오늘 한도 도달)일 때 Tooltip */}
                 {!opt.enabled && <Tooltip text="오늘 한도 도달" side="right" />}
