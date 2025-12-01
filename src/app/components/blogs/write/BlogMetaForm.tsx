@@ -23,12 +23,12 @@ export function BlogMetaForm({
   const [tagInput, setTagInput] = useState('');
 
   const handleTagKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' || e.key === ',') {
+    if (e.key === 'Enter' && tagInput.trim()) {
       e.preventDefault();
       const trimmed = tagInput.trim();
       if (!trimmed) return;
       if (!tags.includes(trimmed)) {
-        onTagsChange([...tags, trimmed]);
+        onTagsChange([...tags, tagInput.trim()]);
       }
       setTagInput('');
     }
@@ -76,7 +76,7 @@ export function BlogMetaForm({
           />
         </div>
 
-        {/* 공개 범위 */}
+        {/* 공개 범위
         <div className="flex items-center gap-2 text-xs text-slate-600">
           <span className="text-slate-400">공개 범위</span>
           <button
@@ -98,8 +98,8 @@ export function BlogMetaForm({
             }`}
           >
             비공개
-          </button>
-        </div>
+          </button> */}
+        {/* </div> */}
       </div>
     </div>
   );

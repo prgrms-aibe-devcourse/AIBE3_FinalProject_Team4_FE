@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import ShorlogEditWizard from './steps/ShorlogEditWizard';
 import type { ShorlogDetail } from '../detail/types';
 
@@ -11,12 +10,12 @@ interface ShorlogEditModalProps {
 }
 
 export default function ShorlogEditModal({ shorlogId, initialData }: ShorlogEditModalProps) {
-  const router = useRouter();
   const [showConfirmExit, setShowConfirmExit] = useState(false);
 
   const handleRequestClose = () => setShowConfirmExit(true);
   const handleConfirmExit = () => {
-    router.push(`/shorlog/feed`);
+    // 모든 모달 상태를 정리하기 위해 새로고침 방식으로 피드로 이동
+    window.location.href = '/shorlog/feed';
   };
   const handleCancelExit = () => setShowConfirmExit(false);
 
@@ -41,7 +40,7 @@ export default function ShorlogEditModal({ shorlogId, initialData }: ShorlogEdit
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50"
       onClick={handleBackgroundClick}
     >
       <div
@@ -52,7 +51,7 @@ export default function ShorlogEditModal({ shorlogId, initialData }: ShorlogEdit
       </div>
 
       {showConfirmExit && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30">
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/30">
           <div className="w-[320px] overflow-hidden rounded-3xl bg-white text-center shadow-xl">
             <div className="px-6 pt-6 pb-3">
               <p className="text-sm font-semibold text-slate-900">

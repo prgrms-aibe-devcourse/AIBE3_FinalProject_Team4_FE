@@ -10,7 +10,7 @@ interface ShorlogFilterTabsProps {
   onChange: (next: "all" | "following") => void;
 }
 
-export default function FilterTabs({
+export default function ShorlogFilterTabs({
                                             value,
                                             onChange,
                                           }: ShorlogFilterTabsProps) {

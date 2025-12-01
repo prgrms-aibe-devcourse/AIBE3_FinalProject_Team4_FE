@@ -26,4 +26,3 @@ export default function ReactQueryProvider({ children }: { children: ReactNode }
     </QueryClientProvider>
   );
 }
-
