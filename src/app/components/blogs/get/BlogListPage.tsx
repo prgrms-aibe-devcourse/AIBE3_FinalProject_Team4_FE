@@ -3,45 +3,45 @@
 import { BlogCard } from '@/src/app/components/blogs/get/BlogCard';
 import type { BlogScope, BlogSliceResponse, BlogSortType, BlogSummary } from '@/src/types/blog';
 import { useEffect, useState } from 'react';
+import { BlogEmptyState, BlogErrorState } from './BlogStates';
 import { BlogToolbar } from './BlogToolbar';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export function BlogListPage() {
   const [blogs, setBlogs] = useState<BlogSummary[]>([]);
+  const [error, setError] = useState<Error | null>(null);
   const [sortType, setSortType] = useState<BlogSortType>('LATEST');
   const [keyword, setKeyword] = useState('');
   const [loading, setLoading] = useState(true);
   const [scope, setScope] = useState<BlogScope>('ALL');
 
-  useEffect(() => {
-    async function loadBlogs() {
-      try {
-        setLoading(true);
-        const params = new URLSearchParams();
-        params.set('sort', sortType);
-        params.set('scope', scope);
-        if (keyword) params.set('keyword', keyword);
-
-        const res = await fetch(`${API_BASE_URL}/api/v1/blogs?${params.toString()}`, {
-          credentials: 'include',
-        });
-
-        if (!res.ok) throw new Error('Fetch failed');
-
-        const json = (await res.json()) as BlogSliceResponse<BlogSummary>;
-        setBlogs(json.content);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
+  async function loadBlogs() {
+    try {
+      setLoading(true);
+      setError(null);
+      const params = new URLSearchParams();
+      params.set('sort', sortType);
+      params.set('scope', scope);
+      if (keyword) params.set('keyword', keyword);
+      const res = await fetch(`${API_BASE_URL}/api/v1/blogs?${params}`, {
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('블로그 목록을 불러올 수 없습니다.');
+      const json = (await res.json()) as BlogSliceResponse<BlogSummary>;
+      setBlogs(json.content);
+    } catch (e) {
+      setError(e as Error);
+    } finally {
+      setLoading(false);
     }
-
+  }
+  useEffect(() => {
     loadBlogs();
   }, [sortType, keyword, scope]);
 
+  // 로딩
   if (loading) return <p>로딩 중...</p>;
-
+ 
   return (
     <section className="space-y-8">
       <header className="mb-6 space-y-4 md:mb-8">
@@ -53,7 +53,8 @@ export function BlogListPage() {
 
         {/* 설명 문구 */}
         <p className="max-w-2xl text-sm text-slate-500 md:text-base">
-          길게 남기고 싶은 생각과 기록을 자유롭게 공유해 보세요. 연결된 짧은 글로 흐름을 느껴 보세요.
+          길게 남기고 싶은 생각과 기록을 자유롭게 공유해 보세요. 연결된 짧은 글로 흐름을 느껴
+          보세요.
         </p>
 
         {/* 블로그 툴바 */}
@@ -71,9 +72,16 @@ export function BlogListPage() {
 
       {/* 블로그 리스트 */}
       <div className="space-y-4">
-        {blogs.map((blog) => (
-          <BlogCard key={blog.id} blog={blog} />
-        ))}
+        {loading && <p className="py-10 text-center text-sm text-slate-500">로딩 중...</p>}
+
+        {!loading && error && <BlogErrorState onRetry={loadBlogs} />}
+
+        {!loading && !error && blogs.length === 0 && <BlogEmptyState />}
+
+        {!loading &&
+          !error &&
+          blogs.length > 0 &&
+          blogs.map((blog) => <BlogCard key={blog.id} blog={blog} />)}
       </div>
     </section>
   );
