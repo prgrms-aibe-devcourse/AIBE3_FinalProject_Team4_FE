@@ -1,6 +1,7 @@
 import ShorlogDetailPageClient from '../../../components/shorlog/detail/ShorlogDetailPageClient';
 import ShorlogDetailModalWrapper from '../../../components/shorlog/detail/ShorlogDetailModalWrapper';
 import type { ShorlogDetail } from '../../../components/shorlog/detail/types';
+import { getSessionUser } from '@/src/lib/getSessionUser';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -46,9 +47,12 @@ async function fetchShorlogDetail(id: string): Promise<ShorlogDetail> {
 export default async function ShorlogModalPage({ params }: PageProps) {
   const { id } = await params;
 
-  const detail = await fetchShorlogDetail(id);
-  // TODO: 로그인한 유저 ID와 detail.userId 비교하여 isOwner 계산
-  const isOwner = false;
+  const [detail, sessionUser] = await Promise.all([
+    fetchShorlogDetail(id),
+    getSessionUser(),
+  ]);
+
+  const isOwner = sessionUser ? detail.userId === sessionUser.id : false;
 
   return (
     <ShorlogDetailModalWrapper>

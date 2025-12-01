@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { callAiApi } from '../api';
 
-export function useHashtag() {
-  const [hashtags, setHashtags] = useState<string[]>([]);
+export function useHashtag(initialHashtags: string[] = []) {
+  const [hashtags, setHashtags] = useState<string[]>(initialHashtags);
   const [hashtagInput, setHashtagInput] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
 
