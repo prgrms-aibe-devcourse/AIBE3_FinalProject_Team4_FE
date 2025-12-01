@@ -23,7 +23,7 @@ const apiClient = async (endpoint: string, options: ApiRequestOptions = {}) => {
   };
 
   // JSON 요청인 경우 Content-Type 헤더 추가
-  if (!(fetchOptions.body instanceof FormData)) {
+  if (fetchOptions.body && !(fetchOptions.body instanceof FormData)) {
     config.headers = {
       'Content-Type': 'application/json',
       ...fetchOptions.headers,

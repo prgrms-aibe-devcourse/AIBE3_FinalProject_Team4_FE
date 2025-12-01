@@ -107,7 +107,7 @@ export default function AiChatSidebar({
           bg-white border-l border-gray-200
           flex flex-col flex-shrink-0
           sticky top-0
-          max-[960px]:fixed max-[960px]:right-0 max-[960px]:inset-y-0 max-[960px]:z-50 max-[960px]:w-96
+          max-[960px]:fixed max-[960px]:right-0 max-[960px]:inset-y-0 max-[960px]:z-35 max-[960px]:w-96
           relative
         "
     >

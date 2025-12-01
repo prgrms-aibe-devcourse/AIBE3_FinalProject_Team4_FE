@@ -1,8 +1,9 @@
 'use client';
+import { fetchModelAvailability } from '@/src/api/aiApi';
 import { ApiError } from '@/src/api/aiChatApi';
 import { useAiChatStreamMutation } from '@/src/api/useAiChatStream';
-import { ChatMessage, ModelOption } from '@/src/types/ai';
-import { useState } from 'react';
+import { ChatMessage, ModelAvailabilityDto, ModelOption, ModelOptionValue } from '@/src/types/ai';
+import { useEffect, useState } from 'react';
 import Tooltip from '../../common/Tooltip';
 import AIChatBody from './AiChatBody';
 import AiChatHeader from './AiChatHeader';
@@ -19,12 +20,67 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   // 모델 옵션/선택값/변경함수 상태를 여기서 관리
-  const modelOptions: ModelOption[] = [
-    { label: 'GPT-4o-mini', value: 'gpt-4o-mini', enabled: true },
-    { label: '추가 예정', value: '추가 예정', enabled: true },
-    { label: '추가 예정2', value: '추가 예정2', enabled: false },
-  ];
+  const [modelOptions, setModelOptions] = useState<ModelOption[]>([
+    { label: 'GPT-4o mini', value: 'gpt-4o-mini', enabled: false },
+    { label: 'GPT-4.1 mini', value: 'gpt-4.1-mini', enabled: false },
+    { label: 'GPT-5 mini', value: 'gpt-5-mini', enabled: false },
+  ]);
   const [selectedModel, setSelectedModel] = useState<ModelOption['value']>(modelOptions[0].value);
+
+  const isModelOptionValue = (name: string): name is ModelOptionValue =>
+    name === 'gpt-4o-mini' || name === 'gpt-4.1-mini' || name === 'gpt-5-mini';
+
+  // 모델 옵션을 API에서 불러와서 세팅
+  // API 모델 이름을 ModelOptionValue로 매핑
+  const modelNameToLabel = (name: string): string => {
+    switch (name) {
+      case 'gpt-4o-mini':
+        return 'GPT-4o mini';
+      case 'gpt-4.1-mini':
+        return 'GPT-4.1 mini';
+      case 'gpt-5-mini':
+        return 'GPT-5 mini';
+      default:
+        return 'GPT-4o mini';
+    }
+  };
+
+  useEffect(() => {
+    fetchModelAvailability()
+      .then((res) => {
+        console.log('fetchModelAvailability response:', res);
+        const data = res.data;
+        const options: ModelOption[] = data
+          .filter((m): m is ModelAvailabilityDto & { name: ModelOptionValue } =>
+            isModelOptionValue(m.name),
+          )
+          .map((m) => ({
+            label: modelNameToLabel(m.name),
+            value: m.name,
+            enabled: m.available,
+          }));
+
+        setModelOptions(options);
+
+        setSelectedModel((prev) => {
+          // 이전 선택이 새 옵션에도 있으면 그대로 유지
+          const stillExists = options.find((o) => o.value === prev);
+          if (stillExists) return prev;
+
+          // 없으면 enabled 모델 중 첫 번째
+          const firstEnabled = options.find((o) => o.enabled);
+          return (firstEnabled ?? options[0])?.value ?? 'gpt-4o-mini';
+        });
+      })
+      .catch(() => {
+        setModelOptions([
+          { label: 'GPT-4o mini', value: 'gpt-4o-mini', enabled: false },
+          { label: 'GPT-4.1 mini', value: 'gpt-4.1-mini', enabled: false },
+          { label: 'GPT-5 mini', value: 'gpt-5-mini', enabled: false },
+        ]);
+        setSelectedModel('gpt-4o-mini');
+      });
+  }, []);
 
   const handleModelChange = (value: ModelOption['value']) => {
     setSelectedModel(value);
@@ -52,6 +108,13 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
         }
         return prev;
       });
+    },
+    onMeta: (meta) => {
+      setModelOptions((prev) =>
+        prev.map((option) =>
+          option.value === meta.name ? { ...option, enabled: meta.available } : option,
+        ),
+      );
     },
     onError: (e) => {
       if (e instanceof ApiError) {
@@ -92,7 +155,7 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
     <>
       {/* 열기 버튼 */}
       {!isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 group">
+        <div className="fixed bottom-6 right-6 z-35 group">
           <ChatBotButton onClick={() => setIsOpen(true)} ariaLabel="AI 채팅 열기" />
           <Tooltip
             text="안녕하세요. TexTok 블로그 작성 도우미입니다."
@@ -128,7 +191,7 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
             h-[min(600px,100dvh-3rem)]
             bg-white rounded-t-[20px] rounded-b-[40px] border border-gray-200
             shadow-[0_4px_12px_0_rgba(0,0,0,0.06),0_1.5px_4px_0_rgba(0,0,0,0.03)]
-            z-50 flex flex-col
+            z-35 flex flex-col
           "
         >
           <AiChatHeader mode={mode} onToggleMode={toggleMode} onClose={() => setIsOpen(false)} />

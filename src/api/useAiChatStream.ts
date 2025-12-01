@@ -1,9 +1,11 @@
+import { AiChatRequest, ModelAvailabilityDto } from '@/src/types/ai';
 import { useMutation } from '@tanstack/react-query';
 import { useCallback, useRef } from 'react';
-import { AiChatRequest, ApiError, streamAiChat } from './aiChatApi';
+import { ApiError, streamAiChat } from './aiChatApi';
 
 interface UseAiChatStreamOptions {
   onChunk?: (chunk: string) => void;
+  onMeta?: (meta: ModelAvailabilityDto) => void;
   onComplete?: (fullText: string) => void;
   onError?: (e: unknown) => void;
   /** mutate 호출마다, 이전 진행 중 스트림 자동 abort */
@@ -34,6 +36,7 @@ export function useAiChatStreamMutation(opts?: UseAiChatStreamOptions) {
         {
           signal: controller.signal,
           onComplete: (t) => opts?.onComplete?.(t),
+          onMeta: (meta) => opts?.onMeta?.(meta),
           onError: (e) => opts?.onError?.(e),
         },
       );

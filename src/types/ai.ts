@@ -1,7 +1,7 @@
 // 채팅 메시지
 type Role = 'user' | 'ai' | 'system';
 type Feedback = 'like' | 'dislike' | null;
-type ModelOptionValue = 'gpt-4o-mini' | '추가 예정' | '추가 예정2';
+export type ModelOptionValue = 'gpt-4o-mini' | 'gpt-4.1-mini' | 'gpt-5-mini';
 
 interface BaseMessage {
   id: number; // createdAt
@@ -32,10 +32,17 @@ export interface ModelOption {
   enabled: boolean;
 }
 
-// API
+// API 요청/응답 타입
 export interface AiChatRequest {
   id?: number;
   message: string; // 사용자 메시지
   content?: string; // 추가 컨텍스트 (선택 사항)
-  model?: ModelOptionValue; // 선택된 모델
+  model: ModelOptionValue; // 선택된 모델
+}
+
+export interface ModelAvailabilityDto {
+  id: number; // 모델 ID
+  name: string; // 모델 이름
+  available: boolean;
+  reason?: string;
 }
