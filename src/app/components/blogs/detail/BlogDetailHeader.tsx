@@ -24,7 +24,6 @@ export function BlogDetailHeader({
   onConnectShorlog,
 }: BlogDetailHeaderProps) {
   const [ownerSheetOpen, setOwnerSheetOpen] = useState(false);
-  const [followLoading, setFollowLoading] = useState(false);
 
   const created = new Date(blog.createdAt);
   const formattedDate = created.toLocaleString('ko-KR', {
@@ -36,7 +35,6 @@ export function BlogDetailHeader({
     minute: '2-digit',
   });
 
-
   return (
     <>
       <header className="border-b border-slate-100 px-5 pb-6 pt-5 sm:px-8 sm:pt-7">
@@ -47,11 +45,11 @@ export function BlogDetailHeader({
               <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-sky-600">
                 BLOG STORY
               </p>
-              {blog.hasLinkedShorlogs && (
+              {/* {blog.hasLinkedShorlogs && (
                 <span className="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-medium text-sky-700">
                   ⚡ 연결된 숏로그 {blog.linkedShorlogCount}
                 </span>
-              )}
+              )} */}
             </div>
 
             <div className="flex items-center gap-1.5 text-[11px] text-slate-400">

@@ -61,21 +61,21 @@ export default function BlogConnectShorlogModal({
 
   if (!isOpen) return null;
 
-const handleSelectShorlog = async (shorlogId: number) => {
-  if (linking) return;
-  setSelectedShorlogId(shorlogId);
-  try {
-    setLinking(true);
-    const res = await linkBlogToShorlog(blogId, shorlogId);
-    showGlobalToast('연관된 숏로그와 연결했어요.', 'success');
-    onLinked?.(res);
-    onClose();
-  } catch (e) {
-    handleApiError(e, '숏로그 연결');
-  } finally {
-    setLinking(false);
-  }
-};
+  const handleSelectShorlog = async (shorlogId: number) => {
+    if (linking) return;
+    setSelectedShorlogId(shorlogId);
+    try {
+      setLinking(true);
+      const res = await linkBlogToShorlog(blogId, shorlogId);
+      showGlobalToast('연관된 숏로그와 연결했어요.', 'success');
+      onLinked?.(res);
+      onClose();
+    } catch (e) {
+      handleApiError(e, '숏로그 연결');
+    } finally {
+      setLinking(false);
+    }
+  };
 
   const handleSkip = () => {
     onSkip?.();
@@ -210,9 +210,7 @@ const handleSelectShorlog = async (shorlogId: number) => {
           <button
             type="button"
             onClick={onCreateNewShorlog}
-            className="flex w-full items-center justify-center rounded-2xl border border-dashed border-[#2979FF]/70
-               bg-[#f4f7ff] px-5 py-5 text-[15px] font-medium text-[#1f63d1] shadow-sm transition
-               hover:bg-[#e4edff]"
+            className="flex w-full items-center justify-center rounded-2xl border border-dashed border-[#2979FF]/70 bg-[#f4f7ff] px-5 py-5 text-[15px] font-medium text-[#1f63d1] shadow-sm transition hover:bg-[#e4edff]"
           >
             <span className="mr-1.5 text-lg">+</span>
             <span>새 숏로그 작성하기</span>
@@ -226,7 +224,7 @@ const handleSelectShorlog = async (shorlogId: number) => {
           <button
             type="button"
             onClick={handleSkip}
-            className="inline-flex min-w-[140px] items-center justify-center rounded-full bg-[#2979FF] px-6 py-3 text-[15px] font-medium text-white shadow-sm transition hover:bg-[#1f63d1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]"
+            className="inline-flex items-center min-w-[120px] justify-center rounded-full bg-[#2979FF] px-4 py-2 text-[14px] font-medium text-white shadow-sm transition hover:bg-[#1f63d1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]"
           >
             나중에 하기
           </button>

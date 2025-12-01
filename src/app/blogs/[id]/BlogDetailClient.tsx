@@ -7,13 +7,16 @@ import {
   removeBookmark,
   unlikeBlog,
 } from '@/src/api/blogDetail';
+import { fetchLinkedShorlogs } from '@/src/api/blogShorlogLink';
 import { BlogDetailHeader } from '@/src/app/components/blogs/detail/BlogDetailHeader';
 import { BlogReactionBar } from '@/src/app/components/blogs/detail/BlogReactionBar';
 import { handleApiError } from '@/src/lib/handleApiError';
-import type { BlogDetailDto } from '@/src/types/blog';
+import { showGlobalToast } from '@/src/lib/toastStore';
+import type { BlogDetailDto, LinkedShorlogSummary } from '@/src/types/blog';
 import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { LinkedShorlogListModal } from '../../components/blogs/detail/LinkedShorlogModal';
 
 type Props = {
   initialData: BlogDetailDto;
@@ -38,6 +41,10 @@ export default function BlogDetailClient({
   const [isBookmarked, setIsBookmarked] = useState(initialData.isBookmarked ?? false);
   const [likeLoading, setLikeLoading] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
+  // 연결된 숏로그 모달용 상태
+  const [linkedOpen, setLinkedOpen] = useState(false);
+  const [linkedLoading, setLinkedLoading] = useState(false);
+  const [linkedItems, setLinkedItems] = useState<LinkedShorlogSummary[]>([]);
 
   // 조회수 증가
   useEffect(() => {
@@ -50,7 +57,7 @@ export default function BlogDetailClient({
       })
       .catch((e) => {
         //console.error('조회수 증가 실패', e);
-       // handleApiError(e, '조회수 증가');
+        // handleApiError(e, '조회수 증가');
       });
 
     return () => {
@@ -112,58 +119,88 @@ export default function BlogDetailClient({
       setBookmarkLoading(false);
     }
   };
+  // 연결된 숏로그
+  const handleOpenLinkedShorlogs = async () => {
+    if (!blog.hasLinkedShorlogs) return;
+
+    try {
+      setLinkedOpen(true);
+      setLinkedLoading(true);
+
+      const list = await fetchLinkedShorlogs(blog.id);
+      setLinkedItems(list);
+
+      if (list.length === 0) {
+        showGlobalToast('연결된 숏로그가 아직 없어요.', 'info' as any);
+      }
+    } catch (e) {
+      handleApiError(e, '연결된 숏로그 조회');
+      setLinkedOpen(false); // 실패하면 모달 닫기
+    } finally {
+      setLinkedLoading(false);
+    }
+  };
 
   return (
-    <article className="rounded-3xl bg-white/90 shadow-xl ring-1 ring-slate-100 backdrop-blur-sm">
-      {/* 상단 헤더 */}
-      <BlogDetailHeader
-        blog={{ ...blog, viewCount }}
-        isOwner={isOwner}
-        initialIsFollowing={initialIsFollowing}
-        onDelete={onDelete}
-        onEdit={onEdit}
-        onConnectShorlog={() => alert('숏로그 연결 예정')}
+    <>
+      {/* 연결된 숏로그 리스트 모달 */}
+      <LinkedShorlogListModal
+        open={linkedOpen}
+        loading={linkedLoading}
+        items={linkedItems}
+        onClose={() => setLinkedOpen(false)}
       />
+      <article className="rounded-3xl bg-white/90 shadow-xl ring-1 ring-slate-100 backdrop-blur-sm">
+        {/* 상단 헤더 */}
+        <BlogDetailHeader
+          blog={{ ...blog, viewCount }}
+          isOwner={isOwner}
+          initialIsFollowing={initialIsFollowing}
+          onDelete={onDelete}
+          onEdit={onEdit}
+          onConnectShorlog={() => alert('숏로그 연결 예정')}
+        />
 
-      {/* 본문 */}
-      <section className="px-5 py-8 sm:px-8">
-        <div className="prose prose-slate max-w-none leading-relaxed">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{blog.content}</ReactMarkdown>
-        </div>
-
-        {/* 태그 */}
-        {blog.hashtagNames.length > 0 && (
-          <div className="mt-8 flex flex-wrap gap-2">
-            {blog.hashtagNames.map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700"
-              >
-                #{tag}
-              </span>
-            ))}
+        {/* 본문 */}
+        <section className="px-5 py-8 sm:px-8">
+          <div className="prose prose-slate max-w-none leading-relaxed">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{blog.content}</ReactMarkdown>
           </div>
-        )}
-      </section>
 
-      {/* 리액션 바 */}
-      <BlogReactionBar
-        blog={{
-          ...blog,
-          viewCount,
-          likeCount,
-          bookmarkCount,
-          isLiked,
-          isBookmarked,
-        }}
-        onToggleLike={handleToggleLike}
-        onToggleBookmark={handleToggleBookmark}
-        onOpenLinkedShorlogs={() => alert('연결 숏로그 보기 예정')}
-        onShare={() => {
-          navigator.clipboard.writeText(location.href);
-          alert('공유 링크 복사됨');
-        }}
-      />
-    </article>
+          {/* 태그 */}
+          {blog.hashtagNames.length > 0 && (
+            <div className="mt-8 flex flex-wrap gap-2">
+              {blog.hashtagNames.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* 리액션 바 */}
+        <BlogReactionBar
+          blog={{
+            ...blog,
+            viewCount,
+            likeCount,
+            bookmarkCount,
+            isLiked,
+            isBookmarked,
+          }}
+          onToggleLike={handleToggleLike}
+          onToggleBookmark={handleToggleBookmark}
+          onOpenLinkedShorlogs={handleOpenLinkedShorlogs}
+          onShare={() => {
+            navigator.clipboard.writeText(location.href);
+            alert('공유 링크 복사됨');
+          }}
+        />
+      </article>
+    </>
   );
 }
