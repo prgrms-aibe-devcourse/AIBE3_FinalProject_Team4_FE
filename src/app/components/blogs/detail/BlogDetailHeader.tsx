@@ -155,7 +155,6 @@ export function BlogDetailHeader({
           onDelete={() => onDelete?.()}
           onEdit={() => onEdit?.()}
           onConnectShorlog={() => onConnectShorlog?.()}
-          onShare={() => onShare?.()}
         />
       )}
     </>

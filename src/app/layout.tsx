@@ -2,6 +2,7 @@ import { AuthProvider } from '../providers/AuthProvider';
 import { LoginModalProvider } from '../providers/LoginModalProvider';
 import ReactQueryProvider from '../providers/ReactQueryProvider';
 import LoginModal from './components/auth/LoginModal';
+import { ToastContainer } from './components/common/ToastContainer';
 import Sidebar from './components/sidebar/SideBar';
 import './globals.css';
 
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 >
                   {children}
                 </main>
+                <ToastContainer />
               </div>
               <LoginModal />
             </LoginModalProvider>

@@ -9,7 +9,6 @@ type BlogOwnerActionSheetProps = {
   onDelete: () => void;
   onEdit: () => void;
   onConnectShorlog: () => void;
-  onShare: () => void;
 };
 
 export function BlogOwnerActionSheet({
@@ -18,7 +17,6 @@ export function BlogOwnerActionSheet({
   onDelete,
   onEdit,
   onConnectShorlog,
-  onShare,
 }: BlogOwnerActionSheetProps) {
   return (
     <Transition show={open} as={Fragment}>
@@ -48,16 +46,16 @@ export function BlogOwnerActionSheet({
             leaveTo="translate-y-8 opacity-0 sm:translate-y-0 sm:scale-95"
           >
             <Dialog.Panel className="w-full max-w-sm overflow-hidden rounded-3xl bg-white text-center shadow-xl ring-1 ring-slate-200">
-              {/* 삭제 (빨간색) */}
+              {/* 숏로그와 연결 */}
               <button
                 type="button"
-                className="flex w-full items-center justify-center border-b border-slate-100 px-4 py-3.5 text-sm font-semibold text-red-500 hover:bg-red-50"
+                className="flex w-full items-center justify-center border-b border-slate-100 px-4 py-3.5 text-sm text-slate-800 hover:bg-slate-50"
                 onClick={() => {
-                  onDelete();
+                  onConnectShorlog();
                   onClose();
                 }}
               >
-                삭제
+                숏로그와 연결
               </button>
 
               {/* 수정 */}
@@ -71,29 +69,17 @@ export function BlogOwnerActionSheet({
               >
                 수정
               </button>
-
-              {/* 숏로그와 연결 */}
+              
+              {/* 삭제 (빨간색) */}
               <button
                 type="button"
-                className="flex w-full items-center justify-center border-b border-slate-100 px-4 py-3.5 text-sm text-slate-800 hover:bg-slate-50"
+                className="flex w-full items-center justify-center border-b border-slate-100 px-4 py-3.5 text-sm font-semibold text-red-500 hover:bg-red-50"
                 onClick={() => {
-                  onConnectShorlog();
+                  onDelete();
                   onClose();
                 }}
               >
-                숏로그와 연결
-              </button>
-
-              {/* 공유 */}
-              <button
-                type="button"
-                className="flex w-full items-center justify-center px-4 py-3.5 text-sm text-slate-800 hover:bg-slate-50"
-                onClick={() => {
-                  onShare();
-                  onClose();
-                }}
-              >
-                공유
+                삭제
               </button>
             </Dialog.Panel>
           </Transition.Child>
