@@ -1,8 +1,8 @@
 'use client';
 
 import { useAuth } from '@/src/providers/AuthProvider';
+import { useLoginModal } from '@/src/providers/LoginModalProvider';
 import { Search } from 'lucide-react';
-import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import MorePanel from './panel/MorePanel';
@@ -13,6 +13,7 @@ type OpenPanel = 'none' | 'more' | 'search';
 
 export default function Sidebar() {
   const { loginUser, isLogin } = useAuth();
+  const { open } = useLoginModal();
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openPanel, setOpenPanel] = useState<OpenPanel>('none');
@@ -29,6 +30,7 @@ export default function Sidebar() {
 
   const isMoreOpen = openPanel === 'more';
   const isSearchOpen = openPanel === 'search';
+  const protectedMenus = ['프로필', '작성'];
 
   const openPanelFn = (panel: OpenPanel) => {
     setOpenPanel(panel);
@@ -174,6 +176,9 @@ export default function Sidebar() {
           const isActive =
             item.href === '/profile' ? pathname.startsWith('/profile') : pathname === item.href;
 
+          const isProtected = protectedMenus.includes(item.label);
+          const isProfile = item.label === '프로필';
+
           if (item.label === '더보기') {
             return (
               <div key={item.label} className="relative group" ref={moreModalRef}>
@@ -226,15 +231,28 @@ export default function Sidebar() {
 
           return (
             <div key={item.label} className="relative group">
-              <Link
-                href={item.href}
+              <button
+                onClick={() => {
+                  // 로그인 필요한 메뉴인데 로그인 안됨 → 모달 열기
+                  if (isProtected && !isLogin) {
+                    open();
+                    return;
+                  }
+
+                  if (isProfile && isLogin && loginUser) {
+                    router.push(`/profile/${loginUser.id}`);
+                    return;
+                  }
+
+                  router.push(item.href);
+                }}
                 className={`
-                  flex items-center gap-3 px-4 py-2 rounded-lg transition-all
-                  ${isActive ? 'text-blue-600 font-medium' : 'text-gray-800 hover:bg-gray-100'}
-                `}
+              w-full text-left flex items-center gap-3 px-4 py-2 rounded-lg transition-all
+              ${isActive ? 'text-blue-600 font-medium' : 'text-gray-800 hover:bg-gray-100'}
+            `}
               >
                 <div className="flex items-center justify-center w-7 h-7 flex-shrink-0">
-                  {item.label === '프로필' && isLogin ? (
+                  {isProfile && isLogin ? (
                     <img
                       src={loginUser?.profileImgUrl || '/tmpProfile.png'}
                       alt="profile"
@@ -247,21 +265,22 @@ export default function Sidebar() {
 
                 <span
                   className={`
-                    whitespace-nowrap transition-all
-                    ${isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'}
-                  `}
+                whitespace-nowrap transition-all
+                ${isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'}
+              `}
                 >
                   {item.label}
                 </span>
-              </Link>
+              </button>
 
+              {/* Hover Tooltip */}
               {isCollapsed && (
                 <span
                   className="
-                    absolute left-20 top-1/2 -translate-y-1/2
-                    px-2 py-1 bg-gray-900 text-white text-xs rounded
-                    opacity-0 group-hover:opacity-100 transition pointer-events-none
-                  "
+                absolute left-20 top-1/2 -translate-y-1/2
+                px-2 py-1 bg-gray-900 text-white text-xs rounded
+                opacity-0 group-hover:opacity-100 transition pointer-events-none
+              "
                 >
                   {item.label}
                 </span>
@@ -273,7 +292,7 @@ export default function Sidebar() {
         {!isLogin && !isCollapsed && (
           <div className="pt-2 pb-6 border-b border-gray-200">
             <button
-              onClick={() => router.push('/auth/login')}
+              onClick={() => open()}
               className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition"
             >
               로그인
