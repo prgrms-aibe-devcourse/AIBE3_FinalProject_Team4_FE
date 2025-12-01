@@ -33,7 +33,8 @@ export default function ShorlogAuthorHeader({
 
     if (action === '수정') {
       if (shorlogId) {
-        router.push(`/shorlog/${shorlogId}/edit`);
+        // 기존 모달을 완전히 닫기 위해 새로고침 방식으로 이동
+        window.location.href = `/shorlog/${shorlogId}/edit`;
       }
       return;
     }
