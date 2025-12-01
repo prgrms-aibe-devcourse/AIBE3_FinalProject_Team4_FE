@@ -6,16 +6,10 @@ import Cropper from './Cropper';
 import BlogImageTab from './tabs/BlogImageTab';
 import UnsplashImagePicker from './tabs/UnsplashImageTab';
 import UploadTab from './tabs/UploadImageTab';
-
-export interface BlogImage {
-  imageId: number;
-  url: string;
-  sortOrder: number;
-  contentType: string;
-}
+import type { BlogImage } from '@/src/types/blog';
 
 interface ImageSelectorProps {
-  blogId: string;
+  blogId: number | null;
   blogImages: BlogImage[];
 }
 

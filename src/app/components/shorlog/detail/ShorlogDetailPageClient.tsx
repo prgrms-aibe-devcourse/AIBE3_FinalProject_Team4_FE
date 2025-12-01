@@ -12,6 +12,7 @@ import type { ShorlogDetail } from './types';
 interface Props {
   detail: ShorlogDetail;
   isOwner?: boolean;
+  hideNavArrows?: boolean;
 }
 
 function HighlightedContent({ content, progress }: { content: string; progress: number }) {
@@ -84,7 +85,42 @@ function PrevNextNavArrows({ currentId }: { currentId: number }) {
   const hasNext = !!nextId;
 
   const handleNavigation = (targetId: string) => {
-    router.push(`/shorlog/${targetId}`);
+    // 프로필에서 온 경우 프로필 컨텍스트 유지
+    const profileId = searchParams.get('profileId');
+    const source = typeof window !== 'undefined' ? sessionStorage.getItem('shorlog_source') : null;
+
+    if (source === 'profile' && profileId) {
+      // 프로필에서 온 경우: profileId만 유지하고 prev/next는 새로 계산
+      const queryParams = new URLSearchParams();
+      queryParams.set('profileId', profileId);
+
+      // sessionStorage에서 피드 정보 가져와서 새로운 prev/next 계산
+      if (typeof window !== 'undefined') {
+        const feedIdsStr = sessionStorage.getItem('shorlog_feed_ids');
+        if (feedIdsStr) {
+          try {
+            const feedIds: number[] = JSON.parse(feedIdsStr);
+            const targetIndex = feedIds.findIndex(id => id === parseInt(targetId));
+
+            if (targetIndex !== -1) {
+              if (targetIndex > 0) {
+                queryParams.set('prev', feedIds[targetIndex - 1].toString());
+              }
+              if (targetIndex < feedIds.length - 1) {
+                queryParams.set('next', feedIds[targetIndex + 1].toString());
+              }
+            }
+          } catch {
+            // sessionStorage 파싱 실패 시 무시
+          }
+        }
+      }
+
+      router.push(`/shorlog/${targetId}?${queryParams.toString()}`);
+    } else {
+      // 피드에서 온 경우: 기존 방식
+      router.push(`/shorlog/${targetId}`);
+    }
   };
 
   return (
@@ -125,7 +161,7 @@ function PrevNextNavArrows({ currentId }: { currentId: number }) {
   );
 }
 
-export default function ShorlogDetailPageClient({ detail, isOwner = false }: Props) {
+export default function ShorlogDetailPageClient({ detail, isOwner = false, hideNavArrows = false }: Props) {
   const [ttsProgress, setTtsProgress] = useState(0);
   const firstLineForAlt = detail.content.split('\n')[0]?.slice(0, 40) ?? '';
 
@@ -144,7 +180,7 @@ export default function ShorlogDetailPageClient({ detail, isOwner = false }: Pro
 
   return (
     <div className="relative flex h-full w-full items-stretch">
-      <PrevNextNavArrows currentId={detail.id} />
+      {!hideNavArrows && <PrevNextNavArrows currentId={detail.id} />}
 
       <div className="flex h-full w-full overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-slate-200">
         <div className="flex flex-1 items-stretch">
@@ -158,6 +194,8 @@ export default function ShorlogDetailPageClient({ detail, isOwner = false }: Pro
               nickname={detail.nickname}
               profileImgUrl={detail.profileImgUrl}
               isOwner={isOwner}
+              shorlogId={detail.id}
+              userId={detail.userId}
             />
           </div>
 

@@ -5,7 +5,7 @@ interface ShorlogSortButtonProps {
   onChange: (next: "recommend" | null) => void;
 }
 
-export default function SortButton({
+export default function ShorlogSortButton({
                                             value,
                                             onChange,
                                           }: ShorlogSortButtonProps) {

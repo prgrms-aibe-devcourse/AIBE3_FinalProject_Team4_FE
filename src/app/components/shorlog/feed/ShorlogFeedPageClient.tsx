@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useInView } from 'react-intersection-observer';
-import FilterTabs from '../../common/FilterTabs';
-import SortButton from '../../common/SortButton';
+import ShorlogFilterTabs from './ShorlogFilterTabs';
+import ShorlogSortButton from './ShorlogSortButton';
+import LoadingSpinner from '../../common/LoadingSpinner';
 import ShorlogCard from './ShorlogCard';
 
 export type ShorlogFilter = "all" | "following";
@@ -93,8 +94,8 @@ export default function ShorlogFeedPageClient() {
   return (
     <section aria-label="숏 피드">
       <div className="flex items-center justify-between">
-        <FilterTabs value={filter} onChange={setFilter} />
-        {filter === 'all' && <SortButton value={sort} onChange={setSort} />}
+        <ShorlogFilterTabs value={filter} onChange={setFilter} />
+        {filter === 'all' && <ShorlogSortButton value={sort} onChange={setSort} />}
       </div>
 
       <div className="mt-4 md:mt-6">
@@ -134,18 +135,6 @@ export default function ShorlogFeedPageClient() {
   );
 }
 
-type LoadingSpinnerProps = { label?: string; size?: 'md' | 'sm' };
-
-function LoadingSpinner({ label = '로딩 중입니다', size = 'md' }: LoadingSpinnerProps) {
-  const dimension = size === 'md' ? 'h-7 w-7' : 'h-5 w-5';
-
-  return (
-    <div className="inline-flex items-center gap-2" role="status" aria-live="polite">
-      <div className={`${dimension} animate-spin rounded-full border-[3px] border-sky-300 border-t-transparent`} />
-      <span className="text-xs text-slate-500">{label}</span>
-    </div>
-  );
-}
 
 function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (

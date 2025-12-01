@@ -1,13 +1,17 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { requireAuth } from '../../../../lib/auth';
+import { useRouter } from 'next/navigation';
+import { requireAuth } from '@/src/lib/auth';
+import { deleteShorlog } from '@/src/app/components/shorlog/edit/api';
 
 interface Props {
   username: string;
   nickname: string;
   profileImgUrl: string | null;
   isOwner?: boolean;
+  shorlogId?: number;
+  userId?: number;
 }
 
 export default function ShorlogAuthorHeader({
@@ -15,9 +19,14 @@ export default function ShorlogAuthorHeader({
   nickname,
   profileImgUrl,
   isOwner = false,
+  shorlogId,
+  userId,
 }: Props) {
+  const router = useRouter();
   const [isFollowing, setIsFollowing] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const toggleFollow = () => {
@@ -28,8 +37,38 @@ export default function ShorlogAuthorHeader({
 
   const handleMenuAction = (action: string) => {
     setMenuOpen(false);
-    // TODO: 수정/삭제/블로그 연결 기능 구현
+
+    if (action === '수정') {
+      if (shorlogId) {
+        router.push(`/shorlog/${shorlogId}/edit`);
+      }
+      return;
+    }
+
+    if (action === '삭제') {
+      setShowDeleteModal(true);
+      return;
+    }
+
+    // TODO: 블로그 연결 기능 구현
     alert(`${action} 기능은 추후 제공될 예정입니다.`);
+  };
+
+  const handleDelete = async () => {
+    if (!shorlogId) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteShorlog(shorlogId.toString());
+      alert('숏로그가 삭제되었습니다.');
+      router.push(`/profile/${userId}`);
+    } catch (error) {
+      console.error('삭제 오류:', error);
+      alert(error instanceof Error ? error.message : '숏로그 삭제 중 오류가 발생했습니다.');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+    }
   };
 
   useEffect(() => {
@@ -106,6 +145,41 @@ export default function ShorlogAuthorHeader({
           </div>
         )}
       </div>
+
+      {/* 삭제 확인 모달 */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="w-[320px] overflow-hidden rounded-3xl bg-white text-center shadow-xl">
+            <div className="px-6 pt-6 pb-3">
+              <p className="text-sm font-semibold text-slate-900">
+                숏로그를 삭제하시겠습니까?
+              </p>
+              <p className="mt-2 text-[11px] text-slate-500">
+                삭제된 숏로그는 복구할 수 없습니다.
+              </p>
+            </div>
+            <div className="border-t border-slate-200 text-sm">
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="block w-full px-4 py-3 font-semibold text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:text-red-300"
+              >
+                {isDeleting ? '삭제 중...' : '삭제'}
+              </button>
+              <div className="h-px bg-slate-200" />
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={isDeleting}
+                className="block w-full px-4 py-3 text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -30,3 +30,8 @@ dist-ssr
 
 # Next.js build files
 .next/
+out/
+
+# TypeScript build info
+tsconfig.tsbuildinfo
+*.tsbuildinfo
