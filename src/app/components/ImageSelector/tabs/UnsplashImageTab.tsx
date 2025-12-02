@@ -5,8 +5,10 @@ import { SearchField } from '@/src/app/components/common/SearchField';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import AiGeneration from '../../ai/generate/AiGeneration';
 
 interface UnsplashImagePickerProps {
+  blogContent?: string;
   searchKeyword: string;
   onSearchKeywordChange: (keyword: string) => void;
   selectedImage: string | null;
@@ -19,6 +21,7 @@ const PAGE_SIZE = 20;
 const MAX_IMAGES = 300;
 
 export default function UnsplashImagePicker({
+  blogContent,
   searchKeyword,
   onSearchKeywordChange,
   selectedImage,
@@ -136,7 +139,7 @@ export default function UnsplashImagePicker({
 
   return (
     <div>
-      <div className="mb-4">
+      <div className="mb-4 flex items-center gap-2">
         <SearchField
           id="image-search"
           value={keyword}
@@ -146,6 +149,15 @@ export default function UnsplashImagePicker({
           }}
           onSearch={onSearch}
           placeholder="이미지 검색어를 입력하세요"
+        />
+        <AiGeneration
+          mode="keyword"
+          contentType="blog"
+          content={blogContent}
+          onApply={(value) => {
+            setKeyword(value);
+            onSearchKeywordChange(value);
+          }}
         />
       </div>
 
