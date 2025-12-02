@@ -65,11 +65,11 @@ export default function ShorlogAuthorHeader({
     try {
       await deleteShorlog(shorlogId.toString());
       showGlobalToast('숏로그가 삭제되었습니다.', 'success');
-      router.push(`/profile/${userId}`);
+      // 모달을 확실히 닫기 위해 window.location.href 사용
+      window.location.href = `/profile/${userId}`;
     } catch (error) {
       console.error('삭제 오류:', error);
       showGlobalToast(error instanceof Error ? error.message : '숏로그 삭제 중 오류가 발생했습니다.', 'error');
-    } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);
     }
