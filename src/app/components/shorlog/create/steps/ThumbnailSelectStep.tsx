@@ -8,7 +8,7 @@ interface ThumbnailSelectStepProps {
   onAddFiles: (files: File[]) => void;
   onNext: () => void;
   onUnsplashPhoto: () => void;
-  onGooglePhoto: () => void;
+  onPixabayPhoto: () => void;
 }
 
 export default function ThumbnailSelectStep({
@@ -17,7 +17,7 @@ export default function ThumbnailSelectStep({
   onAddFiles,
   onNext,
   onUnsplashPhoto,
-  onGooglePhoto,
+  onPixabayPhoto,
 }: ThumbnailSelectStepProps) {
   const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
@@ -69,7 +69,7 @@ export default function ThumbnailSelectStep({
           </button>
           <button
             type="button"
-            onClick={onGooglePhoto}
+            onClick={onPixabayPhoto}
             className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]"
           >
             무료 사진 (Pixabay)

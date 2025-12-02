@@ -7,7 +7,7 @@ interface FreeImageSelectModalProps {
   onSelect: (selectedImages: string[]) => void;
   onClose: () => void;
   maxSelect: number;
-  apiType: 'unsplash' | 'google';
+  apiType: 'unsplash' | 'pixabay';
 }
 
 interface ImageResult {
