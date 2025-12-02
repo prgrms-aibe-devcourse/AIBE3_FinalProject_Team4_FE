@@ -1,3 +1,4 @@
+/** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
     remotePatterns: [
@@ -6,10 +7,20 @@ const nextConfig = {
         hostname: 'shorlog-dev-images.s3.ap-northeast-2.amazonaws.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'next5-dev-images.s3.ap-northeast-2.amazonaws.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        pathname: '/**',
+      },
     ],
   },
   eslint: {
-    // 빌드 시 ESLint 에러가 나도 빌드는 계속 진행 npm run lint에서 lint 에러
+    // 빌드 시 ESLint 에러가 나도 빌드는 계속 진행
     ignoreDuringBuilds: true,
   },
   async rewrites() {

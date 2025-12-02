@@ -141,15 +141,19 @@ export const isFollowing = async (followingId: number): Promise<boolean> => {
   });
 
   if (!response.ok) {
-    throw new Error('팔로우 상태 확인에 실패했습니다.');
+    if (response.status === 401) {
+      throw new Error('로그인이 필요합니다.');
+    } else if (response.status === 404) {
+      throw new Error('해당 유저를 찾을 수 없습니다.');
+    } else {
+      throw new Error('팔로우 상태 확인에 실패했습니다.');
+    }
   }
 
-  const data = await response.json();
+  const rsData = await response.json();
 
-  // 백엔드에서 message로 팔로우 상태를 구분
-  const isFollowingState = data.msg === "팔로우 중입니다.";
-
-  return isFollowingState;
+  // 백엔드 RsData 구조: { resultCode, msg, data: { isFollowing: boolean } }
+  return rsData.data?.isFollowing ?? false;
 };
 
 

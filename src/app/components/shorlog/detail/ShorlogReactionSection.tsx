@@ -8,6 +8,7 @@ import ShareModal from './ShareModal';
 
 interface Props {
   shorlogId: number;
+  authorId: number;
   likeCount: number;
   commentCount: number;
   bookmarkCount: number;
@@ -19,6 +20,7 @@ interface Props {
 
 export default function ShorlogReactionSection({
   shorlogId,
+  authorId,
   likeCount,
   commentCount,
   bookmarkCount: initialBookmarkCount,
@@ -46,6 +48,7 @@ export default function ShorlogReactionSection({
         <div className="flex items-center gap-4">
           <LikeButton
             shorlogId={shorlogId}
+            authorId={authorId}
             initialLikeCount={likeCount}
             variant="small"
             showCount={true}
@@ -59,6 +62,7 @@ export default function ShorlogReactionSection({
         <div className="flex items-center gap-1.5 text-slate-700">
           <BookmarkButton
             shorlogId={shorlogId}
+            authorId={authorId}
             initialBookmarked={false}
             onBookmarkChange={handleBookmarkChange}
             variant="small"
