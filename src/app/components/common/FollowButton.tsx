@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { follow, unfollow, isFollowing } from '@/src/api/followApi';
+import { useCurrentUser } from '@/src/api/hooks/useCurrentUser';
+import { useFollowStatus, useFollowMutation } from '@/src/api/hooks/useFollow';
 import LoadingSpinner from './LoadingSpinner';
 
 interface FollowButtonProps {
@@ -19,56 +19,30 @@ export default function FollowButton({
   variant = 'default',
 }: FollowButtonProps) {
   const router = useRouter();
-  const [isFollowingState, setIsFollowingState] = useState(initialIsFollowing);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isCheckingFollow, setIsCheckingFollow] = useState(true);
-  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // 로그인 사용자 정보 및 팔로우 상태 확인
-  useEffect(() => {
-    const checkAuthAndFollow = async () => {
-      try {
-        // 현재 사용자 정보 가져오기
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'}/api/v1/auth/me`, {
-          credentials: 'include',
-          cache: 'no-store',
-        });
+  // 현재 사용자 정보 가져오기
+  const { data: currentUser, isLoading: isUserLoading } = useCurrentUser();
 
-        if (response.ok) {
-          const json = await response.json();
-          const user = json.data;
-          setCurrentUserId(user?.id);
-          setIsLoggedIn(true);
+  // 팔로우 상태 가져오기
+  const {
+    data: isFollowingFromServer,
+    isLoading: isFollowStatusLoading
+  } = useFollowStatus(userId, currentUser?.id ?? null);
 
-          // 본인이 아닌 경우에만 팔로우 상태 확인
-          if (user?.id && user.id !== userId) {
-            try {
-              const followStatus = await isFollowing(userId);
-              setIsFollowingState(followStatus);
-            } catch (followError) {
-              // 팔로우 상태 확인 실패 시 기본값 false로 설정
-              setIsFollowingState(false);
-            }
-          }
-        } else {
-          setIsLoggedIn(false);
-        }
-      } catch (error) {
+  // 팔로우/언팔로우 뮤테이션
+  const { followMutation, unfollowMutation } = useFollowMutation(userId, currentUser?.id ?? null);
 
-        setIsLoggedIn(false);
-      } finally {
-        setIsCheckingFollow(false);
-      }
-    };
+  // 팔로우 상태 결정: 서버에서 가져온 데이터 우선, 없으면 초기값 사용
+  const isFollowingState = isFollowingFromServer ?? initialIsFollowing;
 
-    checkAuthAndFollow();
-  }, [userId]);
+  // 로딩 상태
+  const isLoading = followMutation.isPending || unfollowMutation.isPending;
+  const isCheckingFollow = isUserLoading || isFollowStatusLoading;
 
   // 팔로우/언팔로우 토글
   const handleToggleFollow = async () => {
     // 로그인 확인
-    if (!isLoggedIn) {
+    if (!currentUser) {
       const confirmLogin = window.confirm(
         '팔로우 기능은 로그인이 필요합니다.\n로그인 페이지로 이동하시겠습니까?'
       );
@@ -78,28 +52,28 @@ export default function FollowButton({
       return;
     }
 
-    setIsLoading(true);
     try {
-      if (isFollowingState) {
-        await unfollow(userId);
-        setIsFollowingState(false);
+      const previousState = isFollowingState;
+
+      if (previousState) {
+        await unfollowMutation.mutateAsync();
         onFollowChange?.(false);
       } else {
-        await follow(userId);
-        setIsFollowingState(true);
+        await followMutation.mutateAsync();
         onFollowChange?.(true);
       }
     } catch (error) {
-      // 더 구체적인 에러 메시지 표시
-      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
-      alert(`${isFollowingState ? '언팔로우' : '팔로우'} 처리에 실패했어요.\n\n${errorMessage}`);
-    } finally {
-      setIsLoading(false);
+      // 에러는 뮤테이션 훅에서 처리되지만 추가 로깅
+      console.error('팔로우 토글 실패:', {
+        userId,
+        previousState: isFollowingState,
+        error: error instanceof Error ? error.message : error
+      });
     }
   };
 
   // 본인이면 표시하지 않음
-  if (currentUserId === userId) {
+  if (currentUser?.id === userId) {
     return null;
   }
 
@@ -119,25 +93,26 @@ export default function FollowButton({
     );
   }
 
-  // 비로그인 상태에서는 팔로우 버튼 표시
   return (
     <button
       onClick={handleToggleFollow}
       disabled={isLoading}
+      aria-label={`${isFollowingState ? '언팔로우' : '팔로우'} 버튼`}
       className={`
-        flex items-center justify-center gap-2 rounded-full border transition
+        flex items-center justify-center gap-2 rounded-full border transition-all duration-200
         ${variant === 'small' ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm'}
-        font-medium
+        font-medium focus:outline-none focus:ring-2 focus:ring-offset-2
         ${
           isFollowingState
-            ? 'border-emerald-500 bg-emerald-500 text-white hover:bg-emerald-600'
-            : 'border-[#2979FF] bg-[#2979FF] text-white hover:bg-[#1f63d1]'
+            ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+            : 'border-[#2979FF] bg-[#2979FF] text-white hover:bg-[#1f63d1] focus:ring-blue-500'
         }
-        disabled:cursor-not-allowed disabled:opacity-50
+        disabled:cursor-not-allowed disabled:opacity-50 disabled:transform-none
+        active:scale-95
       `}
     >
       {isLoading && <LoadingSpinner size="sm" inline theme={isFollowingState ? 'default' : 'light'} />}
-      {isFollowingState ? '팔로잉' : '팔로우'}
+      {isLoading ? '처리중...' : (isFollowingState ? '팔로잉' : '팔로우')}
     </button>
   );
 }
