@@ -1,7 +1,7 @@
 'use client';
 
-import { useFollow } from '@/src/hooks/useFollow';
-import { useCurrentUser } from '@/src/hooks/useCurrentUser';
+import { useAuth } from '@/src/providers/AuthProvider';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import ProfileEditModal from './ProfileHeaderEditModal';
 import FollowModal from './ProfileHeaderFollowModal';
@@ -24,17 +24,9 @@ interface ProfileHeaderProps {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
-  const { data: currentUser } = useCurrentUser();
-  const myId = currentUser?.id ?? 0;
-
-  // ✔ useFollow 훅 적용
-  const {
-    isFollowing,
-    loading: followLoading,
-    toggleFollow,
-    setIsFollowing,
-  } = useFollow(profile.id, false);
-
+  const { refreshUser } = useAuth();
+  const router = useRouter();
+  /** 팔로잉/팔로워 모달 */
   const [followModalOpen, setFollowModalOpen] = useState(false);
   const [tab, setTab] = useState<'following' | 'followers'>('following');
   const [list, setList] = useState<any[]>([]);
@@ -49,7 +41,6 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
     setFollowersCount(profile.followersCount);
   }, [profile.id, profile.followingCount, profile.followersCount]);
 
-  // ✔ 모달 리스트 로딩
   useEffect(() => {
     if (!followModalOpen) return;
 
@@ -73,23 +64,6 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
 
     load();
   }, [followModalOpen, tab, profile.id]);
-
-  // ✔ 페이지 진입 시 /is-following 호출, 훅에 적용
-  useEffect(() => {
-    if (isMyPage) return;
-
-    async function checkFollowing() {
-      const res = await fetch(`${API_BASE_URL}/api/v1/follow/is-following/${profile.id}`, {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      const json = await res.json();
-      setIsFollowing(json.data.isFollowing);
-    }
-
-    checkFollowing();
-  }, [profile.id, isMyPage, setIsFollowing]);
 
   /** 프로필 편집 모달 */
   const [editOpen, setEditOpen] = useState(false);
@@ -119,9 +93,10 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
 
         {/* 우측 프로필 정보 */}
         <div className="flex flex-col justify-center gap-3 flex-1">
+          {/* 닉네임 */}
           <h1 className="text-2xl sm:text-2.5xl font-bold">{profile.nickname}</h1>
 
-          {/* 팔로우 / 메시지 */}
+          {/* 버튼 묶음 */}
           <div className="flex items-center gap-2 flex-wrap">
             {isMyPage ? (
               <>
@@ -134,33 +109,24 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
 
                 <button
                   aria-label="더보기"
-                  className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 hover:bg-slate-100"
+                  className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 border border-slate-300 hover:bg-slate-200"
                 >
                   ⋯
                 </button>
               </>
             ) : (
               <>
-                <button
-                  onClick={toggleFollow}
-                  disabled={followLoading}
-                  className={`rounded-md px-8 h-10 text-sm font-medium
-                    ${
-                      isFollowing
-                        ? 'border border-slate-300 bg-slate-300 hover:bg-slate-400 text-slate-700'
-                        : 'bg-[#2979FF] hover:bg-[#1f62cc] text-white'
-                    }`}
-                >
-                  {followLoading ? '...' : isFollowing ? '팔로잉' : '팔로우'}
+                <button className="rounded-md bg-[#2979FF] px-8 h-10 text-sm font-medium text-white hover:bg-[#1f62cc]">
+                  팔로우
                 </button>
 
-                <button className="rounded-md border border-slate-300 px-8 h-10 text-sm font-medium hover:bg-slate-100">
+                <button className="rounded-md border border-slate-300 bg-slate-100 px-8 h-10 text-sm font-medium hover:bg-slate-200">
                   메시지
                 </button>
 
                 <button
                   aria-label="더보기"
-                  className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 hover:bg-slate-100"
+                  className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 border border-slate-300 hover:bg-slate-200"
                 >
                   ⋯
                 </button>
@@ -170,6 +136,7 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
 
           {/* 팔로잉/팔로워/좋아요 */}
           <div className="flex flex-wrap gap-6 text-[15px] text-slate-700 font-medium">
+            {/* 팔로잉 */}
             <button
               onClick={() => {
                 setTab('following');
@@ -180,6 +147,7 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
               <span className="font-extrabold">{followingCount}</span> 팔로잉
             </button>
 
+            {/* 팔로워 */}
             <button
               onClick={() => {
                 setTab('followers');
@@ -190,17 +158,21 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
               <span className="font-extrabold">{formatCompactNumber(followersCount)}</span> 팔로워
             </button>
 
+            {/* 좋아요 */}
             <span>
               <span className="font-extrabold">{formatCompactNumber(profile.likesCount)}</span>{' '}
               좋아요
             </span>
           </div>
 
+          {/* 자기소개 */}
           <p className="text-m text-slate-600 whitespace-pre-line">{profile.bio}</p>
         </div>
       </section>
 
-      {/* 프로필 편집 모달 */}
+      {/* --------------------------- */}
+      {/*  프로필 편집 모달 */}
+      {/* --------------------------- */}
       <ProfileEditModal
         isOpen={editOpen}
         onClose={() => setEditOpen(false)}
@@ -216,7 +188,9 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
         }}
       />
 
-      {/* 팔로우/팔로잉 모달 */}
+      {/* --------------------------- */}
+      {/*  팔로잉/팔로워 모달 */}
+      {/* --------------------------- */}
       <FollowModal
         isOpen={followModalOpen}
         onClose={(payload) => {
