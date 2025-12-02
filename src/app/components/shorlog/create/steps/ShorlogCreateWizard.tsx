@@ -173,7 +173,7 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
   const handleAiHashtagClick = async () => {
     const result = await hashtag.handleAiHashtagClick(content);
     if (result.error) {
-      shorlogCreate.setError(result.error);
+      showGlobalToast(result.error, 'warning');
     }
   };
 
@@ -191,7 +191,6 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
 
     try {
       setIsBlogConverting(true);
-      shorlogCreate.setError(null);
 
       // 1. blogId로 해당 블로그 내용 조회
       const blogDetail = await fetchBlogDetail(blogId);
@@ -236,7 +235,6 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
     } catch (error) {
       console.error('블로그 → 숏로그 변환 실패:', error);
       const errorMessage = error instanceof Error ? error.message : '블로그를 숏로그로 변환하는데 실패했습니다.';
-      shorlogCreate.setError(errorMessage);
       showGlobalToast(errorMessage, 'error');
     } finally {
       setIsBlogConverting(false);
@@ -245,7 +243,6 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
 
   // Unsplash 이미지 선택
   const handleUnsplashImagesSelect = async (selectedUrls: string[]) => {
-    shorlogCreate.setError(null);
     await freeImage.handleUnsplashImagesSelect(
       selectedUrls,
       shorlogCreate.images,
@@ -258,7 +255,6 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
 
   // Google 이미지 선택
   const handleGoogleImagesSelect = async (selectedUrls: string[]) => {
-    shorlogCreate.setError(null);
     await freeImage.handleGoogleImagesSelect(
       selectedUrls,
       shorlogCreate.images,
