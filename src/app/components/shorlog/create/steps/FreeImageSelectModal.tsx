@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { showGlobalToast } from '@/src/lib/toastStore';
+import { useState } from 'react';
 
 interface FreeImageSelectModalProps {
   onSelect: (selectedImages: string[]) => void;
@@ -38,9 +38,10 @@ export default function FreeImageSelectModal({
     setError(null);
 
     try {
-      const endpoint = apiType === 'unsplash'
-        ? `/api/v1/images/unsplash?keyword=${encodeURIComponent(keyword.trim())}&page=0&size=20`
-        : `/api/v1/images/google?keyword=${encodeURIComponent(keyword.trim())}&page=0&size=20`;
+      const endpoint =
+        apiType === 'unsplash'
+          ? `/api/v1/images/unsplash?keyword=${encodeURIComponent(keyword.trim())}&page=0&size=20`
+          : `/api/v1/images/pixabay?keyword=${encodeURIComponent(keyword.trim())}&page=0&size=20`;
 
       const response = await fetch(endpoint, {
         method: 'GET',
@@ -48,7 +49,7 @@ export default function FreeImageSelectModal({
       });
 
       if (!response.ok) {
-        throw new Error(`${apiType === 'unsplash' ? 'Unsplash' : 'Google'} 이미지 검색 실패`);
+        throw new Error(`${apiType === 'unsplash' ? 'Unsplash' : 'Pixabay'} 이미지 검색 실패`);
       }
 
       const result = await response.json();
@@ -90,7 +91,7 @@ export default function FreeImageSelectModal({
     onClose();
   };
 
-  const title = apiType === 'unsplash' ? 'Unsplash' : 'Google';
+  const title = apiType === 'unsplash' ? 'Unsplash' : 'Pixabay';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -98,26 +99,19 @@ export default function FreeImageSelectModal({
         {/* 헤더 */}
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
           <div className="flex items-center gap-3">
-            <h3 className="text-lg font-semibold text-slate-900">
-              무료 사진 찾기 ({title})
-            </h3>
-            {apiType === 'google' && (
+            <h3 className="text-lg font-semibold text-slate-900">무료 사진 찾기 ({title})</h3>
+            {/* {apiType === 'google' && (
               <span className="text-xs text-red-500">
                 ※ 일부 사진은 업로드가 실패할 수 있습니다!
               </span>
-            )}
+            )} */}
           </div>
           <button
             type="button"
             onClick={onClose}
             className="text-slate-400 transition hover:text-slate-600"
           >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -166,9 +160,7 @@ export default function FreeImageSelectModal({
 
           {!isLoading && !error && images.length === 0 && (
             <div className="flex h-40 items-center justify-center">
-              <p className="text-sm text-slate-500">
-                검색어를 입력하고 검색 버튼을 눌러주세요.
-              </p>
+              <p className="text-sm text-slate-500">검색어를 입력하고 검색 버튼을 눌러주세요.</p>
             </div>
           )}
 
@@ -199,11 +191,7 @@ export default function FreeImageSelectModal({
                       {isSelected && (
                         <div className="absolute inset-0 flex items-center justify-center bg-[#2979FF]/20">
                           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2979FF] text-white">
-                            <svg
-                              className="h-5 w-5"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
+                            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                               <path
                                 fillRule="evenodd"
                                 d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -243,4 +231,3 @@ export default function FreeImageSelectModal({
     </div>
   );
 }
-
