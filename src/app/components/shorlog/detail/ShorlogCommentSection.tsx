@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { requireAuth } from '../../../../lib/auth';
+import { showGlobalToast } from '@/src/lib/toastStore';
 
 interface Props {
   shorlogId: number;
@@ -24,11 +25,11 @@ export default function ShorlogCommentSection({ shorlogId, initialCommentCount }
   const handleCommentSubmit = () => {
     if (!requireAuth('댓글 작성')) return;
     if (!commentText.trim()) {
-      alert('댓글 내용을 입력해주세요.');
+      showGlobalToast('댓글 내용을 입력해주세요.', 'warning');
       return;
     }
     // TODO: 댓글 등록 API 호출
-    alert('댓글 등록 기능은 추후 제공될 예정입니다.');
+    showGlobalToast('댓글 등록 기능은 추후 제공될 예정입니다.', 'warning');
     setCommentText('');
   };
 

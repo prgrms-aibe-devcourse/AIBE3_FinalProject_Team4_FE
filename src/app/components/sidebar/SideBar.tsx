@@ -245,8 +245,8 @@ export default function Sidebar() {
                     return;
                   }
                   
-                  // 숏피드 링크 클릭 시 이미 숏피드 페이지에 있으면 강제 새로고침
-                  if (item.href === '/shorlog/feed' && pathname.startsWith('/shorlog')) {
+                  // 숏피드 버튼 클릭 시 강제 새로고침 (숏피드/프로필 페이지에서)
+                  if (item.href === '/shorlog/feed' && (pathname.startsWith('/shorlog') || pathname.startsWith('/profile'))) {
                     window.location.href = '/shorlog/feed';
                     return;
                   }

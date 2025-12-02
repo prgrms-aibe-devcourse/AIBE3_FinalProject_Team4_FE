@@ -7,6 +7,7 @@ import Cropper from './Cropper';
 import BlogImageTab from './tabs/BlogImageTab';
 import UnsplashImagePicker from './tabs/UnsplashImageTab';
 import UploadTab from './tabs/UploadImageTab';
+import { handleApiError } from '@/src/lib/handleApiError';
 
 interface ImageSelectorProps {
   blogId: number | null;
@@ -126,7 +127,7 @@ export default function ImageSelector({
       showToast('썸네일이 성공적으로 업로드되었습니다!', 'success');
     } catch (error) {
       console.error('업로드 중 오류 발생:', error);
-      showToast('네트워크 오류가 발생했습니다.', 'error');
+      handleApiError(error);
     }
   };
 
@@ -206,7 +207,7 @@ export default function ImageSelector({
               <div>
                 <h3 className="text-sm font-semibold text-slate-900">썸네일 이미지 선택하기</h3>
                 <p className="mt-1 text-xs text-slate-500">
-                  아래 탭에서 이미지를 선택하거나 업로드하고 적용하기 버튼을 누르세요.
+                  제목과 내용 입력 후, 아래 탭에서 이미지를 선택하거나 업로드하고 적용하기 버튼을 누르세요.
                 </p>
               </div>
 

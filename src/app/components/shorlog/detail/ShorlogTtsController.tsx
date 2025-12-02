@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { showGlobalToast } from '@/src/lib/toastStore';
+import { isAuthenticated } from '@/src/lib/auth';
 
 interface Props {
   progress: number; // 0 ~ 1
@@ -32,24 +34,42 @@ export default function ShorlogTtsController({ progress, setProgress }: Props) {
   }, [isPlaying, setProgress]);
 
   const handleTogglePlay = () => {
+    // 로그인 체크
+    if (!isAuthenticated()) {
+      showGlobalToast('로그인이 필요한 기능입니다.', 'warning');
+      return;
+    }
+
     if (isPlaying) {
       setIsPlaying(false);
+      showGlobalToast('TTS를 일시정지했습니다.', 'success');
       return;
     }
     if (progress >= 1) {
       setProgress(0);
     }
     setIsPlaying(true);
+    showGlobalToast('TTS를 재생합니다.', 'success');
   };
 
   // 10초 전/후 → 실제 오디오가 없으니 "전체의 10%" 기준으로 이동
   const skipBy = (delta: number) => {
+    // 로그인 체크
+    if (!isAuthenticated()) {
+      showGlobalToast('로그인이 필요한 기능입니다.', 'warning');
+      return;
+    }
     setProgress((prev) => Math.max(0, Math.min(prev + delta, 1)));
   };
 
   const handleDownload = () => {
+    // 로그인 체크
+    if (!isAuthenticated()) {
+      showGlobalToast('로그인이 필요한 기능입니다.', 'warning');
+      return;
+    }
     // 실제 TTS 파일 다운로드는 추후 백엔드 연동 시 구현
-    alert('TTS 음성 다운로드 기능은 추후 제공될 예정입니다.');
+    showGlobalToast('TTS 음성 다운로드 기능은 추후 제공될 예정입니다.', 'warning');
   };
 
   const percentage = Math.round(progress * 100);

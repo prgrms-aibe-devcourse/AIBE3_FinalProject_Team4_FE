@@ -21,8 +21,8 @@ export type MenuItem = {
 export const guestMenu: MenuItem[] = [
   { icon: Home, label: '메인', href: '/' },
   { icon: Image, label: '숏피드', href: '/shorlog/feed' },
-  { icon: FileText, label: '블로그', href: '/blog' },
-  { icon: Users, label: '팔로우', href: '/follow' },
+  { icon: FileText, label: '블로그', href: '/blogs' },
+  { icon: Users, label: '팔로우', href: '/creators' },
   { icon: PlusSquare, label: '작성', href: '/create-content' },
   { icon: User, label: '프로필', href: '/profile' },
   { icon: MoreHorizontal, label: '더보기', href: '' },
@@ -32,8 +32,8 @@ export const guestMenu: MenuItem[] = [
 export const loggedInMenu: MenuItem[] = [
   { icon: Home, label: '메인', href: '/' },
   { icon: Image, label: '숏피드', href: '/shorlog/feed' },
-  { icon: FileText, label: '블로그', href: '/blog' },
-  { icon: Users, label: '팔로우', href: '/follow' },
+  { icon: FileText, label: '블로그', href: '/blogs' },
+  { icon: Users, label: '팔로우', href: '/creators' },
   { icon: PlusSquare, label: '작성', href: '/create-content' },
   { icon: MessageCircle, label: '메시지', href: '/messages', alert: true },
   { icon: Bell, label: '알림', href: '/notifications', alert: true },

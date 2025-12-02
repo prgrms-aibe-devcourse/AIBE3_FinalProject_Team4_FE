@@ -13,6 +13,7 @@ import { useShorlogCreate } from '../hooks/useShorlogCreate';
 import { useHashtag } from '../hooks/useHashtag';
 import { useFreeImageModal } from '../hooks/useFreeImageModal';
 import { getDrafts, getDraft, deleteDraft, createDraft, DraftResponse } from '../api';
+import { showGlobalToast } from '@/src/lib/toastStore';
 
 export default function ShorlogCreateWizard() {
   const [content, setContent] = useState('');
@@ -73,14 +74,14 @@ export default function ShorlogCreateWizard() {
 
       // 먼저 이미지 업로드
       if (shorlogCreate.images.length === 0) {
-        alert('최소 1개의 이미지가 필요합니다.');
+        showGlobalToast('최소 1개의 이미지가 필요합니다.', 'warning');
         setIsDraftLoading(false);
         return;
       }
 
       // 5개 제한 확인
       if (drafts.length >= 5) {
-        alert('임시저장이 5개로 가득 찼어요. 기존 임시저장을 삭제한 후 다시 시도해주세요.');
+        showGlobalToast('임시저장이 5개로 가득 찼어요. 기존 임시저장을 삭제한 후 다시 시도해주세요.', 'warning');
         setIsDraftLoading(false);
         setShowDraftModal(true); // 모달 열어서 삭제할 수 있게
         return;
@@ -99,11 +100,11 @@ export default function ShorlogCreateWizard() {
         hashtags: hashtag.hashtags,
       });
 
-      alert('임시저장이 완료되었어요!');
+      showGlobalToast('임시저장이 완료되었어요!', 'success');
       await loadDrafts();
     } catch (error) {
       console.error('임시저장 실패:', error);
-      alert(error instanceof Error ? error.message : '임시저장에 실패했어요.');
+      showGlobalToast(error instanceof Error ? error.message : '임시저장에 실패했어요.', 'error');
     } finally {
       setIsDraftLoading(false);
     }
@@ -133,11 +134,11 @@ export default function ShorlogCreateWizard() {
         shorlogCreate.goToStep(2);
       }
 
-      alert('임시저장 내용을 불러왔어요!');
+      showGlobalToast('임시저장 내용을 불러왔어요!', 'success');
       setShowDraftModal(false);
     } catch (error) {
       console.error('임시저장 불러오기 실패:', error);
-      alert(error instanceof Error ? error.message : '불러오기에 실패했어요.');
+      showGlobalToast(error instanceof Error ? error.message : '불러오기에 실패했어요.', 'error');
     } finally {
       setIsDraftLoading(false);
     }
@@ -152,10 +153,11 @@ export default function ShorlogCreateWizard() {
     try {
       setIsDraftLoading(true);
       await deleteDraft(draftId);
+      showGlobalToast('임시저장을 삭제했습니다.', 'success');
       await loadDrafts();
     } catch (error) {
       console.error('임시저장 삭제 실패:', error);
-      alert(error instanceof Error ? error.message : '삭제에 실패했어요.');
+      showGlobalToast(error instanceof Error ? error.message : '삭제에 실패했어요.', 'error');
     } finally {
       setIsDraftLoading(false);
     }
@@ -172,7 +174,7 @@ export default function ShorlogCreateWizard() {
   // 블로그 → 숏로그 변환
   const handleBlogToShorlogClick = async () => {
     // TODO: 블로그 내용 기반 요약 생성 기능 구현
-    // 
+    //
     // [조건] 블로그 생성 후 숏로그 생성 시에만 이 버튼이 보여야 함
     // - URL에서 blogId 파라미터 확인 (예: /shorlog/create?blogId=123)
     // - blogId가 있을 때만 onBlogToShorlogClick prop 전달
@@ -191,7 +193,7 @@ export default function ShorlogCreateWizard() {
     //    "블로그 내용을 숏로그로 요약했어요!"
 
     console.log('블로그 → 숏로그 변환 기능 (구현 예정)');
-    alert('블로그 → 숏로그 변환 기능은 곧 추가됩니다!');
+    showGlobalToast('블로그 → 숏로그 변환 기능은 곧 추가됩니다!', 'warning');
   };
 
   // Unsplash 이미지 선택

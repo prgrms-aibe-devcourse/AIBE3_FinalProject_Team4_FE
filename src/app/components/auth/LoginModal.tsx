@@ -113,7 +113,7 @@ export default function LoginModal() {
                     border border-gray-300 rounded-lg bg-white 
                     hover:shadow-sm hover:bg-gray-50 transition"
           >
-            <Image src="/icons/google.webp" alt="Google" width={20} height={20} />
+            <Image src="/icons/google.png" alt="Google" width={20} height={20} />
             <span className="text-sm text-gray-700 font-medium">Google로 계속하기</span>
           </button>
 
