@@ -13,14 +13,15 @@ export interface RsData<T> {
 // 생성 모드
 export type AiGenerateMode = 'hashtag' | 'summary' | 'title' | 'keyword';
 // blog/shorlog 구분
-export type AiContentType = 'blog' | 'shorlog';
+export type AiGenerateContentType = 'blog' | 'shorlog';
 
 // 생성 요청
 export interface AiGenerateRequest {
   mode: AiGenerateMode;
-  contentType: AiContentType;
+  contentType: AiGenerateContentType;
   content: string;
   message?: string;
+  previousResults?: string[];
 }
 
 // 생성 응답 (results: string[] or result: string)
