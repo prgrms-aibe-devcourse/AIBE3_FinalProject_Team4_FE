@@ -1,7 +1,7 @@
 import { ModelOption } from '@/src/types/ai';
 import { Bot, BotOff, ChevronDown, ChevronUp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import Tooltip from '../../common/Tooltip';
+import Tooltip from '../Tooltip';
 
 interface ModelDropdownProps {
   options: ModelOption[];

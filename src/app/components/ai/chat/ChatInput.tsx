@@ -2,7 +2,7 @@ import { useAiChatStreamMutation } from '@/src/api/useAiChatStream';
 import { ModelOption } from '@/src/types/ai';
 import { ArrowDown, ArrowUp, FileText, Square } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import Tooltip from '../../common/Tooltip';
+import Tooltip from '../Tooltip';
 import ModelDropdown from './ModelDropdown';
 
 interface ChatInputProps {
@@ -58,7 +58,7 @@ export default function ChatInput({
       {/* 모델 한도 초과 안내문구 */}
       {isModelDisabled && (
         <div className="mb-2 flex justify-center">
-          <div className="px-4 py-2 rounded-md bg-slate-700 text-white text-[12.5px] font-light text-center shadow animate-fadein">
+          <div className="px-4 py-2 rounded-md bg-gray-700 text-white text-[12.5px] font-light text-center shadow animate-fadein">
             모델 사용 한도에 도달했습니다. 다음 날 한도가 초기화될 때까지 다른 모델을 사용하세요.
           </div>
         </div>
