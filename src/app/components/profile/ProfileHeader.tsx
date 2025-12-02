@@ -37,6 +37,15 @@ export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) =
   const [list, setList] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const [followingCount, setFollowingCount] = useState(profile.followingCount);
+  const [followersCount, setFollowersCount] = useState(profile.followersCount);
+
+  // profile이 바뀌는 경우(다른 유저로 이동 등) 동기화
+  useEffect(() => {
+    setFollowingCount(profile.followingCount);
+    setFollowersCount(profile.followersCount);
+  }, [profile.id, profile.followingCount, profile.followersCount]);
+
   // ✔ 모달 리스트 로딩
   useEffect(() => {
     if (!followModalOpen) return;
@@ -165,7 +174,7 @@ export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) =
               }}
               className="hover:underline hover:text-slate-900"
             >
-              <span className="font-extrabold">{profile.followingCount}</span> 팔로잉
+              <span className="font-extrabold">{followingCount}</span> 팔로잉
             </button>
 
             <button
@@ -175,8 +184,7 @@ export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) =
               }}
               className="hover:underline hover:text-slate-900"
             >
-              <span className="font-extrabold">{formatCompactNumber(profile.followersCount)}</span>{' '}
-              팔로워
+              <span className="font-extrabold">{formatCompactNumber(followersCount)}</span> 팔로워
             </button>
 
             <span>
@@ -204,14 +212,20 @@ export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) =
       {/* 팔로우/팔로잉 모달 */}
       <FollowModal
         isOpen={followModalOpen}
-        onClose={() => setFollowModalOpen(false)}
+        onClose={(payload) => {
+          setFollowModalOpen(false);
+          if (payload) {
+            setFollowingCount(payload.followingCount);
+            setFollowersCount(payload.followersCount);
+          }
+        }}
         tab={tab}
         onTabChange={setTab}
         list={list}
         loading={loading}
         nickname={profile.nickname}
-        followingCount={profile.followingCount}
-        followersCount={profile.followersCount}
+        followingCount={followingCount}
+        followersCount={followersCount}
         myId={myId}
       />
     </>
