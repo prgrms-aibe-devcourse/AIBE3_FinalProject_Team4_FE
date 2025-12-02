@@ -30,3 +30,27 @@ export async function getComments(shorlogId: number) {
   if (!res.ok) throw new Error(data.msg || '댓글 조회 실패');
   return data.data;
 }
+
+export async function editComment(commentId: number, newContent: string) {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/comments/${commentId}`, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content: newContent }),
+  });
+
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.msg || '댓글 수정 실패');
+  return json.data;
+}
+
+export async function deleteComment(commentId: number) {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/comments/${commentId}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.msg || '댓글 삭제 실패');
+  return json.data;
+}
