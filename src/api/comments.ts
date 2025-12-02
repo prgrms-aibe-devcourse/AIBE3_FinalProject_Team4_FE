@@ -54,3 +54,31 @@ export async function deleteComment(commentId: number) {
   if (!res.ok) throw new Error(json.msg || '댓글 삭제 실패');
   return json.data;
 }
+
+export async function likeComment(commentId: number) {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/comments/${commentId}/like`,
+    {
+      method: 'POST',
+      credentials: 'include',
+    },
+  );
+
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.msg || '좋아요 실패');
+  return json.data;
+}
+
+export async function unlikeComment(commentId: number) {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/comments/${commentId}/unlike`,
+    {
+      method: 'POST',
+      credentials: 'include',
+    },
+  );
+
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.msg || '좋아요 취소 실패');
+  return json.data;
+}

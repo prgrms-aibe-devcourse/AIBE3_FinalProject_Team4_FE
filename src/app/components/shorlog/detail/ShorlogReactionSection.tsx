@@ -1,7 +1,7 @@
 'use client';
 
+import { Bookmark, Heart, MessageCircle, Send } from 'lucide-react';
 import { useState } from 'react';
-import { Heart, MessageCircle, Bookmark, Send } from 'lucide-react';
 import { requireAuth } from '../../../../lib/auth';
 
 interface Props {
@@ -66,7 +66,12 @@ export default function ShorlogReactionSection({ likeCount, commentCount, bookma
         </button>
       </div>
 
-      <button type="button" onClick={handleShare} aria-label="공유" className="flex items-center text-slate-600 transition hover:text-slate-900">
+      <button
+        type="button"
+        onClick={handleShare}
+        aria-label="공유"
+        className="flex items-center text-slate-600 transition hover:text-slate-900"
+      >
         <Send className="h-5 w-5" />
       </button>
     </div>

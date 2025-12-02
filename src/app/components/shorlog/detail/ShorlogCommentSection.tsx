@@ -1,12 +1,19 @@
 'use client';
 
+import {
+  createComment,
+  deleteComment,
+  editComment,
+  getComments,
+  likeComment,
+  unlikeComment,
+} from '@/src/api/comments'; // ← API 함수들
 import CommentList from '@/src/app/components/comments/commentList';
+import { requireAuth } from '@/src/lib/auth';
 import { useEffect, useState } from 'react';
-import { requireAuth } from '../../../../lib/auth';
 
 interface Props {
   shorlogId: number;
-  initialCommentCount: number; // 필요 없으면 나중에 제거 가능
 }
 
 export default function ShorlogCommentSection({ shorlogId }: Props) {
@@ -14,25 +21,19 @@ export default function ShorlogCommentSection({ shorlogId }: Props) {
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+  // 댓글 목록 불러오기
+const fetchComments = async () => {
+  setLoading(true);
+  try {
+    const data = await getComments(shorlogId);
+    setComments(data);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
 
-  // 댓글 목록 조회
-  const fetchComments = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/v1/comments/SHORLOG/${shorlogId}`, {
-        credentials: 'include',
-      });
-      const json = await res.json();
-      if (res.ok && json.data) {
-        setComments(json.data);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     fetchComments();
@@ -44,97 +45,88 @@ export default function ShorlogCommentSection({ shorlogId }: Props) {
     if (!commentText.trim()) return alert('댓글 내용을 입력해주세요.');
 
     try {
-      const res = await fetch(`${API_BASE}/api/v1/comments`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          targetType: 'SHORLOG',
-          targetId: shorlogId,
-          parentId: null,
-          content: commentText.trim(),
-        }),
-      });
-
-      const json = await res.json();
-      if (!res.ok) {
-        alert(json.msg || '댓글 등록 실패');
-        return;
-      }
-
+      await createComment(shorlogId, commentText.trim(), undefined);
       setCommentText('');
       await fetchComments();
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      alert(err.message);
     }
   };
 
-  // 답글 작성 (대댓글)
+  // 대댓글 작성
   const handleReply = async (parentId: number, replyText: string) => {
     if (!(await requireAuth('댓글 답글 작성'))) return;
     if (!replyText.trim()) return;
 
     try {
-      const res = await fetch(`${API_BASE}/api/v1/comments`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          targetType: 'SHORLOG',
-          targetId: shorlogId,
-          parentId,
-          content: replyText.trim(),
-        }),
-      });
-
-      const json = await res.json();
-      if (!res.ok) {
-        alert(json.msg || '답글 등록 실패');
-        return;
-      }
-
+      await createComment(shorlogId, replyText.trim(), parentId);
       await fetchComments();
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      alert(err.message);
     }
   };
 
   // 좋아요 / 좋아요 취소
-  const handleLike = async (commentId: number) => {
-    if (!(await requireAuth('댓글 좋아요'))) return;
+const handleLike = async (commentId: number) => {
+  if (!(await requireAuth('댓글 좋아요'))) return;
+
+  const target = comments.find(c => c.id === commentId);
+  if (!target) return;
+
+  const nextLiked = !target.isLiked;
+
+  // 낙관적 업데이트
+  updateCommentLikeState(commentId, nextLiked);
+
+  try {
+    if (nextLiked) {
+      await likeComment(commentId);
+    } else {
+      await unlikeComment(commentId);
+    }
+  } catch (err) {
+    // 실패 시 롤백
+    updateCommentLikeState(commentId, !nextLiked);
+  }
+};
+
+// 특정 댓글만 상태 업데이트
+const updateCommentLikeState = (id: number, isLiked: boolean) => {
+  setComments(prev =>
+    prev.map(comment =>
+      comment.id === id
+        ? { ...comment, isLiked, likeCount: isLiked ? comment.likeCount + 1 : comment.likeCount - 1 }
+        : comment
+    )
+  );
+};
+
+
+  // 댓글 수정
+  const handleEdit = async (commentId: number, newContent: string) => {
+    if (!(await requireAuth('댓글 수정'))) return;
 
     try {
-      const likeRes = await fetch(
-        `${API_BASE}/api/v1/comments/${commentId}/like`,
-        {
-          method: 'POST',
-          credentials: 'include',
-        }
-      );
-
-      if (!likeRes.ok) {
-        const json = await likeRes.json();
-        // 이미 좋아요 상태라서 에러 난 경우 → unlike로 토글
-        if (json.msg?.includes('이미 좋아요')) {
-          await fetch(
-            `${API_BASE}/api/v1/comments/${commentId}/unlike`,
-            {
-              method: 'POST',
-              credentials: 'include',
-            }
-          );
-        } else {
-          alert(json.msg || '댓글 좋아요 실패');
-        }
-      }
-
+      await editComment(commentId, newContent);
       await fetchComments();
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      alert(err.message);
     }
   };
 
-  const totalCount = comments.length; // 필요하면 children까지 합산 로직도 가능
+  // 댓글 삭제
+  const handleDelete = async (commentId: number) => {
+    if (!(await requireAuth('댓글 삭제'))) return;
+
+    try {
+      await deleteComment(commentId);
+      await fetchComments();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const totalCount = comments.length; // 필요하면 children 포함 계산 가능
 
   return (
     <div>
@@ -142,23 +134,22 @@ export default function ShorlogCommentSection({ shorlogId }: Props) {
         댓글 {totalCount}개
       </p>
 
-      {/* 입력창 */}
+      {/* 댓글 입력창 */}
       <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2">
-        {/* TODO: 추후 이모지 버튼 / 프로필 등 추가 가능 */}
         <input
           type="text"
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
           placeholder="댓글 달기..."
           className="flex-1 border-none bg-transparent text-xs outline-none placeholder:text-slate-400"
-          aria-label="댓글 입력"
         />
+
         <button
           type="button"
           onClick={handleCommentSubmit}
           className="text-xs font-semibold text-[#2979FF] hover:text-[#1863db]"
         >
-          게시
+          등록
         </button>
       </div>
 
@@ -171,6 +162,8 @@ export default function ShorlogCommentSection({ shorlogId }: Props) {
             comments={comments}
             onReply={handleReply}
             onLike={handleLike}
+            onDelete={handleDelete}
+            onEdit={handleEdit}
           />
         )}
       </div>

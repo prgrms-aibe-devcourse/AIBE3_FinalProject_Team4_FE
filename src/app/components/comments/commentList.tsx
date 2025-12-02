@@ -1,26 +1,32 @@
-'use client';
-
+import { CommentType } from '../comments/types/comment';
 import CommentItem from './commentItem';
 
 interface CommentListProps {
-  comments: any[];
-  onReply: (parentId: number, text: string) => void;
-  onLike: (commentId: number) => void;
+  comments: CommentType[];
+  onLike: (id: number) => Promise<void>;
+  onReply: (parentId: number, content: string) => Promise<void>;
+  onDelete: (id: number) => Promise<void>;
+  onEdit: (id: number, newContent: string) => Promise<void>;
 }
 
-export default function CommentList({ comments, onReply, onLike }: CommentListProps) {
-  if (!comments || comments.length === 0) {
-    return (
-      <p className="mt-2 text-xs text-slate-400">
-        아직 댓글이 없습니다. 가장 먼저 댓글을 남겨보세요!
-      </p>
-    );
-  }
-
+export default function CommentList({
+  comments,
+  onLike,
+  onReply,
+  onDelete,
+  onEdit,
+}: CommentListProps) {
   return (
-    <div className="space-y-2">
-      {comments.map((comment) => (
-        <CommentItem key={comment.id} comment={comment} onReply={onReply} onLike={onLike} />
+    <div>
+      {comments.map((c: CommentType) => (
+        <CommentItem
+          key={c.id}
+          comment={c}
+          onLike={onLike}
+          onReply={onReply}
+          onDelete={onDelete}
+          onEdit={onEdit}
+        />
       ))}
     </div>
   );
