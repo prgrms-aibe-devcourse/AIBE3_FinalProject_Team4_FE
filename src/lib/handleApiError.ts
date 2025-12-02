@@ -27,7 +27,7 @@ export function handleApiError(error: unknown, context?: string) {
 
   // 백엔드 비즈니스 에러 메시지가 있으면 그대로 노출
   if (message) {
-    showGlobalToast(message, 'error');
+    showGlobalToast(message, 'warning');
     return;
   }
 

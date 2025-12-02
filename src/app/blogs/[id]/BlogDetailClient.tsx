@@ -7,7 +7,7 @@ import {
   removeBookmark,
   unlikeBlog,
 } from '@/src/api/blogDetail';
-import { fetchLinkedShorlogs , unlinkShorlog } from '@/src/api/blogShorlogLink';
+import { fetchLinkedShorlogs, unlinkShorlog } from '@/src/api/blogShorlogLink';
 import { BlogDetailHeader } from '@/src/app/components/blogs/detail/BlogDetailHeader';
 import { BlogReactionBar } from '@/src/app/components/blogs/detail/BlogReactionBar';
 import { handleApiError } from '@/src/lib/handleApiError';
@@ -20,6 +20,7 @@ import type {
 import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { ShareModal } from '../../components/blogs/detail/BlogShareModal';
 import { LinkedShorlogListModal } from '../../components/blogs/detail/LinkedShorlogModal';
 import BlogConnectShorlogModal from '../../components/blogs/link/BlogConnectShorlogModal';
 
@@ -55,6 +56,7 @@ export default function BlogDetailClient({
     initialData.hasLinkedShorlogs ?? false,
   );
   const [linkedShorlogCount, setLinkedShorlogCount] = useState(initialData.linkedShorlogCount ?? 0);
+  const [shareOpen, setShareOpen] = useState(false);
   // 조회수 증가
   useEffect(() => {
     let cancelled = false;
@@ -163,14 +165,14 @@ export default function BlogDetailClient({
   };
   const handleUnlinkShorlog = async (shorlogId: number) => {
     try {
-      const res = await unlinkShorlog(blog.id, shorlogId) as BlogShorlogLinkResponse;
+      const res = (await unlinkShorlog(blog.id, shorlogId)) as BlogShorlogLinkResponse;
       setLinkedItems((prev) => prev.filter((item) => item.shorlogId !== shorlogId));
       setHasLinkedShorlogs(res.haveLink);
       setLinkedShorlogCount(res.linkedCount);
 
       showGlobalToast('숏로그 연결을 해제했어요.', 'success');
 
-      // 더 이상 연결된 숏로그가 없으면 모달 닫기 
+      // 더 이상 연결된 숏로그가 없으면 모달 닫기
       if (!res.haveLink || res.linkedCount === 0) {
         setLinkedOpen(false);
       }
@@ -181,6 +183,15 @@ export default function BlogDetailClient({
 
   return (
     <>
+      {/* 공유 모달 */}
+      <ShareModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        title={blog.title}
+        description={blog.content.slice(0, 80)}
+        authorName={blog.nickname}
+        thumbnailUrl={blog.thumbnailUrl}
+      />
       {/* 연결된 숏로그 리스트 모달 */}
       <LinkedShorlogListModal
         open={linkedOpen}
@@ -231,10 +242,7 @@ export default function BlogDetailClient({
           onToggleLike={handleToggleLike}
           onToggleBookmark={handleToggleBookmark}
           onOpenLinkedShorlogs={handleOpenLinkedShorlogs}
-          onShare={() => {
-            navigator.clipboard.writeText(location.href);
-            alert('공유 링크 복사됨');
-          }}
+          onShare={() => setShareOpen(true)}
         />
       </article>
       <BlogConnectShorlogModal
