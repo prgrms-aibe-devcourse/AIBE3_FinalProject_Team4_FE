@@ -3,6 +3,7 @@ import { fetchBlogDetail } from '@/src/api/blogDetail';
 import { uploadBlogImage } from '@/src/api/blogImageApi';
 import { createDraft, deleteBlog, fetchDrafts, updateBlog } from '@/src/api/blogWrite';
 import apiClient from '@/src/api/clientForRs';
+import { showGlobalToast } from '@/src/lib/toastStore';
 import type {
   BlogDraftDto,
   BlogFileDto,
@@ -16,6 +17,7 @@ import type {
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import AiChatPanel from '../../components/ai/chat/AiChatPanel';
+import BlogConnectShorlogModal from '../../components/blogs/link/BlogConnectShorlogModal';
 import { BlogMetaForm } from '../../components/blogs/write/BlogMetaForm';
 import { BlogWriteHeader } from '../../components/blogs/write/BlogWriteHeader';
 import { DraftListModal } from '../../components/blogs/write/DraftListModal';
@@ -23,9 +25,7 @@ import { MarkdownEditor } from '../../components/blogs/write/MarkdownEditor';
 import { LoginRequiredModal } from '../../components/common/LoginRequireModal';
 import ImageSelector from '../../components/ImageSelector/ImageSelector';
 import { useChatPanelSlot } from '../Slot';
-import BlogConnectShorlogModal from '../../components/blogs/link/BlogConnectShorlogModal';
 import { handleApiError } from '@/src/lib/handleApiError';
-import { showGlobalToast } from '@/src/lib/toastStore';
 
 type NewBlogPageProps = {
   editId?: number;
@@ -120,7 +120,7 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
         setThumbnailUrl(detail.thumbnailUrl ?? null);
       } catch (e) {
         console.error(e);
-        alert('글 정보를 불러오지 못했습니다.');
+        showGlobalToast('글 정보를 불러오지 못했습니다.', 'error');
 
         router.push('/blogs');
       }
@@ -142,6 +142,10 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
   };
 
   const handleSaveDraft = async () => {
+    //  if (!form.title.trim() || !form.contentMarkdown.trim()) {
+    //    showGlobalToast('제목과 내용은 필수입니다.', 'error');
+    //  }
+
     try {
       const id = await ensureDraft(); // 없으면 새 draft 생성, 있으면 그거 사용
       const dto = await updateBlog(id, buildReqBody('DRAFT'));
@@ -154,22 +158,16 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
         tags: dto.hashtagNames ?? prev.tags,
       }));
 
-      alert('임시저장 되었습니다.');
+      showGlobalToast('임시저장 되었어요.', 'success');
     } catch (e) {
-      console.error(e);
-      alert('임시저장 중 오류가 발생했습니다.');
+      handleApiError(e);
     }
   };
 
   const handlePublish = async () => {
-    if (!form.title.trim()) {
-      alert('제목을 입력해 주세요.');
-      return;
-    }
-    if (!form.contentMarkdown.trim()) {
-      alert('내용을 입력해 주세요.');
-      return;
-    }
+    //  if (!form.title.trim() || !form.contentMarkdown.trim()) {
+    //    showGlobalToast('제목과 내용은 필수입니다.', 'error');
+    //  }
 
     setIsPublishing(true);
     try {
@@ -180,8 +178,7 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
       setShowConnectModal(true);
       //router.push(`/blogs/${dto.id}`);
     } catch (e) {
-      console.error(e);
-      alert('발행 중 오류가 발생했습니다.');
+      handleApiError(e);
     } finally {
       setIsPublishing(false);
     }
@@ -195,7 +192,7 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
       setDrafts(list);
     } catch (e) {
       console.error(e);
-      alert('임시저장 목록을 불러오지 못했습니다.');
+      showGlobalToast('임시저장 목록을 불러오지 못했습니다.', 'error');
     } finally {
       setIsLoadingDrafts(false);
     }
@@ -219,7 +216,7 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
       setIsDraftModalOpen(false);
     } catch (e) {
       console.error(e);
-      alert('임시저장 글을 불러오지 못했습니다.');
+      showGlobalToast('임시저장 글을 불러오지 못했습니다.', 'error');
     }
   };
 
@@ -238,9 +235,10 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
           visibility: 'PRIVATE',
         });
       }
+      showGlobalToast('임시저장을 삭제했어요.', 'success');
     } catch (e) {
       console.error(e);
-      alert('삭제 중 오류가 발생했습니다.');
+      showGlobalToast('삭제 중 오류가 발생했습니다.', 'error');
     }
   };
   if (!authChecked) {
@@ -252,35 +250,42 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
   }
   // 이미지 업로드 함수
   const handleUploadContentImage = async (file: File): Promise<string> => {
-    const id = await ensureDraft(); // draft 없으면 여기서 생성
-    const formData = new FormData();
-    formData.append('files', file);
-    formData.append('type', 'CONTENT');
-
-    // TODO: aspectRatios 추후 적용
-    const res = await uploadBlogImage(id, formData);
-
-    if (!res.ok) {
-      throw new Error(`이미지 업로드 실패 (status: ${res.status})`);
+    if (!form.title.trim() || !form.contentMarkdown.trim()) {
+      showGlobalToast('제목과 내용은 필수입니다.', 'error');
     }
 
-    const rs: RsData<BlogMediaUploadResponse> = await res.json();
-    if (!rs.data) {
-      throw new Error('이미지 업로드 응답이 올바르지 않습니다.');
+    try {
+      const id = await ensureDraft();
+      const formData = new FormData();
+      formData.append('files', file);
+      formData.append('type', 'CONTENT');
+
+      const res = await uploadBlogImage(id, formData);
+
+      if (!res.ok) {
+        showGlobalToast('이미지 업로드에 실패했습니다.', 'error');
+        throw new Error(`이미지 업로드 실패 (status: ${res.status})`);
+      }
+
+      const rs: RsData<BlogMediaUploadResponse> = await res.json();
+      if (!rs.data) {
+        showGlobalToast('이미지 업로드 응답이 올바르지 않습니다.', 'error');
+        throw new Error('이미지 업로드 응답이 올바르지 않습니다.');
+      }
+      return rs.data.url;
+    } catch (e) {
+      console.error(e);
+      throw e;
     }
-
-    const dto = rs.data;
-
-    return dto.url;
   };
-  // 연결관련 함수 
-   const handleCloseConnectModal = () => {
-     setShowConnectModal(false);
-     if (publishedBlogId != null) {
-       // 연결 여부랑 상관 없이 디테일 페이지
-       window.location.href = `/blogs/${publishedBlogId}`;
-     }
-   };
+  // 연결관련 함수
+  const handleCloseConnectModal = () => {
+    setShowConnectModal(false);
+    if (publishedBlogId != null) {
+      // 연결 여부랑 상관 없이 디테일 페이지
+      window.location.href = `/blogs/${publishedBlogId}`;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-sky-50/40 to-slate-50">

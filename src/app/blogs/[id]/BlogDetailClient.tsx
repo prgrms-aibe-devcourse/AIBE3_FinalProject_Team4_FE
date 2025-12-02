@@ -7,7 +7,7 @@ import {
   removeBookmark,
   unlikeBlog,
 } from '@/src/api/blogDetail';
-import { fetchLinkedShorlogs } from '@/src/api/blogShorlogLink';
+import { fetchLinkedShorlogs , unlinkShorlog } from '@/src/api/blogShorlogLink';
 import { BlogDetailHeader } from '@/src/app/components/blogs/detail/BlogDetailHeader';
 import { BlogReactionBar } from '@/src/app/components/blogs/detail/BlogReactionBar';
 import { handleApiError } from '@/src/lib/handleApiError';
@@ -161,6 +161,24 @@ export default function BlogDetailClient({
     setLinkedShorlogCount(res.linkedCount);
     setConnectModalOpen(false);
   };
+  const handleUnlinkShorlog = async (shorlogId: number) => {
+    try {
+      const res = await unlinkShorlog(blog.id, shorlogId) as BlogShorlogLinkResponse;
+      setLinkedItems((prev) => prev.filter((item) => item.shorlogId !== shorlogId));
+      setHasLinkedShorlogs(res.haveLink);
+      setLinkedShorlogCount(res.linkedCount);
+
+      showGlobalToast('숏로그 연결을 해제했어요.', 'success');
+
+      // 더 이상 연결된 숏로그가 없으면 모달 닫기 
+      if (!res.haveLink || res.linkedCount === 0) {
+        setLinkedOpen(false);
+      }
+    } catch (e) {
+      handleApiError(e, '숏로그 연결 해제');
+    }
+  };
+
   return (
     <>
       {/* 연결된 숏로그 리스트 모달 */}
@@ -169,6 +187,7 @@ export default function BlogDetailClient({
         loading={linkedLoading}
         items={linkedItems}
         onClose={() => setLinkedOpen(false)}
+        onUnlink={handleUnlinkShorlog}
       />
       <article className="rounded-3xl bg-white/90 shadow-xl ring-1 ring-slate-100 backdrop-blur-sm">
         {/* 상단 헤더 */}
