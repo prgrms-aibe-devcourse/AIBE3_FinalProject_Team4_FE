@@ -1,6 +1,7 @@
 'use client';
 
 import { useFollow } from '@/src/hooks/useFollow';
+import { useCurrentUser } from '@/src/hooks/useCurrentUser';
 import { useEffect, useState } from 'react';
 import ProfileEditModal from './ProfileHeaderEditModal';
 import FollowModal from './ProfileHeaderFollowModal';
@@ -23,6 +24,9 @@ interface ProfileHeaderProps {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
+  const { data: currentUser } = useCurrentUser();
+  const myId = currentUser?.id ?? 0;
+
   // ✔ useFollow 훅 적용
   const {
     isFollowing,
@@ -35,6 +39,15 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
   const [tab, setTab] = useState<'following' | 'followers'>('following');
   const [list, setList] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const [followingCount, setFollowingCount] = useState(profile.followingCount);
+  const [followersCount, setFollowersCount] = useState(profile.followersCount);
+
+  // profile이 바뀌는 경우(다른 유저로 이동 등) 동기화
+  useEffect(() => {
+    setFollowingCount(profile.followingCount);
+    setFollowersCount(profile.followersCount);
+  }, [profile.id, profile.followingCount, profile.followersCount]);
 
   // ✔ 모달 리스트 로딩
   useEffect(() => {
@@ -164,7 +177,7 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
               }}
               className="hover:underline hover:text-slate-900"
             >
-              <span className="font-extrabold">{profile.followingCount}</span> 팔로잉
+              <span className="font-extrabold">{followingCount}</span> 팔로잉
             </button>
 
             <button
@@ -174,8 +187,7 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
               }}
               className="hover:underline hover:text-slate-900"
             >
-              <span className="font-extrabold">{formatCompactNumber(profile.followersCount)}</span>{' '}
-              팔로워
+              <span className="font-extrabold">{formatCompactNumber(followersCount)}</span> 팔로워
             </button>
 
             <span>
@@ -203,14 +215,22 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
       {/* 팔로우/팔로잉 모달 */}
       <FollowModal
         isOpen={followModalOpen}
-        onClose={() => setFollowModalOpen(false)}
+        onClose={(payload) => {
+          setFollowModalOpen(false);
+          if (payload) {
+            setFollowingCount(payload.followingCount);
+            setFollowersCount(payload.followersCount);
+          }
+        }}
         tab={tab}
         onTabChange={setTab}
         list={list}
         loading={loading}
         nickname={profile.nickname}
-        followingCount={profile.followingCount}
-        followersCount={profile.followersCount}
+        followingCount={followingCount}
+        followersCount={followersCount}
+        myId={myId}
+        profileUserId={profile.id}
       />
     </>
   );

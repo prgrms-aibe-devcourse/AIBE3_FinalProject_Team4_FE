@@ -1,21 +1,20 @@
 'use client';
 
 import { useFollow } from '@/src/hooks/useFollow';
-import { useCurrentUser } from '@/src/hooks/useCurrentUser';
 import Link from 'next/link';
 
 interface FollowListItemProps {
   user: any;
+  myId: number;
+  onToggleFollow?: (targetUserId: number, nextIsFollowing: boolean) => void;
 }
 
-export default function FollowListItem({ user }: FollowListItemProps) {
-  const { data: currentUser } = useCurrentUser();
+export default function FollowListItem({ user, myId, onToggleFollow }: FollowListItemProps) {
   const { isFollowing, loading, toggleFollow } = useFollow(user.id, user.isFollowing);
 
   return (
     <li>
       <Link href={`/profile/${user.id}`} className="flex items-center justify-between">
-        {/* 왼쪽 유저 정보 */}
         <div className="flex items-center gap-3">
           <img
             src={user.profileImgUrl || '/tmpProfile.png'}
@@ -25,13 +24,17 @@ export default function FollowListItem({ user }: FollowListItemProps) {
           <p className="font-semibold text-[15px]">{user.nickname}</p>
         </div>
 
-        {/* 자기 자신이면 팔로우 버튼 제거 */}
-        {user.id !== currentUser?.id && (
+        {user.id !== myId && (
           <button
-            onClick={(e) => {
+            onClick={async (e) => {
               e.preventDefault();
               e.stopPropagation();
-              toggleFollow();
+
+              const next = !isFollowing;
+              // 부모에 먼저 알림 (모달 카운트 즉시 업데이트)
+              onToggleFollow?.(user.id, next);
+              // 그 다음 API 호출
+              await toggleFollow();
             }}
             disabled={loading}
             className={`
