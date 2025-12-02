@@ -1,8 +1,10 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { follow, unfollow, isFollowing } from '../followApi';
+import { follow, unfollow, isFollowing } from '../api/followApi';
 import { useRouter } from 'next/navigation';
+import { showGlobalToast } from '@/src/lib/toastStore';
+import { useState } from 'react';
 
 // 팔로우 상태 조회 훅
 export function useFollowStatus(userId: number, currentUserId: number | null) {
@@ -54,15 +56,10 @@ export function useFollowMutation(userId: number, currentUserId: number | null) 
 
       // 로그인 관련 에러는 특별 처리
       if (errorMessage.includes('로그인')) {
-        const confirmLogin = window.confirm(
-          '팔로우 기능은 로그인이 필요합니다.\n로그인 페이지로 이동하시겠습니까?'
-        );
-        if (confirmLogin) {
-          router.push('/auth/login');
-        }
+        showGlobalToast('로그인이 필요한 기능입니다.', 'warning');
       } else if (!errorMessage.includes('서버 오류')) {
         // 서버 오류가 아닌 경우에만 사용자에게 알림
-        alert(`팔로우 처리에 실패했어요.\n\n${errorMessage}`);
+        showGlobalToast(`팔로우 처리에 실패했어요. ${errorMessage}`, 'error');
       }
 
       console.error('팔로우 실패:', { userId, error: errorMessage });
@@ -109,7 +106,7 @@ export function useFollowMutation(userId: number, currentUserId: number | null) 
 
       if (!errorMessage.includes('서버 오류')) {
         // 서버 오류가 아닌 경우에만 사용자에게 알림
-        alert(`언팔로우 처리에 실패했어요.\n\n${errorMessage}`);
+        showGlobalToast(`언팔로우 처리에 실패했어요. ${errorMessage}`, 'error');
       }
 
       console.error('언팔로우 실패:', { userId, error: errorMessage });
@@ -137,3 +134,59 @@ export function useFollowMutation(userId: number, currentUserId: number | null) 
   };
 }
 
+/**
+ * 간단한 팔로우 훅 (팀원 제공)
+ * React Query를 사용하지 않는 경우나 간단한 용도로 사용
+ */
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+export function useSimpleFollow(userId: number, initialIsFollowing: boolean) {
+  const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
+  const [loading, setLoading] = useState(false);
+
+  const toggleFollow = async () => {
+    if (loading) return;
+
+    const newState = !isFollowing;
+    setIsFollowing(newState); // optimistic update
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/follow/${userId}`, {
+        method: newState ? 'POST' : 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // 성공 시 토스트 표시
+      if (newState) {
+        showGlobalToast('팔로우했습니다.', 'success');
+      } else {
+        showGlobalToast('언팔로우했습니다.', 'success');
+      }
+    } catch (e) {
+      console.error('팔로우 토글 실패:', e);
+      setIsFollowing(!newState); // rollback on error
+
+      // 에러 토스트 표시
+      const errorMessage = e instanceof Error ? e.message : '팔로우 처리 중 오류가 발생했습니다.';
+      if (errorMessage.includes('로그인') || errorMessage.includes('401')) {
+        showGlobalToast('로그인이 필요한 기능입니다.', 'warning');
+      } else {
+        showGlobalToast('팔로우 처리에 실패했습니다.', 'error');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    isFollowing,
+    loading,
+    toggleFollow,
+    setIsFollowing,
+  };
+}

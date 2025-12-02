@@ -1,8 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useCurrentUser } from '@/src/api/hooks/useCurrentUser';
-import { useFollowStatus, useFollowMutation } from '@/src/api/hooks/useFollow';
+import { useCurrentUser } from '@/src/hooks/useCurrentUser';
+import { useFollowStatus, useFollowMutation } from '@/src/hooks/useFollow';
 import { showGlobalToast } from '@/src/lib/toastStore';
 import LoadingSpinner from './LoadingSpinner';
 
