@@ -140,7 +140,7 @@ export function useFollowMutation(userId: number, currentUserId: number | null) 
  */
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-export function useSimpleFollow(userId: number, initialIsFollowing: boolean) {
+export function useFollow(userId: number, initialIsFollowing: boolean) {
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [loading, setLoading] = useState(false);
 
