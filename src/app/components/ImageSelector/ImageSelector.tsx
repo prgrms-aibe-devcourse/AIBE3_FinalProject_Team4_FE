@@ -1,13 +1,13 @@
 'use client';
 
 import { uploadBlogImage } from '@/src/api/blogImageApi';
+import { handleApiError } from '@/src/lib/handleApiError';
 import type { BlogFileDto, BlogImage, BlogMediaUploadResponse, RsData } from '@/src/types/blog';
 import { SetStateAction, useState } from 'react';
 import Cropper from './Cropper';
 import BlogImageTab from './tabs/BlogImageTab';
-import UnsplashImagePicker from './tabs/UnsplashImageTab';
+import FreeImagePicker from './tabs/FreeImageTab';
 import UploadTab from './tabs/UploadImageTab';
-import { handleApiError } from '@/src/lib/handleApiError';
 
 interface ImageSelectorProps {
   blogId: number | null;
@@ -207,7 +207,8 @@ export default function ImageSelector({
               <div>
                 <h3 className="text-sm font-semibold text-slate-900">썸네일 이미지 선택하기</h3>
                 <p className="mt-1 text-xs text-slate-500">
-                  제목과 내용 입력 후, 아래 탭에서 이미지를 선택하거나 업로드하고 적용하기 버튼을 누르세요.
+                  제목과 내용 입력 후, 아래 탭에서 이미지를 선택하거나 업로드하고 적용하기 버튼을
+                  누르세요.
                 </p>
               </div>
 
@@ -241,8 +242,8 @@ export default function ImageSelector({
           {[
             { key: 'upload', label: '이미지 업로드' },
             { key: 'blog', label: '블로그 본문 이미지' },
-            { key: 'unsplash', label: '무료 이미지' },
-            { key: 'google', label: '구글 검색 이미지' },
+            { key: 'unsplash', label: '무료 사진 (Unsplash)' },
+            { key: 'google', label: '무료 사진 (Pixabay)' },
           ].map((tab) => {
             const isActive = selectedTab === tab.key;
             return (
@@ -294,7 +295,7 @@ export default function ImageSelector({
           )}
 
           {selectedTab === 'unsplash' && (
-            <UnsplashImagePicker
+            <FreeImagePicker
               blogContent={blogContent}
               searchKeyword={unsplashSearchKeyword}
               onSearchKeywordChange={setUnsplashSearchKeyword}
@@ -310,7 +311,7 @@ export default function ImageSelector({
           )}
 
           {selectedTab === 'google' && (
-            <UnsplashImagePicker
+            <FreeImagePicker
               blogContent={blogContent}
               searchKeyword={googleSearchKeyword}
               onSearchKeywordChange={setGoogleSearchKeyword}

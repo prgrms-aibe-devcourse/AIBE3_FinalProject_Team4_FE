@@ -31,7 +31,7 @@ export const getUnsplashImages = async (keyword: string, page: number, size: num
 };
 
 export const getGoogleImages = async (keyword: string, page: number, size: number) => {
-  const response = await apiClient(`/api/v1/images/google`, {
+  const response = await apiClient(`/api/v1/images/pixabay`, {
     method: 'GET',
     params: {
       keyword,

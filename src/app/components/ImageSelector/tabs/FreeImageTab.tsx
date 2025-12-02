@@ -20,7 +20,7 @@ interface UnsplashImagePickerProps {
 const PAGE_SIZE = 20;
 const MAX_IMAGES = 300;
 
-export default function UnsplashImagePicker({
+export default function FreeImagePicker({
   blogContent,
   searchKeyword,
   onSearchKeywordChange,
