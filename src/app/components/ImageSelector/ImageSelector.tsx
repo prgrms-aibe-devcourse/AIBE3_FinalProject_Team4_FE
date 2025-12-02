@@ -38,7 +38,7 @@ export default function ImageSelector({
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
   const [imageSourceType, setImageSourceType] = useState<'file' | 'url'>('file');
   const [unsplashSearchKeyword, setUnsplashSearchKeyword] = useState('');
-  const [googleSearchKeyword, setGoogleSearchKeyword] = useState('');
+  const [pixabaySearchKeyword, setPixabaySearchKeyword] = useState('');
   const [toast, setToast] = useState<{
     message: string;
     type: 'success' | 'error' | 'warning';
@@ -243,7 +243,7 @@ export default function ImageSelector({
             { key: 'upload', label: '이미지 업로드' },
             { key: 'blog', label: '블로그 본문 이미지' },
             { key: 'unsplash', label: '무료 사진 (Unsplash)' },
-            { key: 'google', label: '무료 사진 (Pixabay)' },
+            { key: 'pixabay', label: '무료 사진 (Pixabay)' },
           ].map((tab) => {
             const isActive = selectedTab === tab.key;
             return (
@@ -310,11 +310,11 @@ export default function ImageSelector({
             />
           )}
 
-          {selectedTab === 'google' && (
+          {selectedTab === 'pixabay' && (
             <FreeImagePicker
               blogContent={blogContent}
-              searchKeyword={googleSearchKeyword}
-              onSearchKeywordChange={setGoogleSearchKeyword}
+              searchKeyword={pixabaySearchKeyword}
+              onSearchKeywordChange={setPixabaySearchKeyword}
               selectedImage={selectedImage}
               originalImage={originalImage}
               onSelect={(url: string) => {
