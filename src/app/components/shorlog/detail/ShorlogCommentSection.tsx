@@ -7,7 +7,7 @@ import {
   getComments,
   likeComment,
   unlikeComment,
-} from '@/src/api/ShorlogComments'; // ← API 함수들
+} from '@/src/api/ShorlogComments';
 import CommentList from '@/src/app/components/comments/ShorlogCommentList';
 import { requireAuth } from '@/src/lib/auth';
 import { useEffect, useState } from 'react';
@@ -21,25 +21,24 @@ export default function ShorlogCommentSection({ shorlogId }: Props) {
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // 댓글 목록 불러오기
-const fetchComments = async () => {
-  setLoading(true);
-  try {
-    const data = await getComments(shorlogId);
-    setComments(data);
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setLoading(false);
-  }
-};
-
+  /** 댓글 목록 불러오기 */
+  const fetchComments = async () => {
+    setLoading(true);
+    try {
+      const data = await getComments(shorlogId);
+      setComments(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchComments();
   }, [shorlogId]);
 
-  // 최상위 댓글 작성
+  /** 최상위 댓글 작성 */
   const handleCommentSubmit = async () => {
     if (!(await requireAuth('댓글 작성'))) return;
     if (!commentText.trim()) return alert('댓글 내용을 입력해주세요.');
@@ -53,7 +52,7 @@ const fetchComments = async () => {
     }
   };
 
-  // 대댓글 작성
+  /** 대댓글 작성 */
   const handleReply = async (parentId: number, replyText: string) => {
     if (!(await requireAuth('댓글 답글 작성'))) return;
     if (!replyText.trim()) return;
@@ -66,43 +65,78 @@ const fetchComments = async () => {
     }
   };
 
-  // 좋아요 / 좋아요 취소
-const handleLike = async (commentId: number) => {
-  if (!(await requireAuth('댓글 좋아요'))) return;
+  /** 좋아요 / 취소 */
+  const handleLike = async (commentId: number) => {
+    if (!(await requireAuth('댓글 좋아요'))) return;
 
-  const target = comments.find(c => c.id === commentId);
-  if (!target) return;
+    const target = findComment(commentId);
+    if (!target) return;
 
-  const nextLiked = !target.isLiked;
+    const nextLiked = !target.isLiked;
 
-  // 낙관적 업데이트
-  updateCommentLikeState(commentId, nextLiked);
+    // UI 낙관적 업데이트
+    updateCommentLikeState(commentId, nextLiked);
 
-  try {
-    if (nextLiked) {
-      await likeComment(commentId);
-    } else {
-      await unlikeComment(commentId);
+    try {
+      if (nextLiked) {
+        await likeComment(commentId);
+      } else {
+        await unlikeComment(commentId);
+      }
+    } catch (err: any) {
+      // 실패 → 롤백
+      updateCommentLikeState(commentId, !nextLiked);
+      alert(err.message || '좋아요 처리 중 오류가 발생했습니다.');
     }
-  } catch (err) {
-    // 실패 시 롤백
-    updateCommentLikeState(commentId, !nextLiked);
-  }
-};
+  };
 
-// 특정 댓글만 상태 업데이트
-const updateCommentLikeState = (id: number, isLiked: boolean) => {
-  setComments(prev =>
-    prev.map(comment =>
-      comment.id === id
-        ? { ...comment, isLiked, likeCount: isLiked ? comment.likeCount + 1 : comment.likeCount - 1 }
-        : comment
-    )
-  );
-};
+  /** 댓글 찾기 (최상위 + 대댓글) */
+  const findComment = (commentId: number) => {
+    for (const comment of comments) {
+      if (comment.id === commentId) return comment;
+      if (comment.children) {
+        const child = comment.children.find((c: any) => c.id === commentId);
+        if (child) return child;
+      }
+    }
+    return null;
+  };
 
+  /** 특정 댓글만 UI 갱신 (대댓글 포함) */
+  const updateCommentLikeState = (id: number, isLiked: boolean) => {
+    setComments((prev) =>
+      prev.map((comment) => {
+        // 최상위 댓글인 경우
+        if (comment.id === id) {
+          return {
+            ...comment,
+            isLiked,
+            likeCount: isLiked ? comment.likeCount + 1 : comment.likeCount - 1,
+          };
+        }
 
-  // 댓글 수정
+        // 대댓글인 경우
+        if (comment.children) {
+          return {
+            ...comment,
+            children: comment.children.map((child: any) =>
+              child.id === id
+                ? {
+                    ...child,
+                    isLiked,
+                    likeCount: isLiked ? child.likeCount + 1 : child.likeCount - 1,
+                  }
+                : child
+            ),
+          };
+        }
+
+        return comment;
+      })
+    );
+  };
+
+  /** 댓글 수정 */
   const handleEdit = async (commentId: number, newContent: string) => {
     if (!(await requireAuth('댓글 수정'))) return;
 
@@ -114,7 +148,7 @@ const updateCommentLikeState = (id: number, isLiked: boolean) => {
     }
   };
 
-  // 댓글 삭제
+  /** 댓글 삭제 */
   const handleDelete = async (commentId: number) => {
     if (!(await requireAuth('댓글 삭제'))) return;
 
@@ -126,7 +160,7 @@ const updateCommentLikeState = (id: number, isLiked: boolean) => {
     }
   };
 
-  const totalCount = comments.length; // 필요하면 children 포함 계산 가능
+  const totalCount = comments.length;
 
   return (
     <div>

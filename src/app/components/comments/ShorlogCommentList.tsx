@@ -9,7 +9,7 @@ interface CommentListProps {
   onEdit: (id: number, newContent: string) => Promise<void>;
 }
 
-export default function CommentList({
+export default function ShorlogCommentList({
   comments,
   onLike,
   onReply,

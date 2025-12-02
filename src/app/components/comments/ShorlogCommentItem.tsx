@@ -3,7 +3,7 @@
 import { requireAuth } from '@/src/lib/auth';
 import { timeAgo } from '@/src/utils/timeAgo';
 import { Heart, MoreHorizontal } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { CommentType } from '../../../types/comment';
 
 interface CommentItemProps {
@@ -15,7 +15,7 @@ interface CommentItemProps {
   depth?: number;
 }
 
-export default function CommentItem({
+export default function ShorlogCommentItem({
   comment,
   onLike,
   onReply,
@@ -23,8 +23,6 @@ export default function CommentItem({
   onEdit,
   depth = 0,
 }: CommentItemProps) {
-  const [liked, setLiked] = useState(comment.isLiked);            // ✔ isLiked 기준
-  const [likeCount, setLikeCount] = useState(comment.likeCount);
   const [replyMode, setReplyMode] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -32,26 +30,20 @@ export default function CommentItem({
   const [editText, setEditText] = useState(comment.content);
   const [openReplies, setOpenReplies] = useState(false);
 
-  // 서버에서 최신 데이터 오면 내부 상태 업데이트
-  useEffect(() => {
-    setLiked(comment.isLiked);
-    setLikeCount(comment.likeCount);
-  }, [comment.isLiked, comment.likeCount]);
-
   /** 좋아요 처리 */
   const handleLike = async () => {
     if (!(await requireAuth('좋아요'))) return;
 
-    const nextLiked = !liked;
-    setLiked(nextLiked);
-    setLikeCount((prev) => (nextLiked ? prev + 1 : prev - 1));
+    // ✅ 내 댓글이면 좋아요 금지
+    if (comment.isMine) {
+      alert('내 댓글에는 좋아요를 누를 수 없습니다.');
+      return;
+    }
 
     try {
       await onLike(comment.id);
-    } catch {
-      // 실패 시 롤백
-      setLiked(!nextLiked);
-      setLikeCount((prev) => (nextLiked ? prev - 1 : prev + 1));
+    } catch (err: any) {
+      alert(err.message || '좋아요 처리 중 오류가 발생했습니다.');
     }
   };
 
@@ -163,15 +155,15 @@ export default function CommentItem({
             type="button"
             onClick={handleLike}
             className="flex items-center gap-1.5 text-slate-700 hover:text-slate-900 transition"
-            aria-label={liked ? '좋아요 취소' : '좋아요'}
+            aria-label={comment.isLiked ? '좋아요 취소' : '좋아요'}
           >
             <Heart
               className={`h-5 w-5 transition-transform ${
-                liked ? 'scale-110 text-rose-500' : 'text-slate-700'
+                comment.isLiked ? 'scale-110 text-rose-500' : 'text-slate-700'
               }`}
-              fill={liked ? '#f97373' : 'none'}
+              fill={comment.isLiked ? '#f97373' : 'none'}
             />
-            <span className="text-[13px] font-medium">{likeCount}</span>
+            <span className="text-[13px] font-medium">{comment.likeCount}</span>
           </button>
 
           {depth === 0 && (
@@ -218,7 +210,7 @@ export default function CommentItem({
             {openReplies && (
               <div className="mt-2 ml-4 border-l pl-3 space-y-3">
                 {comment.children.map((child) => (
-                  <CommentItem
+                  <ShorlogCommentItem
                     key={child.id}
                     comment={child}
                     onLike={onLike}
