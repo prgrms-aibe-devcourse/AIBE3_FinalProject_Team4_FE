@@ -33,6 +33,10 @@ export default function AiGeneration({ mode, contentType, content, onApply }: Ai
   const [results, setResults] = useState<string[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [prompt, setPrompt] = useState('');
+  const [promptError, setPromptError] = useState<string | null>(null);
+
+  // 메시지 최대 길이
+  const MAX_PROMPT_LENGTH = 1000;
 
   // 복사 UX
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -41,20 +45,7 @@ export default function AiGeneration({ mode, contentType, content, onApply }: Ai
 
   const typeLabel = contentType === 'blog' ? '블로그' : '숏로그';
 
-  const placeholder = useMemo(() => {
-    switch (mode) {
-      case 'title':
-        return '제목 추천';
-      case 'keyword':
-        return '검색어 추천';
-      case 'summary':
-        return '내용 추천';
-      case 'hashtag':
-        return '해시태그 추천';
-      default:
-        return 'AI 추천';
-    }
-  }, [mode]);
+  const placeholder = '추가 조건 입력하기';
 
   const tooltipText = useMemo(() => {
     switch (mode) {
@@ -137,13 +128,19 @@ export default function AiGeneration({ mode, contentType, content, onApply }: Ai
   const runGenerate = async () => {
     if (!content || content.trim() === '') {
       setResults([]);
-      setErrorMsg(`${typeLabel} 내용을 먼저 채워주세요.`);
+      setErrorMsg(`${typeLabel} 내용을 먼저 채워주세요`);
       setIsExpanded(true);
+      return;
+    }
+
+    if (prompt.trim().length > MAX_PROMPT_LENGTH) {
+      setPromptError(`* 메시지는 ${MAX_PROMPT_LENGTH}자 이내로 입력해 주세요`);
       return;
     }
 
     setIsLoading(true);
     setErrorMsg(null);
+    setPromptError(null);
     setIsExpanded(true);
 
     const message = prompt.trim() ? prompt.trim() : undefined;
@@ -171,7 +168,7 @@ export default function AiGeneration({ mode, contentType, content, onApply }: Ai
       setIsExpanded(true);
     } catch (e) {
       setResults([]);
-      setErrorMsg('AI 추천 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.');
+      setErrorMsg('AI 추천 중 오류가 발생했어요.\n잠시 후 다시 시도해 주세요.');
     } finally {
       setIsLoading(false);
     }
@@ -207,18 +204,41 @@ export default function AiGeneration({ mode, contentType, content, onApply }: Ai
 
   return (
     <div ref={wrapperRef} className="relative inline-flex">
-      {/* 동그라미 버튼 + Tooltip */}
-      <div className="relative group">
-        <button
-          type="button"
-          onClick={handleButtonClick}
-          disabled={isLoading}
-          className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-[11px] font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]"
-        >
-          {isLoading ? <LoadingSpinner size="sm" inline /> : <span>✦</span>}
-        </button>
-        <ToolTip text={isLoading ? '추천 중' : tooltipText} />
-      </div>
+      {/* 추천 버튼 */}
+      <button
+        type="button"
+        onClick={handleButtonClick}
+        onMouseLeave={() => {
+          if (errorMsg) setIsExpanded(false);
+        }}
+        className={[
+          // 기본은 동그라미(최소폭만)
+          'group inline-flex h-7 items-center rounded-2xl border border-slate-200 bg-white font-medium text-main shadow-sm',
+          'transition-all duration-200 ease-out hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]',
+          // 폭 자동으로 늘어나게 padding을 기본/hover로 다르게
+          isLoading ? 'px-2 cursor-default' : 'pl-2 pr-1 hover:w-auto hover:px-3',
+        ].join(' ')}
+      >
+        {isLoading ? (
+          <LoadingSpinner size="sm" inline />
+        ) : (
+          <>
+            <span className="shrink-0">✦</span>
+
+            {/* hover 때만 펼쳐지는 텍스트 */}
+            <span
+              className={[
+                'text-xs ml-1 overflow-hidden whitespace-nowrap',
+                'max-w-0 opacity-0',
+                'transition-all duration-200 ease-out',
+                'group-hover:max-w-[160px] group-hover:opacity-100',
+              ].join(' ')}
+            >
+              {tooltipText}
+            </span>
+          </>
+        )}
+      </button>
 
       {/* 확장 패널 */}
       <div
@@ -233,11 +253,19 @@ export default function AiGeneration({ mode, contentType, content, onApply }: Ai
         ].join(' ')}
       >
         {/* 헤더 */}
-        <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2 mx-1">
+        <div
+          className={[
+            'flex items-center gap-2 px-3 py-2 mx-1',
+            errorMsg ? 'pt-5' : 'border-b border-slate-100',
+            promptError ? 'pb-6' : '',
+          ].join(' ')}
+        >
           {/* <span className="text-slate-700">✦</span> */}
 
           {errorMsg ? (
-            <span className="text-xs font-medium text-rose-500">{errorMsg}</span>
+            <span className="whitespace-pre-line text-xs font-medium text-rose-500 text-center w-full block">
+              {errorMsg}
+            </span>
           ) : (
             <>
               {/* 추가 요청 입력창 */}
@@ -247,11 +275,39 @@ export default function AiGeneration({ mode, contentType, content, onApply }: Ai
                   className="w-full rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-700 placeholder:text-slate-400 focus:border-slate-300 focus:bg-white focus:outline-none pr-6"
                   placeholder={placeholder}
                   value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
+                  onChange={(e) => {
+                    let value = e.target.value;
+                    if (value.length > MAX_PROMPT_LENGTH) {
+                      setPromptError(`* 메시지는 ${MAX_PROMPT_LENGTH}자 이내로 입력해 주세요`);
+                      value = value.slice(0, MAX_PROMPT_LENGTH);
+                    } else {
+                      setPromptError(null);
+                    }
+                    setPrompt(value);
+                  }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && prompt.trim()) runGenerate();
+                    if (
+                      e.key === 'Enter' &&
+                      prompt.trim() &&
+                      prompt.trim().length <= MAX_PROMPT_LENGTH
+                    )
+                      runGenerate();
                   }}
                 />
+                {promptError && (
+                  <div
+                    className="
+                        absolute left-1/2 top-full mt-1 -translate-x-1/2
+                        max-w-[220px] w-max
+                        px-1.5 py-0.5
+                        text-xs text-rose-500 text-center
+                        whitespace-normal break-words
+                        pointer-events-none
+                  "
+                  >
+                    {promptError}
+                  </div>
+                )}
                 <button
                   type="button"
                   className={[
@@ -272,12 +328,15 @@ export default function AiGeneration({ mode, contentType, content, onApply }: Ai
                   type="button"
                   onClick={runGenerate}
                   disabled={isLoading}
-                  className="rounded-md p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+                  className={`
+                      rounded-md p-1 text-slate-500 disabled:opacity-50 disabled:cursor-default
+                      ${isLoading ? '' : 'hover:bg-slate-100 hover:text-slate-700'}
+                  `}
                   aria-label="retry"
                 >
-                  <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+                  <RefreshCw size={14} />
                 </button>
-                <ToolTip text="재추천" />
+                {!isLoading && <ToolTip text="재추천" />}
               </div>
             </>
           )}
@@ -290,7 +349,7 @@ export default function AiGeneration({ mode, contentType, content, onApply }: Ai
           )}
 
           {!isLoading && !errorMsg && results.length === 0 && (
-            <div className="px-2 py-6 text-center text-xs text-slate-400">추천 결과가 없어요.</div>
+            <div className="px-2 py-6 text-center text-xs text-slate-400">추천 결과가 없어요</div>
           )}
 
           {results.map((r, i) => {

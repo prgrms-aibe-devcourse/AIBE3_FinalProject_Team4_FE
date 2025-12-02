@@ -150,7 +150,7 @@ export default function UnsplashImagePicker({
       </div>
 
       {isError && (
-        <div className="mb-3 text-sm text-red-500">
+        <div className="mb-3 text-xs text-red-500">
           {(error as Error)?.message || '오류가 발생했습니다.'}
         </div>
       )}
@@ -216,7 +216,7 @@ export default function UnsplashImagePicker({
             <div ref={sentinelRef} />
 
             {!isFetchingNextPage && searchKeyword && images.length > 0 && !shouldFetchMore && (
-              <div className="pt-8 pb-4 text-center text-sm text-gray-400">
+              <div className="pt-8 pb-4 text-center text-xs text-gray-400">
                 {images.length >= MAX_IMAGES
                   ? `최대 ${MAX_IMAGES}개까지 표시됩니다`
                   : '마지막 페이지입니다'}
@@ -224,13 +224,13 @@ export default function UnsplashImagePicker({
             )}
 
             {!searchKeyword && (
-              <div className="py-8 text-center text-sm text-gray-500">
-                검색어를 입력하고 검색을 눌러 이미지를 찾아보세요
+              <div className="py-8 text-center text-xs text-gray-500">
+                검색어를 입력하고 엔터를 눌러 이미지를 찾아보세요
               </div>
             )}
 
             {searchKeyword && images.length === 0 && (
-              <div className="py-8 text-center text-sm text-gray-500">검색 결과가 없습니다</div>
+              <div className="py-8 text-center text-xs text-gray-500">검색 결과가 없습니다</div>
             )}
           </>
         )}

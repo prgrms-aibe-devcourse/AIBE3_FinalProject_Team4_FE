@@ -13,6 +13,7 @@ interface ImageSelectorProps {
   blogId: number | null;
   blogImages: BlogImage[];
   thumbnailUrl: string | null;
+  blogContent: string;
   onChangeImages: (images: BlogFileDto[]) => void;
   onChangeThumbnail: (url: string | null) => void;
   ensureDraft: () => Promise<number>;
@@ -22,6 +23,7 @@ export default function ImageSelector({
   blogId,
   blogImages,
   thumbnailUrl,
+  blogContent,
   onChangeImages,
   onChangeThumbnail,
   ensureDraft,

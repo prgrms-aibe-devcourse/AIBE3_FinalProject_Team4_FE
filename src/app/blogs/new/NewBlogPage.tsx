@@ -300,6 +300,7 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
         <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
           <BlogMetaForm
             title={form.title}
+            content={form.contentMarkdown}
             onTitleChange={(v) => update('title', v)}
             tags={form.tags}
             onTagsChange={(tags) => update('tags', tags)}
@@ -322,6 +323,7 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
             blogId={blogId}
             blogImages={blogImages}
             thumbnailUrl={thumbnailUrl}
+            blogContent={form.contentMarkdown}
             onChangeImages={setBlogImages}
             onChangeThumbnail={setThumbnailUrl}
             ensureDraft={ensureDraft}
