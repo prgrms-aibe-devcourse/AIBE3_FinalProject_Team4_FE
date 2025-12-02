@@ -13,7 +13,7 @@ interface ImageSelectorProps {
   blogId: number | null;
   blogImages: BlogImage[];
   thumbnailUrl: string | null;
-  blogContent: string;
+  blogContent?: string;
   onChangeImages: (images: BlogFileDto[]) => void;
   onChangeThumbnail: (url: string | null) => void;
   ensureDraft: () => Promise<number>;
@@ -295,6 +295,7 @@ export default function ImageSelector({
 
           {selectedTab === 'unsplash' && (
             <UnsplashImagePicker
+              blogContent={blogContent}
               searchKeyword={unsplashSearchKeyword}
               onSearchKeywordChange={setUnsplashSearchKeyword}
               selectedImage={selectedImage}
@@ -310,6 +311,7 @@ export default function ImageSelector({
 
           {selectedTab === 'google' && (
             <UnsplashImagePicker
+              blogContent={blogContent}
               searchKeyword={googleSearchKeyword}
               onSearchKeywordChange={setGoogleSearchKeyword}
               selectedImage={selectedImage}
@@ -320,7 +322,6 @@ export default function ImageSelector({
                 setOriginalImage(url);
                 setImageSourceType('url');
               }}
-              apiEndpoint="google"
             />
           )}
         </div>

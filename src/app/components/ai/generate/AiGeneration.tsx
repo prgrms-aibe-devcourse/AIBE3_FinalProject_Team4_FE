@@ -215,7 +215,7 @@ export default function AiGeneration({
       <div
         className={[
           'relative group inline-flex', // 기존 tooltip group용
-          // ✅ revealOnHover일 때: 닫혀있으면 숨김, 부모 hover 시 보임
+          // revealOnHover일 때: 닫혀있으면 숨김, 부모 hover 시 보임
           revealOnHover
             ? isExpanded
               ? 'opacity-100 scale-100'
@@ -237,7 +237,7 @@ export default function AiGeneration({
             'group inline-flex h-7 items-center rounded-2xl border border-slate-200 bg-white font-medium text-main shadow-sm',
             'transition-all duration-200 ease-out hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]',
             // 폭 자동으로 늘어나게 padding을 기본/hover로 다르게
-            isLoading ? 'px-2 cursor-default' : 'pl-2 pr-1 hover:w-auto hover:px-3',
+            isLoading ? 'px-2 cursor-default' : 'pl-2 pr-1 hover:w-auto',
           ].join(' ')}
         >
           {isLoading ? (
@@ -252,7 +252,7 @@ export default function AiGeneration({
                   'text-xs ml-1 overflow-hidden whitespace-nowrap',
                   'max-w-0 opacity-0',
                   'transition-all duration-200 ease-out',
-                  'group-hover:max-w-[160px] group-hover:opacity-100',
+                  'group-hover:max-w-[160px] group-hover:opacity-100 group-hover:mr-2',
                 ].join(' ')}
               >
                 {tooltipText}
@@ -340,7 +340,7 @@ export default function AiGeneration({
                   tabIndex={-1}
                   aria-label="입력 지우기"
                 >
-                  <X size={14} />
+                  <X size={12} />
                 </button>
               </div>
 
