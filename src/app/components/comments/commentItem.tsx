@@ -4,7 +4,7 @@ import { requireAuth } from '@/src/lib/auth';
 import { timeAgo } from '@/src/utils/timeAgo';
 import { Heart, MoreHorizontal } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { CommentType } from '../comments/types/comment';
+import { CommentType } from '../../../types/comment';
 
 interface CommentItemProps {
   comment: CommentType;
