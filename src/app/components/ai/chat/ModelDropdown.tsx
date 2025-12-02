@@ -56,7 +56,7 @@ export default function ModelDropdown({
           ) : (
             <BotOff size={20} strokeWidth={1.2} />
           )}
-          <span className="ml-1 text-[12.5px] font-light text-slate-700 whitespace-nowrap">
+          <span className="ml-1 text-[12.5px] text-slate-700 whitespace-nowrap">
             {selected.label}
           </span>
           {direction === 'up' ? (
@@ -97,7 +97,7 @@ export default function ModelDropdown({
                   ) : (
                     <BotOff size={16} strokeWidth={1.2} />
                   )}
-                  <span className="font-light mr-2">{opt.label}</span>
+                  <span className="mr-2">{opt.label}</span>
                 </button>
                 {/* 옵션이 enabled=false(오늘 한도 도달)일 때 Tooltip */}
                 {!opt.enabled && <Tooltip text="오늘 한도 도달" side="right" />}

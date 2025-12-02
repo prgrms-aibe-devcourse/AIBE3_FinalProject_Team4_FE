@@ -14,7 +14,7 @@ export default function ChatBubble({ role, text, children }: Props) {
       <div
         className={`
           ${isUser ? 'max-w-[85%] bg-[#E9EEF6] px-4 py-1 rounded-2xl' : 'w-full bg-transparent m-2'}
-          text-[15px] leading-relaxed font-extralight
+          text-[15px] leading-relaxed
           break-words [overflow-wrap:anywhere]
         `}
       >
