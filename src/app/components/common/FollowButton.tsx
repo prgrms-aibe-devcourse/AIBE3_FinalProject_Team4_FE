@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useCurrentUser } from '@/src/api/hooks/useCurrentUser';
 import { useFollowStatus, useFollowMutation } from '@/src/api/hooks/useFollow';
+import { showGlobalToast } from '@/src/lib/toastStore';
 import LoadingSpinner from './LoadingSpinner';
 
 interface FollowButtonProps {
@@ -43,12 +44,7 @@ export default function FollowButton({
   const handleToggleFollow = async () => {
     // 로그인 확인
     if (!currentUser) {
-      const confirmLogin = window.confirm(
-        '팔로우 기능은 로그인이 필요합니다.\n로그인 페이지로 이동하시겠습니까?'
-      );
-      if (confirmLogin) {
-        router.push('/auth/login');
-      }
+      showGlobalToast('로그인이 필요한 기능입니다.', 'warning');
       return;
     }
 
@@ -57,9 +53,11 @@ export default function FollowButton({
 
       if (previousState) {
         await unfollowMutation.mutateAsync();
+        showGlobalToast('언팔로우했습니다.', 'success');
         onFollowChange?.(false);
       } else {
         await followMutation.mutateAsync();
+        showGlobalToast('팔로우했습니다.', 'success');
         onFollowChange?.(true);
       }
     } catch (error) {

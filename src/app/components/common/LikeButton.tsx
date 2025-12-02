@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Heart } from 'lucide-react';
 import { addLike, removeLike, getLikeStatus } from '@/src/api/shorlogLikeApi';
 import { handleApiError } from '@/src/lib/handleApiError';
+import { showGlobalToast } from '@/src/lib/toastStore';
 
 interface LikeButtonProps {
   shorlogId: number;
@@ -73,12 +74,7 @@ export default function LikeButton({
   const handleToggleLike = async () => {
     // 로그인 확인
     if (!isLoggedIn) {
-      const confirmLogin = window.confirm(
-        '좋아요 기능은 로그인이 필요합니다.\n로그인 페이지로 이동하시겠습니까?'
-      );
-      if (confirmLogin) {
-        router.push('/auth/login');
-      }
+      showGlobalToast('로그인이 필요한 기능입니다.', 'warning');
       return;
     }
 
@@ -102,6 +98,13 @@ export default function LikeButton({
       setIsLiked(result.isLiked);
       setLikeCount(result.likeCount);
       onLikeChange?.(result.isLiked, result.likeCount);
+
+      // 토스트 알림 표시
+      if (result.isLiked) {
+        showGlobalToast('좋아요를 눌렀습니다.', 'success');
+      } else {
+        showGlobalToast('좋아요를 취소했습니다.', 'success');
+      }
 
       // 애니메이션 완료 후 상태 초기화
       setTimeout(() => setIsAnimating(false), 300);

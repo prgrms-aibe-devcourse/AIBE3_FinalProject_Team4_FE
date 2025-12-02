@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Bookmark } from 'lucide-react';
 import { addBookmark, removeBookmark, getBookmarkStatus } from '@/src/api/shorlogBookmarkApi';
 import { handleApiError } from '@/src/lib/handleApiError';
+import { showGlobalToast } from '@/src/lib/toastStore';
 
 interface BookmarkButtonProps {
   shorlogId: number;
@@ -74,12 +75,7 @@ export default function BookmarkButton({
   const handleToggleBookmark = async () => {
     // 로그인 확인
     if (!isLoggedIn) {
-      const confirmLogin = window.confirm(
-        '북마크 기능은 로그인이 필요합니다.\n로그인 페이지로 이동하시겠습니까?'
-      );
-      if (confirmLogin) {
-        router.push('/auth/login');
-      }
+      showGlobalToast('로그인이 필요한 기능입니다.', 'warning');
       return;
     }
 
@@ -102,6 +98,13 @@ export default function BookmarkButton({
       setIsBookmarked(result.isBookmarked);
       setBookmarkCount(result.bookmarkCount);
       onBookmarkChange?.(result.isBookmarked, result.bookmarkCount);
+
+      // 토스트 알림 표시
+      if (result.isBookmarked) {
+        showGlobalToast('북마크에 추가했습니다.', 'success');
+      } else {
+        showGlobalToast('북마크에서 제거했습니다.', 'success');
+      }
     } catch (error) {
       handleApiError(error, '북마크 처리');
     } finally {
