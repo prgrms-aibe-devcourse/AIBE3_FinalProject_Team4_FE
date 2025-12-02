@@ -1,19 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { showGlobalToast } from '@/src/lib/toastStore';
+import React, { useEffect, useState } from 'react';
+import { createDraft, deleteDraft, DraftResponse, getDraft, getDrafts } from '../api';
+import DraftManagerModal from '../DraftManagerModal';
+import { useFreeImageModal } from '../hooks/useFreeImageModal';
+import { useHashtag } from '../hooks/useHashtag';
+import { useShorlogCreate } from '../hooks/useShorlogCreate';
 import { MAX_FILES } from '../types';
-import WizardHeader from './WizardHeader';
-import ThumbnailSelectStep from './ThumbnailSelectStep';
-import ImageEditStep from './ImageEditStep';
 import ContentComposeStep from './ContentComposeStep';
 import FreeImageSelectModal from './FreeImageSelectModal';
+import ImageEditStep from './ImageEditStep';
 import ShorlogConnectBlogModal from './ShorlogConnectBlogModal';
-import DraftManagerModal from '../DraftManagerModal';
-import { useShorlogCreate } from '../hooks/useShorlogCreate';
-import { useHashtag } from '../hooks/useHashtag';
-import { useFreeImageModal } from '../hooks/useFreeImageModal';
-import { getDrafts, getDraft, deleteDraft, createDraft, DraftResponse } from '../api';
-import { showGlobalToast } from '@/src/lib/toastStore';
+import ThumbnailSelectStep from './ThumbnailSelectStep';
+import WizardHeader from './WizardHeader';
 
 export default function ShorlogCreateWizard() {
   const [content, setContent] = useState('');
@@ -81,7 +81,10 @@ export default function ShorlogCreateWizard() {
 
       // 5개 제한 확인
       if (drafts.length >= 5) {
-        showGlobalToast('임시저장이 5개로 가득 찼어요. 기존 임시저장을 삭제한 후 다시 시도해주세요.', 'warning');
+        showGlobalToast(
+          '임시저장이 5개로 가득 찼어요. 기존 임시저장을 삭제한 후 다시 시도해주세요.',
+          'warning',
+        );
         setIsDraftLoading(false);
         setShowDraftModal(true); // 모달 열어서 삭제할 수 있게
         return;
@@ -92,7 +95,7 @@ export default function ShorlogCreateWizard() {
         throw new Error('이미지 업로드에 실패했습니다.');
       }
 
-      const imageIds = uploadedImages.map(img => img.id);
+      const imageIds = uploadedImages.map((img) => img.id);
 
       await createDraft({
         content: content || '',
@@ -209,10 +212,10 @@ export default function ShorlogCreateWizard() {
     );
   };
 
-  // Google 이미지 선택
-  const handleGoogleImagesSelect = async (selectedUrls: string[]) => {
+  // Pixabay 이미지 선택
+  const handlePixabayImagesSelect = async (selectedUrls: string[]) => {
     shorlogCreate.setError(null);
-    await freeImage.handleGoogleImagesSelect(
+    await freeImage.handlePixabayImagesSelect(
       selectedUrls,
       shorlogCreate.images,
       shorlogCreate.setImages,
@@ -235,7 +238,7 @@ export default function ShorlogCreateWizard() {
             onAddFiles={shorlogCreate.addFiles}
             onNext={handleNextFromStep1}
             onUnsplashPhoto={freeImage.handleUnsplashPhoto}
-            onGooglePhoto={freeImage.handleGooglePhoto}
+            onPixabayPhoto={freeImage.handlePixabayPhoto}
           />
         )}
 
@@ -285,11 +288,11 @@ export default function ShorlogCreateWizard() {
           />
         )}
 
-        {freeImage.showGoogleModal && (
+        {freeImage.showPixabayModal && (
           <FreeImageSelectModal
-            apiType="google"
-            onSelect={handleGoogleImagesSelect}
-            onClose={() => freeImage.setShowGoogleModal(false)}
+            apiType="pixabay"
+            onSelect={handlePixabayImagesSelect}
+            onClose={() => freeImage.setShowPixabayModal(false)}
             maxSelect={MAX_FILES - shorlogCreate.images.length}
           />
         )}
