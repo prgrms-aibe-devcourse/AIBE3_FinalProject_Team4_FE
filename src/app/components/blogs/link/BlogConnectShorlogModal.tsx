@@ -13,6 +13,7 @@ type BlogConnectShorlogModalProps = {
   onClose: () => void;
   onLinked?: (res: BlogShorlogLinkResponse) => void;
   onSkip?: () => void;
+  showCreateShorlogCta?: boolean;
   onCreateNewShorlog?: () => void;
 };
 
@@ -22,6 +23,7 @@ export default function BlogConnectShorlogModal({
   onClose,
   onLinked,
   onSkip,
+  showCreateShorlogCta=true,
   onCreateNewShorlog,
 }: BlogConnectShorlogModalProps) {
   const [recentShorlogs, setRecentShorlogs] = useState<MyShorlogSummary[]>([]);
@@ -115,7 +117,6 @@ export default function BlogConnectShorlogModal({
             <p className="text-sm font-semibold text-slate-700">최근 숏로그 중에서 선택</p>
             <div className="ml-3 h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent" />
           </div>
-
           {/* 최근 숏로그 리스트 */}
           <div className="mb-5 max-h-60 overflow-y-auto space-y-3 pr-1 scroll-smooth">
             {loading && (
@@ -192,9 +193,8 @@ export default function BlogConnectShorlogModal({
 
             {!loading && recentShorlogs.length === 0 && (
               <div className="relative rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-6 text-center">
-                <div className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-slate-100 px-3 py-1">
-                  <span className="text-xs text-slate-500">📝</span>
-                </div>
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-slate-100 px-3 py-1"></div>
+                <span className="text-xs text-slate-500">📝</span>
                 <div className="pt-2">
                   <p className="mb-1 text-sm font-medium text-slate-600">
                     아직 작성된 숏로그가 없어요
@@ -206,7 +206,7 @@ export default function BlogConnectShorlogModal({
               </div>
             )}
           </div>
-
+          {showCreateShorlogCta && onCreateNewShorlog && (
           <button
             type="button"
             onClick={onCreateNewShorlog}
@@ -215,6 +215,7 @@ export default function BlogConnectShorlogModal({
             <span className="mr-1.5 text-lg">+</span>
             <span>새 숏로그 작성하기</span>
           </button>
+          ) }
         </div>
 
         <div className="h-px bg-slate-200" />

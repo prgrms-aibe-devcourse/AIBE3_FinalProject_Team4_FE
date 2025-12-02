@@ -12,11 +12,16 @@ import { BlogDetailHeader } from '@/src/app/components/blogs/detail/BlogDetailHe
 import { BlogReactionBar } from '@/src/app/components/blogs/detail/BlogReactionBar';
 import { handleApiError } from '@/src/lib/handleApiError';
 import { showGlobalToast } from '@/src/lib/toastStore';
-import type { BlogDetailDto, LinkedShorlogSummary } from '@/src/types/blog';
+import type {
+  BlogDetailDto,
+  BlogShorlogLinkResponse,
+  LinkedShorlogSummary,
+} from '@/src/types/blog';
 import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { LinkedShorlogListModal } from '../../components/blogs/detail/LinkedShorlogModal';
+import BlogConnectShorlogModal from '../../components/blogs/link/BlogConnectShorlogModal';
 
 type Props = {
   initialData: BlogDetailDto;
@@ -45,7 +50,11 @@ export default function BlogDetailClient({
   const [linkedOpen, setLinkedOpen] = useState(false);
   const [linkedLoading, setLinkedLoading] = useState(false);
   const [linkedItems, setLinkedItems] = useState<LinkedShorlogSummary[]>([]);
-
+  const [connectModalOpen, setConnectModalOpen] = useState(false);
+  const [hasLinkedShorlogs, setHasLinkedShorlogs] = useState(
+    initialData.hasLinkedShorlogs ?? false,
+  );
+  const [linkedShorlogCount, setLinkedShorlogCount] = useState(initialData.linkedShorlogCount ?? 0);
   // 조회수 증가
   useEffect(() => {
     let cancelled = false;
@@ -140,7 +149,17 @@ export default function BlogDetailClient({
       setLinkedLoading(false);
     }
   };
+  //
+  const handleOpenConnectShorlog = () => {
+    if (!isOwner) return; // 혹시 모를 방어
+    setConnectModalOpen(true);
+  };
 
+  // 연결 완료 후 블로그 상태에 연결 정보 반영
+  const handleLinkedShorlog = (res: BlogShorlogLinkResponse) => {
+    setHasLinkedShorlogs(res.haveLink);
+    setLinkedShorlogCount(res.linkedCount);
+  };
   return (
     <>
       {/* 연결된 숏로그 리스트 모달 */}
@@ -158,7 +177,7 @@ export default function BlogDetailClient({
           initialIsFollowing={initialIsFollowing}
           onDelete={onDelete}
           onEdit={onEdit}
-          onConnectShorlog={() => alert('숏로그 연결 예정')}
+          onConnectShorlog={handleOpenConnectShorlog}
         />
 
         {/* 본문 */}
@@ -184,14 +203,11 @@ export default function BlogDetailClient({
 
         {/* 리액션 바 */}
         <BlogReactionBar
-          blog={{
-            ...blog,
-            viewCount,
-            likeCount,
-            bookmarkCount,
-            isLiked,
-            isBookmarked,
-          }}
+          blog={{ ...blog, hasLinkedShorlogs, linkedShorlogCount }}
+          isLiked={isLiked}
+          likeCount={likeCount}
+          isBookmarked={isBookmarked}
+          bookmarkCount={bookmarkCount}
           onToggleLike={handleToggleLike}
           onToggleBookmark={handleToggleBookmark}
           onOpenLinkedShorlogs={handleOpenLinkedShorlogs}
@@ -201,6 +217,14 @@ export default function BlogDetailClient({
           }}
         />
       </article>
+      <BlogConnectShorlogModal
+        isOpen={connectModalOpen}
+        blogId={blog.id}
+        onClose={() => setConnectModalOpen(false)}
+        onLinked={handleLinkedShorlog}
+        showCreateShorlogCta={false}
+        onCreateNewShorlog={() => {}}
+      />
     </>
   );
 }

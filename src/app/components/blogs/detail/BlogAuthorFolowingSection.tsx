@@ -59,7 +59,7 @@ export function BlogAuthorFollowSection({ blog, isOwner, initialIsFollowing }: P
             followLoading ? 'opacity-70 cursor-not-allowed' : '',
           ].join(' ')}
         >
-          {isFollowing ? '팔로잉 중' : '팔로잉'}
+          {isFollowing ? '팔로잉' : '팔로우'}
         </button>
       )}
     </div>
