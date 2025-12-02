@@ -204,6 +204,10 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
       <ProfileEditModal
         isOpen={editOpen}
         onClose={() => setEditOpen(false)}
+        onSave={async () => {
+          await refreshUser();
+          router.refresh();
+        }}
         profile={{
           id: profile.id,
           nickname: profile.nickname,
