@@ -12,6 +12,11 @@ const nextConfig = {
         hostname: 'next5-dev-images.s3.ap-northeast-2.amazonaws.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'hm-dev-images.s3.ap-northeast-2.amazonaws.com',
+        pathname: '/**',
+      },
     ],
   },
   eslint: {
