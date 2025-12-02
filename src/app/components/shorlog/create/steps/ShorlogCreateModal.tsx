@@ -4,7 +4,11 @@ import { useState } from 'react';
 import ShorlogCreateWizard from './ShorlogCreateWizard';
 import ShorlogDetailModalWrapper from '../../detail/ShorlogDetailModalWrapper';
 
-export default function ShorlogCreateModal() {
+interface ShorlogCreateModalProps {
+  blogId?: number | null;
+}
+
+export default function ShorlogCreateModal({ blogId }: ShorlogCreateModalProps) {
   const [showConfirmExit, setShowConfirmExit] = useState(false);
 
   const handleRequestClose = () => setShowConfirmExit(true);
@@ -14,7 +18,7 @@ export default function ShorlogCreateModal() {
   return (
     <ShorlogDetailModalWrapper onRequestClose={handleRequestClose}>
       <div className="relative flex h-full w-full overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-black/5">
-        <ShorlogCreateWizard />
+        <ShorlogCreateWizard blogId={blogId} />
 
         {showConfirmExit && (
           <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/30">

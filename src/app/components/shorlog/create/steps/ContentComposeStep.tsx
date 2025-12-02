@@ -168,7 +168,7 @@ export default function ContentComposeStep({
                 <span>{isBlogConverting ? '블로그 요약 중...' : '📝 블로그 → 숏로그 변환'}</span>
               </button>
               <p className="mt-1.5 text-center text-[10px] text-slate-400">
-                최근 작성한 블로그 내용을 숏로그로 요약해요
+                연결된 블로그 내용을 AI로 요약하여 숏로그로 변환해요
               </p>
             </div>
           )}

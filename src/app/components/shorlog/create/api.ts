@@ -138,6 +138,12 @@ export async function callAiApi(params: {
     }
 
     const result = await response.json();
+
+    // 백엔드 응답 성공 여부 체크 (200-1 등의 성공 코드)
+    if (!result.resultCode || !result.resultCode.startsWith('200')) {
+      throw new Error(`AI API 오류: ${result.msg || '알 수 없는 오류'}`);
+    }
+
     return result;
   } catch (error) {
     if (error instanceof TypeError && error.message === 'Failed to fetch') {
