@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { deleteShorlog } from '@/src/app/components/shorlog/edit/api';
 import { showGlobalToast } from '@/src/lib/toastStore';
 import FollowButton from '../../common/FollowButton';
+import ShorlogBlogLinkModal from '../link/ShorlogBlogLinkModal';
+
 
 interface Props {
   username: string;
@@ -13,6 +15,7 @@ interface Props {
   isOwner?: boolean;
   shorlogId?: number;
   userId?: number;
+  onBlogConnectionUpdate?: () => void;
 }
 
 export default function ShorlogAuthorHeader({
@@ -22,10 +25,12 @@ export default function ShorlogAuthorHeader({
   isOwner = false,
   shorlogId,
   userId,
+  onBlogConnectionUpdate,
 }: Props) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showBlogLinkModal, setShowBlogLinkModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -45,7 +50,11 @@ export default function ShorlogAuthorHeader({
       return;
     }
 
-    // TODO: 블로그 연결 기능 구현
+    if (action === '블로그 연결') {
+      setShowBlogLinkModal(true);
+      return;
+    }
+
     showGlobalToast(`${action} 기능은 추후 제공될 예정입니다.`, 'warning');
   };
 
@@ -164,6 +173,23 @@ export default function ShorlogAuthorHeader({
             </div>
           </div>
         </div>
+      )}
+
+      {/* 블로그 연결 관리 모달 */}
+      {shorlogId && (
+        <ShorlogBlogLinkModal
+          isOpen={showBlogLinkModal}
+          shorlogId={shorlogId}
+          onClose={() => setShowBlogLinkModal(false)}
+          onLinked={() => {
+            showGlobalToast('블로그와 연결되었어요!', 'success');
+            onBlogConnectionUpdate?.();
+          }}
+          onUnlinked={() => {
+            showGlobalToast('블로그 연결이 해제되었어요.', 'success');
+            onBlogConnectionUpdate?.();
+          }}
+        />
       )}
     </div>
   );

@@ -7,7 +7,7 @@ import ThumbnailSelectStep from '../../create/steps/ThumbnailSelectStep';
 import ImageEditStep from '../../create/steps/ImageEditStep';
 import ContentComposeStep from '../../create/steps/ContentComposeStep';
 import FreeImageSelectModal from '../../create/steps/FreeImageSelectModal';
-import ShorlogConnectBlogModal from '../../create/steps/ShorlogConnectBlogModal';
+
 import { useShorlogEdit } from '../hooks/useShorlogEdit';
 import { useHashtag } from '../../create/hooks/useHashtag';
 import { useFreeImageModal } from '../../create/hooks/useFreeImageModal';
@@ -20,7 +20,6 @@ interface ShorlogEditWizardProps {
 
 export default function ShorlogEditWizard({ shorlogId, initialData }: ShorlogEditWizardProps) {
   const [content, setContent] = useState(initialData.content);
-  const [linkedBlogTitle, setLinkedBlogTitle] = useState<string | undefined>();
 
   // 커스텀 훅 사용
   const shorlogEdit = useShorlogEdit(shorlogId, initialData);
@@ -82,14 +81,7 @@ export default function ShorlogEditWizard({ shorlogId, initialData }: ShorlogEdi
     );
   };
 
-  // 블로그 연결 선택
-  const handleSelectBlog = async (blogId: number) => {
-    await shorlogEdit.handleConnectBlog(blogId);
-    const blog = shorlogEdit.recentBlogs.find(b => b.id === blogId);
-    if (blog) {
-      setLinkedBlogTitle(blog.title);
-    }
-  };
+
 
   // --------- 렌더 ---------
   return (
@@ -140,10 +132,6 @@ export default function ShorlogEditWizard({ shorlogId, initialData }: ShorlogEdi
             onSubmit={handleSubmit}
             isSubmitting={shorlogEdit.isSubmitting}
             isEditMode={true}
-            linkedBlogId={shorlogEdit.linkedBlogId}
-            linkedBlogTitle={linkedBlogTitle}
-            onDisconnectBlog={shorlogEdit.handleDisconnectBlog}
-            onConnectBlog={shorlogEdit.handleOpenBlogConnectModal}
           />
         )}
 
@@ -165,18 +153,7 @@ export default function ShorlogEditWizard({ shorlogId, initialData }: ShorlogEdi
           />
         )}
 
-        {/* 블로그 연결 모달 */}
-        <ShorlogConnectBlogModal
-          isOpen={shorlogEdit.showBlogConnectModal}
-          recentBlogs={shorlogEdit.recentBlogs}
-          onSelectBlog={handleSelectBlog}
-          onCreateNewBlog={() => {
-            shorlogEdit.setShowBlogConnectModal(false);
-            // TODO: 블로그 생성 페이지로 이동
-          }}
-          onSkip={() => shorlogEdit.setShowBlogConnectModal(false)}
-          isEditMode={true}
-        />
+
 
         {shorlogEdit.error && (
           <p className="pointer-events-none absolute bottom-3 left-4 text-xs text-red-500 md:left-6 lg:left-8">
