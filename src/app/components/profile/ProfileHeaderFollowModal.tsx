@@ -1,5 +1,7 @@
-// components/profile/FollowModal.tsx
 'use client';
+
+import { useEffect, useState } from 'react';
+import FollowListItem from './FollowListItem';
 
 interface FollowModalProps {
   isOpen: boolean;
@@ -11,6 +13,7 @@ interface FollowModalProps {
   nickname: string;
   followingCount: number;
   followersCount: number;
+  myId: number;
 }
 
 export default function FollowModal({
@@ -23,25 +26,38 @@ export default function FollowModal({
   nickname,
   followingCount,
   followersCount,
+  myId,
 }: FollowModalProps) {
+  const [localList, setLocalList] = useState(list);
+
+  useEffect(() => {
+    setLocalList(list);
+  }, [list]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-      <div className="bg-white w-full max-w-[420px] rounded-2xl shadow-xl overflow-hidden flex flex-col h-[500px]">
-        {/* 상단 헤더 */}
-        <div className="flex items-center justify-center px-4 py-5 relative flex-shrink-0">
+    <div
+      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4"
+      onClick={onClose} // 오버레이 클릭 시 닫기
+    >
+      <div
+        className="bg-white w-full max-w-[420px] rounded-2xl shadow-xl overflow-hidden flex flex-col h-[500px]"
+        onClick={(e) => e.stopPropagation()} // 내부 클릭 시 닫기 방지
+      >
+        {/* 헤더 */}
+        <div className="flex items-center justify-center px-4 py-5 relative">
           <h2 className="text-xl font-bold">{nickname}</h2>
           <button
-            onClick={onClose}
             className="absolute right-4 text-2xl text-slate-500 hover:text-slate-900"
+            onClick={onClose}
           >
             ✕
           </button>
         </div>
 
         {/* 탭 */}
-        <div className="flex justify-center gap-8 border-b border-slate-200 text-sm flex-shrink-0">
+        <div className="flex justify-center gap-8 border-b border-slate-200">
           <button
             onClick={() => onTabChange('following')}
             className={`py-3 px-8 ${
@@ -61,37 +77,16 @@ export default function FollowModal({
           </button>
         </div>
 
-        {/* 리스트 영역 */}
+        {/* 리스트 */}
         <div className="px-10 py-4 overflow-y-auto flex-1">
           {loading ? (
             <div className="py-10 text-center text-sm text-slate-500">불러오는 중…</div>
-          ) : list.length === 0 ? (
+          ) : localList.length === 0 ? (
             <div className="py-10 text-center text-sm text-slate-500">목록이 없습니다.</div>
           ) : (
             <ul className="space-y-4">
-              {list.map((user: any) => (
-                <li key={user.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={user.profileImgUrl || '/tmpProfile.png'}
-                      alt={`${user.nickname} 프로필`}
-                      className="w-12 h-12 rounded-full object-cover bg-slate-200"
-                    />
-                    <div>
-                      <p className="font-semibold text-[15px]">{user.nickname}</p>
-                    </div>
-                  </div>
-
-                  <button
-                    className={`px-4 py-1.5 rounded-md text-xs ${
-                      user.isFollowing
-                        ? 'bg-slate-300 hover:bg-slate-400 text-slate-700'
-                        : 'bg-[#2979FF] hover:bg-[#1f62cc] text-white'
-                    }`}
-                  >
-                    {user.isFollowing ? '팔로잉' : '팔로우'}
-                  </button>
-                </li>
+              {localList.map((user) => (
+                <FollowListItem key={user.id} user={user} myId={myId} />
               ))}
             </ul>
           )}

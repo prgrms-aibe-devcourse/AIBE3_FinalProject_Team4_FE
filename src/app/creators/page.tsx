@@ -1,5 +1,6 @@
 import type { Creator } from '@/src/app/components/creators/CreatorCard';
 import CreatorGrid from '@/src/app/components/creators/CreatorGrid';
+import { getSessionUser } from '@/src/lib/getSessionUser';
 import { cookies } from 'next/headers';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -7,11 +8,14 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 export default async function CreatorsPage() {
   const creators = await fetchCreators();
 
+  const sessionUser = await getSessionUser();
+  const myId = sessionUser?.id ?? 0;
+
   return (
     <main className="flex justify-center px-4 py-10">
       <div className="w-full max-w-[900px]">
         <h1 className="text-2xl font-bold mb-6">인기 크리에이터</h1>
-        <CreatorGrid creators={creators} />
+        <CreatorGrid creators={creators} myId={myId} />
       </div>
     </main>
   );

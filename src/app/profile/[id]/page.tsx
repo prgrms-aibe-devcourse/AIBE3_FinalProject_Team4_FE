@@ -26,7 +26,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       <div className="flex">
         <main className="flex-1 min-h-screen">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8">
-            <ProfileHeader profile={profile} isMyPage={isMyPage} />
+            <ProfileHeader profile={profile} isMyPage={isMyPage} myId={Number(currentUserId)} />
             <div className="mt-8">
               <ProfileContent userId={id} isMyPage={isMyPage} />
             </div>
