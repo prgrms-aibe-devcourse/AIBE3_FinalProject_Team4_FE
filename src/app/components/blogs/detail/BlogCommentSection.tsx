@@ -9,7 +9,7 @@ import {
   unlikeBlogComment,
 } from '@/src/api/BlogComments';
 import BlogCommentList from '@/src/app/components/comments/BlogCommentList';
-import { requireAuth } from '@/src/lib/auth';
+import { useRequireAuth } from '@/src/hooks/userRequireAuth';
 import { useEffect, useState } from 'react';
 
 interface Props {
@@ -20,6 +20,8 @@ export default function BlogCommentSection({ blogId }: Props) {
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const requireAuth = useRequireAuth();
 
   /** 댓글 불러오기 */
   const fetchComments = async () => {
@@ -40,7 +42,7 @@ export default function BlogCommentSection({ blogId }: Props) {
 
   /** 최상위 댓글 작성 */
   const handleCommentSubmit = async () => {
-    if (!(await requireAuth('댓글 작성'))) return;
+    if (!requireAuth('댓글 작성')) return;
     if (!commentText.trim()) return alert('댓글을 입력해주세요.');
 
     try {
@@ -54,7 +56,7 @@ export default function BlogCommentSection({ blogId }: Props) {
 
   /** 대댓글 작성 */
   const handleReply = async (parentId: number, replyText: string) => {
-    if (!(await requireAuth('답글 작성'))) return;
+    if (!requireAuth('답글 작성')) return;
     if (!replyText.trim()) return alert('내용을 입력해주세요.');
 
     try {
@@ -67,7 +69,7 @@ export default function BlogCommentSection({ blogId }: Props) {
 
   /** 좋아요 / 취소 */
   const handleLike = async (commentId: number) => {
-    if (!(await requireAuth('좋아요'))) return;
+    if (!requireAuth('좋아요')) return;
 
     const target = findComment(commentId);
     if (!target) return;
@@ -126,19 +128,19 @@ export default function BlogCommentSection({ blogId }: Props) {
                     isLiked,
                     likeCount: isLiked ? child.likeCount + 1 : child.likeCount - 1,
                   }
-                : child
+                : child,
             ),
           };
         }
 
         return comment;
-      })
+      }),
     );
   };
 
   /** 댓글 수정 */
   const handleEdit = async (commentId: number, newContent: string) => {
-    if (!(await requireAuth('댓글 수정'))) return;
+    if (!requireAuth('댓글 수정')) return;
 
     try {
       await editBlogComment(commentId, newContent);
@@ -150,7 +152,7 @@ export default function BlogCommentSection({ blogId }: Props) {
 
   /** 댓글 삭제 */
   const handleDelete = async (commentId: number) => {
-    if (!(await requireAuth('댓글 삭제'))) return;
+    if (!requireAuth('댓글 삭제')) return;
 
     try {
       await deleteBlogComment(commentId);
@@ -162,9 +164,7 @@ export default function BlogCommentSection({ blogId }: Props) {
 
   return (
     <div className="mt-6">
-      <p className="mb-2 text-sm font-semibold text-slate-700">
-        댓글 {comments.length}개
-      </p>
+      <p className="mb-2 text-sm font-semibold text-slate-700">댓글 {comments.length}개</p>
 
       {/* 댓글 입력창 */}
       <div className="flex items-center gap-2 rounded-lg border bg-slate-50 px-3 py-2">

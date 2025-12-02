@@ -1,6 +1,6 @@
 'use client';
 
-import { requireAuth } from '@/src/lib/auth';
+import { useRequireAuth } from '@/src/hooks/userRequireAuth';
 import { CommentType } from '@/src/types/comment';
 import { timeAgo } from '@/src/utils/timeAgo';
 import { Heart, MoreHorizontal } from 'lucide-react';
@@ -29,10 +29,11 @@ export default function BlogCommentItem({
   const [replyMode, setReplyMode] = useState(false);
   const [replyText, setReplyText] = useState('');
 
-  // 좋아요 토글 
-  const handleLike = async () => {
-    if (!(await requireAuth('좋아요'))) return;
+  const requireAuth = useRequireAuth();
 
+  // 좋아요 토글
+  const handleLike = async () => {
+    if (!requireAuth('좋아요')) return;
     // 내 댓글이면 좋아요 금지
     if (comment.isMine) {
       alert('내 댓글에는 좋아요를 누를 수 없습니다.');
@@ -46,7 +47,7 @@ export default function BlogCommentItem({
     }
   };
 
-  // 수정 
+  // 수정
   const handleEditSubmit = async () => {
     if (!editText.trim()) return alert('내용을 입력해주세요');
 
@@ -54,7 +55,7 @@ export default function BlogCommentItem({
     setEditMode(false);
   };
 
-  // 삭제 
+  // 삭제
   const handleDelete = async () => {
     if (!confirm('정말 삭제하시겠습니까?')) return;
     await onDelete(comment.id);
@@ -83,14 +84,12 @@ export default function BlogCommentItem({
           <div className="flex items-center justify-between">
             <div>
               <span className="text-sm font-semibold">{comment.nickname}</span>
-              <span className="ml-2 text-xs text-slate-400">
-                {timeAgo(comment.createdAt)}
-              </span>
+              <span className="ml-2 text-xs text-slate-400">{timeAgo(comment.createdAt)}</span>
             </div>
 
             {comment.isMine && (
               <button
-                onClick={() => setMenuOpen(prev => !prev)}
+                onClick={() => setMenuOpen((prev) => !prev)}
                 className="p-1 hover:text-slate-700"
               >
                 <MoreHorizontal size={18} />
@@ -127,7 +126,7 @@ export default function BlogCommentItem({
               <input
                 className="flex-1 rounded border px-2 py-1 text-sm"
                 value={editText}
-                onChange={e => setEditText(e.target.value)}
+                onChange={(e) => setEditText(e.target.value)}
               />
               <button className="text-sm text-blue-600" onClick={handleEditSubmit}>
                 저장
@@ -150,12 +149,12 @@ export default function BlogCommentItem({
             </button>
 
             {depth === 0 && (
-            <button
-                onClick={() => setReplyMode(prev => !prev)}
+              <button
+                onClick={() => setReplyMode((prev) => !prev)}
                 className="text-xs text-slate-600 hover:text-slate-900"
-            >
+              >
                 답글 달기
-            </button>
+              </button>
             )}
           </div>
 
@@ -165,7 +164,7 @@ export default function BlogCommentItem({
               <input
                 className="flex-1 rounded border px-2 py-1 text-sm"
                 value={replyText}
-                onChange={e => setReplyText(e.target.value)}
+                onChange={(e) => setReplyText(e.target.value)}
                 placeholder="답글 입력..."
               />
               <button className="text-sm text-blue-600" onClick={handleReplySubmit}>
@@ -177,7 +176,7 @@ export default function BlogCommentItem({
           {/* 대댓글(depth 1) */}
           {comment.children.length > 0 && (
             <div className="mt-4 ml-6 border-l pl-4 space-y-4">
-              {comment.children.map(child => (
+              {comment.children.map((child) => (
                 <BlogCommentItem
                   key={child.id}
                   comment={child}
@@ -185,7 +184,7 @@ export default function BlogCommentItem({
                   onLike={onLike}
                   onEdit={onEdit}
                   onDelete={onDelete}
-                  depth={depth + 1} 
+                  depth={depth + 1}
                 />
               ))}
             </div>

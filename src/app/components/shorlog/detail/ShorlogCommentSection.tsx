@@ -9,7 +9,7 @@ import {
   unlikeComment,
 } from '@/src/api/ShorlogComments';
 import CommentList from '@/src/app/components/comments/ShorlogCommentList';
-import { requireAuth } from '@/src/lib/auth';
+import { useRequireAuth } from '@/src/hooks/userRequireAuth';
 import { showGlobalToast } from '@/src/lib/toastStore';
 import { useEffect, useState } from 'react';
 
@@ -22,6 +22,8 @@ export default function ShorlogCommentSection({ shorlogId, initialCommentCount }
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const requireAuth = useRequireAuth();
 
   /** 댓글 목록 불러오기 */
   const fetchComments = async () => {
@@ -42,15 +44,15 @@ export default function ShorlogCommentSection({ shorlogId, initialCommentCount }
 
   /** 댓글 입력창 포커스 */
   const handleCommentFocus = async () => {
-    if (!(await requireAuth('댓글 작성'))) {
+    if (!requireAuth('댓글 작성')) {
       (document.activeElement as HTMLElement)?.blur();
     }
   };
 
   /** 최상위 댓글 작성 */
   const handleCommentSubmit = async () => {
-    if (!(await requireAuth('댓글 작성'))) return;
-    
+    if (!requireAuth('댓글 작성')) return;
+
     if (!commentText.trim()) {
       showGlobalToast('댓글 내용을 입력해주세요.', 'warning');
       return;
@@ -68,7 +70,7 @@ export default function ShorlogCommentSection({ shorlogId, initialCommentCount }
 
   /** 대댓글 작성 */
   const handleReply = async (parentId: number, replyText: string) => {
-    if (!(await requireAuth('댓글 답글 작성'))) return;
+    if (!requireAuth('댓글 답글 작성')) return;
     if (!replyText.trim()) return;
 
     try {
@@ -82,7 +84,7 @@ export default function ShorlogCommentSection({ shorlogId, initialCommentCount }
 
   /** 좋아요 / 취소 */
   const handleLike = async (commentId: number) => {
-    if (!(await requireAuth('댓글 좋아요'))) return;
+    if (!requireAuth('댓글 좋아요')) return;
 
     const target = findComment(commentId);
     if (!target) return;
@@ -141,19 +143,19 @@ export default function ShorlogCommentSection({ shorlogId, initialCommentCount }
                     isLiked,
                     likeCount: isLiked ? child.likeCount + 1 : child.likeCount - 1,
                   }
-                : child
+                : child,
             ),
           };
         }
 
         return comment;
-      })
+      }),
     );
   };
 
   /** 댓글 수정 */
   const handleEdit = async (commentId: number, newContent: string) => {
-    if (!(await requireAuth('댓글 수정'))) return;
+    if (!requireAuth('댓글 수정')) return;
 
     try {
       await editComment(commentId, newContent);
@@ -166,7 +168,7 @@ export default function ShorlogCommentSection({ shorlogId, initialCommentCount }
 
   /** 댓글 삭제 */
   const handleDelete = async (commentId: number) => {
-    if (!(await requireAuth('댓글 삭제'))) return;
+    if (!requireAuth('댓글 삭제')) return;
 
     try {
       await deleteComment(commentId);
@@ -181,9 +183,7 @@ export default function ShorlogCommentSection({ shorlogId, initialCommentCount }
 
   return (
     <div>
-      <p className="mb-2 text-xs font-medium text-slate-500">
-        댓글 {totalCount}개
-      </p>
+      <p className="mb-2 text-xs font-medium text-slate-500">댓글 {totalCount}개</p>
 
       {/* 댓글 입력창 */}
       <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2">
