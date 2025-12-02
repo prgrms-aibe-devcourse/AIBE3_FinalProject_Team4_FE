@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useCurrentUser } from '@/src/hooks/useCurrentUser';
+import { useFollowStatus, useFollowMutation } from '@/src/hooks/useFollow';
 
 export type Creator = {
   id: number;
@@ -13,11 +15,39 @@ export type Creator = {
 };
 
 export default function CreatorCard({ creator }: { creator: Creator }) {
-  const [following, setFollowing] = useState(creator.isFollowing);
+  const router = useRouter();
 
-  const handleFollowToggle = () => {
-    setFollowing((prev) => !prev);
-    // TODO: API 연동 예정
+  // 현재 사용자 정보
+  const { data: currentUser } = useCurrentUser();
+
+  // 팔로우 상태 (서버에서 가져온 값 우선, 없으면 초기값 사용)
+  const { data: isFollowingFromServer } = useFollowStatus(creator.id, currentUser?.id ?? null);
+  const isFollowing = isFollowingFromServer ?? creator.isFollowing;
+
+  // 팔로우/언팔로우 뮤테이션
+  const { followMutation, unfollowMutation } = useFollowMutation(creator.id, currentUser?.id ?? null);
+
+  const handleFollowToggle = async () => {
+    // 로그인 확인
+    if (!currentUser) {
+      const confirmLogin = window.confirm(
+        '팔로우 기능은 로그인이 필요합니다.\n로그인 페이지로 이동하시겠습니까?'
+      );
+      if (confirmLogin) {
+        router.push('/auth/login');
+      }
+      return;
+    }
+
+    try {
+      if (isFollowing) {
+        await unfollowMutation.mutateAsync();
+      } else {
+        await followMutation.mutateAsync();
+      }
+    } catch (error) {
+      console.error('Follow toggle error:', error);
+    }
   };
 
   return (
@@ -55,24 +85,31 @@ export default function CreatorCard({ creator }: { creator: Creator }) {
           {/* 닉네임 */}
           <p className="mt-2 text-white font-semibold text-xl">{creator.nickname}</p>
 
-          {/* 팔로우 버튼 */}
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleFollowToggle();
-            }}
-            className={`
-              mt-3 w-32 py-1.5 rounded-md text-sm font-medium transition active:scale-[0.97] 
-              ${
-                following
-                  ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-                  : 'bg-[#2979FF] text-white hover:bg-blue-600'
+          {/* 팔로우 버튼 - 본인이 아닌 경우에만 표시 */}
+          {currentUser?.id !== creator.id && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleFollowToggle();
+              }}
+              disabled={followMutation.isPending || unfollowMutation.isPending}
+              className={`
+                mt-3 w-32 py-1.5 rounded-md text-sm font-medium transition active:scale-[0.97]
+                disabled:cursor-not-allowed disabled:opacity-50
+                ${
+                  isFollowing
+                    ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                    : 'bg-[#2979FF] text-white hover:bg-blue-600'
+                }
+              `}
+            >
+              {(followMutation.isPending || unfollowMutation.isPending)
+                ? (isFollowing ? '처리중...' : '처리중...')
+                : (isFollowing ? '팔로잉' : '팔로우')
               }
-            `}
-          >
-            {following ? '팔로잉' : '팔로우'}
-          </button>
+            </button>
+          )}
         </div>
       </div>
     </Link>

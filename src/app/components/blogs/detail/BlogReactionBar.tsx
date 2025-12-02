@@ -7,6 +7,14 @@ import { useState } from "react";
 
 type BlogReactionBarProps = {
   blog: BlogDetailDto;
+
+  /** UI를 제어하는 외부 상태 */
+  isLiked: boolean;
+  likeCount: number;
+  isBookmarked: boolean;
+  bookmarkCount: number;
+
+  /** 이벤트 핸들러 */
   onToggleLike?: () => void;
   onToggleBookmark?: () => void;
   onOpenLinkedShorlogs?: () => void;
@@ -15,6 +23,10 @@ type BlogReactionBarProps = {
 
 export function BlogReactionBar({
   blog,
+  isLiked,
+  likeCount,
+  isBookmarked,
+  bookmarkCount,
   onToggleLike,
   onToggleBookmark,
   onOpenLinkedShorlogs,
@@ -23,12 +35,8 @@ export function BlogReactionBar({
 
   const [openComments, setOpenComments] = useState(false);
 
-  const liked = Boolean(blog.isLiked);
-  const bookmarked = Boolean(blog.isBookmarked);
-
   return (
     <div className="border-t border-slate-100 bg-slate-50/60">
-
       {/* 반응 버튼 영역 */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 text-xs text-slate-500 sm:px-8">
         <div className="flex items-center gap-3">
@@ -39,13 +47,13 @@ export function BlogReactionBar({
             onClick={onToggleLike}
             className={[
               'inline-flex items-center gap-1 rounded-full border px-3 py-1 transition-colors',
-              liked
+              isLiked
                 ? 'border-rose-200 bg-rose-50 text-rose-600'
                 : 'border-slate-200 bg-white hover:border-rose-200 hover:text-rose-500',
             ].join(' ')}
           >
-            <Heart className="h-3.5 w-3.5" fill={liked ? 'currentColor' : 'none'} />
-            <span className="font-medium">{blog.likeCount}</span>
+            <Heart className="h-3.5 w-3.5" fill={isLiked ? 'currentColor' : 'none'} />
+            <span className="font-medium">{likeCount}</span>
           </button>
 
           {/* 북마크 */}
@@ -54,13 +62,17 @@ export function BlogReactionBar({
             onClick={onToggleBookmark}
             className={[
               'inline-flex items-center gap-1 rounded-full border px-3 py-1 transition-colors',
-              bookmarked
+              isBookmarked
                 ? 'border-amber-200 bg-amber-50 text-amber-700'
                 : 'border-slate-200 bg-white hover:border-amber-200 hover:text-amber-600',
             ].join(' ')}
           >
-            {bookmarked ? <BookmarkCheck className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
-            <span className="font-medium">{blog.bookmarkCount}</span>
+            {isBookmarked ? (
+              <BookmarkCheck className="h-3.5 w-3.5" />
+            ) : (
+              <Bookmark className="h-3.5 w-3.5" />
+            )}
+            <span className="font-medium">{bookmarkCount}</span>
           </button>
 
           {/* 연결된 숏로그 */}
@@ -75,7 +87,7 @@ export function BlogReactionBar({
           )}
         </div>
 
-        {/* 댓글 개수 · 공유 */}
+        {/* 댓글 · 공유 */}
         <div className="flex items-center gap-2 text-[11px]">
           <button
             onClick={() => setOpenComments(prev => !prev)}
@@ -96,7 +108,7 @@ export function BlogReactionBar({
         </div>
       </div>
 
-      {/* 🔥 댓글 섹션: 버튼 클릭 시 표시 */}
+      {/* 댓글 토글 */}
       {openComments && (
         <div className="border-t bg-white px-5 py-5 sm:px-8">
           <BlogCommentSection blogId={blog.id} />
@@ -105,3 +117,4 @@ export function BlogReactionBar({
     </div>
   );
 }
+export default BlogReactionBar;

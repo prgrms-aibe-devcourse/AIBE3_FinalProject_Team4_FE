@@ -13,6 +13,8 @@ type BlogCardProps = {
 export function BlogCard({ blog }: BlogCardProps) {
    const hasThumbnail = !!blog.thumbnailUrl;
   const hasProfile = !!blog.profileImageUrl;
+   const liked = blog.likedByMe;
+   const bookmarked = blog.bookmarkedByMe;
 
   return (
     <Link href={`/blogs/${blog.id}`} className="block group">
@@ -64,7 +66,7 @@ export function BlogCard({ blog }: BlogCardProps) {
                 {blog.hashtagNames.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full bg-slate-50 px-2 py-0.5 text-[11px] text-slate-500"
+                    className="inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-700"
                   >
                     #{tag}
                   </span>
@@ -78,28 +80,37 @@ export function BlogCard({ blog }: BlogCardProps) {
                   value={blog.viewCount}
                 />
                 <Stat
-                  icon={<Heart size={14} className="text-slate-400" />}
-                  label="좋아요"
-                  value={blog.likeCount}
-                />
-                <Stat
                   icon={<MessageCircle size={14} className="text-slate-400" />}
                   label="댓글"
                   value={blog.commentCount}
                 />
                 <Stat
-                  icon={<Bookmark size={14} className="text-slate-400" />}
+                  icon={
+                    <Heart
+                      size={14}
+                      className={liked ? 'text-rose-500 fill-rose-500' : 'text-slate-400'}
+                    />
+                  }
+                  label="좋아요"
+                  value={blog.likeCount}
+                />
+                <Stat
+                  icon={
+                    <Bookmark
+                      size={14}
+                      className={bookmarked ? 'text-amber-500 fill-amber-500' : 'text-slate-400'}
+                    />
+                  }
                   label="저장"
                   value={blog.bookmarkCount}
                 />
-                {blog && (
+                {/* {blog && (
                   <span
                     className="inline-flex items-center gap-1 rounded-full bg-[#2979FF]/5 px-2 py-0.5 text-[11px] font-semibold text-[#2979FF]"
                     aria-label="맞춤 추천 글"
                   >
-                    <span aria-hidden></span> 연결 쇼로그
                   </span>
-                )}
+                )} */}
               </div>
             </div>
           </div>

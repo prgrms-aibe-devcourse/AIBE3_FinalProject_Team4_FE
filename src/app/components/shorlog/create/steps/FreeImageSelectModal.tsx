@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { showGlobalToast } from '@/src/lib/toastStore';
 
 interface FreeImageSelectModalProps {
   onSelect: (selectedImages: string[]) => void;
@@ -72,7 +73,7 @@ export default function FreeImageSelectModal({
         return prev.filter((u) => u !== url);
       } else {
         if (prev.length >= maxSelect) {
-          alert(`최대 ${maxSelect}개까지 선택할 수 있습니다.`);
+          showGlobalToast(`최대 ${maxSelect}개까지 선택할 수 있습니다.`, 'warning');
           return prev;
         }
         return [...prev, url];
@@ -82,7 +83,7 @@ export default function FreeImageSelectModal({
 
   const handleConfirm = () => {
     if (selectedUrls.length === 0) {
-      alert('최소 1개 이상의 이미지를 선택해주세요.');
+      showGlobalToast('최소 1개 이상의 이미지를 선택해주세요.', 'warning');
       return;
     }
     onSelect(selectedUrls);
