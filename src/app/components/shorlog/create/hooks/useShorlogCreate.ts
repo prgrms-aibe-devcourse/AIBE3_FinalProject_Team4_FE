@@ -10,6 +10,7 @@ import {
   ShorlogRelatedBlogSummary,
 } from '../types';
 import { uploadImagesBatch, createShorlog } from '../api';
+import { showGlobalToast } from '@/src/lib/toastStore';
 
 export function useShorlogCreate() {
   const router = useRouter();
@@ -178,7 +179,7 @@ export function useShorlogCreate() {
         await fetchRecentBlogs();
         setShowBlogConnectModal(true);
       } else {
-        alert('숏로그가 성공적으로 생성되었습니다!');
+        showGlobalToast('숏로그가 성공적으로 생성되었습니다!', 'success');
           router.push(`/profile/${userId}`);
       }
     } catch (e) {
@@ -218,7 +219,7 @@ export function useShorlogCreate() {
       console.log('블로그 연결:', { shorlogId: createdShorlogId, blogId });
 
       // TODO: 블로그 연결 API 호출 구현 예정
-      alert('연결은 곧 추가됩니다');
+      showGlobalToast('블로그 연결 기능은 곧 추가됩니다!', 'warning');
 
       setShowBlogConnectModal(false);
       router.push(`/profile/${createdUserId}`);

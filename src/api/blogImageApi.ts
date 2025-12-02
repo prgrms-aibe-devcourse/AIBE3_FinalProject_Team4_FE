@@ -1,4 +1,4 @@
-import apiClient from './apiClient';
+import apiClient from '@/src/api/apiClient';
 
 export const uploadBlogImage = async (blogId: number, formData: FormData) => {
   const response = await apiClient(`/api/v1/blogs/${blogId}/media`, {

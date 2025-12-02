@@ -132,3 +132,22 @@ export type ViewResponse = {
   blogId: number;
   viewCount: number;
 };
+//연결
+export type LinkedShorlogSummary = {
+  shorlogId: number;
+  comment: string;
+  modifiedAt: string;
+};
+export type MyShorlogSummary = {
+  id: number;
+  title: string;
+  hashtags: string[];
+  modifiedAt: string; // LocalDateTime → 문자열
+};
+
+export type BlogShorlogLinkResponse = {
+  blogId: number;
+  shorlogId: number;
+  haveLink: boolean;
+  linkedCount: number;
+};

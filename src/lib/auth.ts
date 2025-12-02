@@ -3,6 +3,8 @@
  * TODO: 실제 인증 시스템 연동 시 수정 필요
  */
 
+import { showGlobalToast } from './toastStore';
+
 /**
  * 로그인 여부 확인
  * @returns 로그인 상태 (true: 로그인됨, false: 비로그인)
@@ -18,19 +20,11 @@ export function isAuthenticated(): boolean {
 
 /**
  * 로그인 필요 액션 체크
- * 비로그인 시 로그인 페이지로 리다이렉트 또는 모달 표시
+ * 비로그인 시 토스트 알림 표시
  */
 export function requireAuth(actionName: string): boolean {
   if (!isAuthenticated()) {
-    const confirmLogin = window.confirm(
-      `${actionName} 기능은 로그인이 필요합니다.\n로그인 페이지로 이동하시겠습니까?`
-    );
-
-    if (confirmLogin) {
-      // TODO: 실제 로그인 페이지 경로로 수정
-      window.location.href = '/login';
-    }
-
+    showGlobalToast('로그인이 필요한 기능입니다.', 'warning');
     return false;
   }
 
