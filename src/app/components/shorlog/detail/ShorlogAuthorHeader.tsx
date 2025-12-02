@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { deleteShorlog } from '@/src/app/components/shorlog/edit/api';
+import { showGlobalToast } from '@/src/lib/toastStore';
 import FollowButton from '../../common/FollowButton';
 
 interface Props {
@@ -45,7 +46,7 @@ export default function ShorlogAuthorHeader({
     }
 
     // TODO: 블로그 연결 기능 구현
-    alert(`${action} 기능은 추후 제공될 예정입니다.`);
+    showGlobalToast(`${action} 기능은 추후 제공될 예정입니다.`, 'warning');
   };
 
   const handleDelete = async () => {
@@ -54,11 +55,11 @@ export default function ShorlogAuthorHeader({
     setIsDeleting(true);
     try {
       await deleteShorlog(shorlogId.toString());
-      alert('숏로그가 삭제되었습니다.');
+      showGlobalToast('숏로그가 삭제되었습니다.', 'success');
       router.push(`/profile/${userId}`);
     } catch (error) {
       console.error('삭제 오류:', error);
-      alert(error instanceof Error ? error.message : '숏로그 삭제 중 오류가 발생했습니다.');
+      showGlobalToast(error instanceof Error ? error.message : '숏로그 삭제 중 오류가 발생했습니다.', 'error');
     } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);
