@@ -1,5 +1,5 @@
 import { CommentType } from '../../../types/comment';
-import CommentItem from './commentItem';
+import CommentItem from './ShorlogCommentItem';
 
 interface CommentListProps {
   comments: CommentType[];

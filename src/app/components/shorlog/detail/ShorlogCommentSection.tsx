@@ -7,8 +7,8 @@ import {
   getComments,
   likeComment,
   unlikeComment,
-} from '@/src/api/comments'; // ← API 함수들
-import CommentList from '@/src/app/components/comments/commentList';
+} from '@/src/api/ShorlogComments'; // ← API 함수들
+import CommentList from '@/src/app/components/comments/ShorlogCommentList';
 import { requireAuth } from '@/src/lib/auth';
 import { useEffect, useState } from 'react';
 
