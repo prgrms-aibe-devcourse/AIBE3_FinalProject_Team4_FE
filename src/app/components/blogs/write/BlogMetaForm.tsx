@@ -44,7 +44,7 @@ export function BlogMetaForm({
   return (
     <div className="space-y-4">
       {/* 제목 */}
-      <div className="relative flex items-center gap-2">
+      <div className="group/ai relative flex items-center gap-2">
         <input
           type="text"
           className="flex-1 border-0 bg-transparent text-xl font-semibold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-0"
@@ -53,14 +53,20 @@ export function BlogMetaForm({
           onChange={(e) => onTitleChange(e.target.value)}
         />
         <div className="absolute z-10 right-0 top-1/2 -translate-y-1/2">
-          <AiGeneration mode="title" contentType="blog" content={content} onApply={onTitleChange} />
+          <AiGeneration
+            mode="title"
+            contentType="blog"
+            content={content}
+            onApply={onTitleChange}
+            revealOnHover
+          />
         </div>
       </div>
 
       {/* 태그 + 공개범위 */}
       <div className="relative w-full pr-10">
         {/* 태그 입력 */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="group/ai flex flex-wrap items-center gap-2">
           {tags.map((tag) => (
             <button
               key={tag}
@@ -91,6 +97,7 @@ export function BlogMetaForm({
                   onTagsChange([...tags, trimmed]);
                 }
               }}
+              revealOnHover
             />
           </div>
         </div>
