@@ -13,7 +13,7 @@ type BlogConnectShorlogModalProps = {
   onClose: () => void;
   onLinked?: (res: BlogShorlogLinkResponse) => void;
   onSkip?: () => void;
-  showCreateShorlogCta?: boolean;
+  showCreateShorlogCta?: boolean; // true: 발행 직후, false: 상세에서 연결
   onCreateNewShorlog?: () => void;
 };
 
@@ -30,7 +30,7 @@ export default function BlogConnectShorlogModal({
   const [selectedShorlogId, setSelectedShorlogId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [linking, setLinking] = useState(false);
-
+  const isAfterPublish = showCreateShorlogCta; 
   useEffect(() => {
     if (!isOpen) return;
 
@@ -95,13 +95,17 @@ export default function BlogConnectShorlogModal({
         {/* Header */}
         <div className="flex items-start gap-4 px-8 pt-8 pb-6">
           <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
-            <span className="text-base font-semibold">✓</span>
+            <span className="text-base font-semibold">{isAfterPublish ? '✓' : '⚡'}</span>
           </div>
           <div>
             <h2 id="blog-connect-shorlog-title" className="text-lg font-semibold text-slate-900">
-              블로그 발행 완료!
+              {isAfterPublish ? '블로그 발행 완료!' : '이 블로그와 연결할 숏로그 선택'}
             </h2>
-            <p className="mt-2 text-sm text-slate-500">연관된 숏로그와 연결하시겠어요?</p>
+            <p className="mt-2 text-sm text-slate-500">
+              {isAfterPublish
+                ? '연관된 숏로그와 연결하시겠어요?'
+                : '내가 쓴 숏로그 중에서 이 글과 연결할 항목을 골라 보세요.'}
+            </p>
           </div>
         </div>
 
@@ -206,16 +210,16 @@ export default function BlogConnectShorlogModal({
               </div>
             )}
           </div>
-          {showCreateShorlogCta && onCreateNewShorlog && (
-          <button
-            type="button"
-            onClick={onCreateNewShorlog}
-            className="flex w-full items-center justify-center rounded-2xl border border-dashed border-[#2979FF]/70 bg-[#f4f7ff] px-5 py-5 text-[15px] font-medium text-[#1f63d1] shadow-sm transition hover:bg-[#e4edff]"
-          >
-            <span className="mr-1.5 text-lg">+</span>
-            <span>새 숏로그 작성하기</span>
-          </button>
-          ) }
+          {isAfterPublish && onCreateNewShorlog && (
+            <button
+              type="button"
+              onClick={onCreateNewShorlog}
+              className="flex w-full items-center justify-center rounded-2xl border border-dashed border-[#2979FF]/70 bg-[#f4f7ff] px-5 py-5 text-[15px] font-medium text-[#1f63d1] shadow-sm transition hover:bg-[#e4edff]"
+            >
+              <span className="mr-1.5 text-lg">+</span>
+              <span>새 숏로그 작성하기</span>
+            </button>
+          )}
         </div>
 
         <div className="h-px bg-slate-200" />

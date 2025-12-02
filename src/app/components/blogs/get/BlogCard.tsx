@@ -104,14 +104,13 @@ export function BlogCard({ blog }: BlogCardProps) {
                   label="저장"
                   value={blog.bookmarkCount}
                 />
-                {blog && (
+                {/* {blog && (
                   <span
                     className="inline-flex items-center gap-1 rounded-full bg-[#2979FF]/5 px-2 py-0.5 text-[11px] font-semibold text-[#2979FF]"
                     aria-label="맞춤 추천 글"
                   >
-                    <span aria-hidden></span> 연결 쇼로그
                   </span>
-                )}
+                )} */}
               </div>
             </div>
           </div>

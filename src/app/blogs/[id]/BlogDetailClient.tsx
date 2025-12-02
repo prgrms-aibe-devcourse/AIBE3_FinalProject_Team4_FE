@@ -130,7 +130,7 @@ export default function BlogDetailClient({
   };
   // 연결된 숏로그
   const handleOpenLinkedShorlogs = async () => {
-    if (!blog.hasLinkedShorlogs) return;
+    if (!hasLinkedShorlogs) return;
 
     try {
       setLinkedOpen(true);
@@ -159,6 +159,7 @@ export default function BlogDetailClient({
   const handleLinkedShorlog = (res: BlogShorlogLinkResponse) => {
     setHasLinkedShorlogs(res.haveLink);
     setLinkedShorlogCount(res.linkedCount);
+    setConnectModalOpen(false);
   };
   return (
     <>
