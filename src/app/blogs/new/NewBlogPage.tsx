@@ -23,6 +23,9 @@ import { MarkdownEditor } from '../../components/blogs/write/MarkdownEditor';
 import { LoginRequiredModal } from '../../components/common/LoginRequireModal';
 import ImageSelector from '../../components/ImageSelector/ImageSelector';
 import { useChatPanelSlot } from '../Slot';
+import BlogConnectShorlogModal from '../../components/blogs/link/BlogConnectShorlogModal';
+import { handleApiError } from '@/src/lib/handleApiError';
+import { showGlobalToast } from '@/src/lib/toastStore';
 
 type NewBlogPageProps = {
   editId?: number;
@@ -30,6 +33,8 @@ type NewBlogPageProps = {
 
 export default function NewBlogPage({ editId }: NewBlogPageProps) {
   const router = useRouter();
+  const [showConnectModal, setShowConnectModal] = useState(false);
+  const [publishedBlogId, setPublishedBlogId] = useState<number | null>(null);
 
   const [form, setForm] = useState<BlogFormValues>({
     title: '',
@@ -138,7 +143,6 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
 
   const handleSaveDraft = async () => {
     try {
-      // if (!requireAuth('임시저장')) return;
       const id = await ensureDraft(); // 없으면 새 draft 생성, 있으면 그거 사용
       const dto = await updateBlog(id, buildReqBody('DRAFT'));
 
@@ -169,13 +173,12 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
 
     setIsPublishing(true);
     try {
-      // if (!requireAuth('발행')) {
-      //   setIsPublishing(false);
-      //   return;
-      // }
       const id = await ensureDraft();
       const dto = await updateBlog(id, buildReqBody('PUBLISHED'));
-      router.push(`/blogs/${dto.id}`);
+
+      setPublishedBlogId(dto.id);
+      setShowConnectModal(true);
+      //router.push(`/blogs/${dto.id}`);
     } catch (e) {
       console.error(e);
       alert('발행 중 오류가 발생했습니다.');
@@ -185,8 +188,6 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
   };
   // 임시저장 목록 관련 로직
   const openDraftModal = async () => {
-    // if (!requireAuth('임시저장 목록 보기')) return;
-
     setIsDraftModalOpen(true);
     setIsLoadingDrafts(true);
     try {
@@ -272,6 +273,14 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
 
     return dto.url;
   };
+  // 연결관련 함수 
+   const handleCloseConnectModal = () => {
+     setShowConnectModal(false);
+     if (publishedBlogId != null) {
+       // 연결 여부랑 상관 없이 디테일 페이지
+       window.location.href = `/blogs/${publishedBlogId}`;
+     }
+   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-sky-50/40 to-slate-50">
@@ -330,6 +339,18 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
           router.push(`/auth/login`);
         }}
       />
+      {publishedBlogId != null && (
+        <BlogConnectShorlogModal
+          isOpen={showConnectModal}
+          blogId={publishedBlogId}
+          onClose={handleCloseConnectModal}
+          onSkip={handleCloseConnectModal}
+          onLinked={(res) => {
+            showGlobalToast('연관된 숏로그를 연결했어요.', 'success');
+          }}
+          onCreateNewShorlog={() => router.push('/shorlog/create')} 
+        />
+      )}
     </div>
   );
 }
