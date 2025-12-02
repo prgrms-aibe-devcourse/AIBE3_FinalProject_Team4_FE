@@ -23,7 +23,7 @@ async function fetchCreators() {
     .getAll()
     .map((c) => `${c.name}=${c.value}`)
     .join('; ');
-  const res = await fetch(`${API_BASE_URL}/api/v1/users/creators`, {
+  const res = await fetch(`${API_BASE_URL}/api/v1/users/creators/v2`, {
     method: 'GET',
     headers: {
       cookie: cookieHeader,
