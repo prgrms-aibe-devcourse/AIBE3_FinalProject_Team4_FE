@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bookmark } from 'lucide-react';
 import { addBookmark, removeBookmark, getBookmarkStatus } from '@/src/api/shorlogBookmarkApi';
+import { handleApiError } from '@/src/lib/handleApiError';
 
 interface BookmarkButtonProps {
   shorlogId: number;
+  authorId?: number; // 작성자 ID (본인 글 확인용)
   initialBookmarked?: boolean;
   initialBookmarkCount?: number;
   onBookmarkChange?: (isBookmarked: boolean, bookmarkCount?: number) => void;
@@ -16,6 +18,7 @@ interface BookmarkButtonProps {
 
 export default function BookmarkButton({
   shorlogId,
+  authorId,
   initialBookmarked = false,
   initialBookmarkCount = 0,
   onBookmarkChange,
@@ -28,6 +31,7 @@ export default function BookmarkButton({
   const [isLoading, setIsLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   // 로그인 상태 확인 및 북마크 상태 확인
   useEffect(() => {
@@ -39,6 +43,9 @@ export default function BookmarkButton({
         });
 
         if (response.ok) {
+          const json = await response.json();
+          const user = json.data;
+          setCurrentUserId(user?.id);
           setIsLoggedIn(true);
 
           // 실제 북마크 상태 확인
@@ -76,6 +83,12 @@ export default function BookmarkButton({
       return;
     }
 
+    // 본인 글 확인
+    if (authorId && currentUserId === authorId) {
+      handleApiError({ message: '본인의 글에는 북마크할 수 없습니다.' }, '북마크 처리');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -90,8 +103,7 @@ export default function BookmarkButton({
       setBookmarkCount(result.bookmarkCount);
       onBookmarkChange?.(result.isBookmarked, result.bookmarkCount);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
-      alert(`${isBookmarked ? '북마크 해제' : '북마크'} 처리에 실패했어요.\n\n${errorMessage}`);
+      handleApiError(error, '북마크 처리');
     } finally {
       setIsLoading(false);
     }

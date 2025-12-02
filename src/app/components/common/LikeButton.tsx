@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Heart } from 'lucide-react';
 import { addLike, removeLike, getLikeStatus } from '@/src/api/shorlogLikeApi';
+import { handleApiError } from '@/src/lib/handleApiError';
 
 interface LikeButtonProps {
   shorlogId: number;
+  authorId?: number; // 작성자 ID (본인 글 확인용)
   initialLiked?: boolean;
   initialLikeCount?: number;
   onLikeChange?: (isLiked: boolean, likeCount: number) => void;
@@ -16,6 +18,7 @@ interface LikeButtonProps {
 
 export default function LikeButton({
   shorlogId,
+  authorId,
   initialLiked = false,
   initialLikeCount = 0,
   onLikeChange,
@@ -29,6 +32,7 @@ export default function LikeButton({
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   // 로그인 상태 및 좋아요 상태 확인
   useEffect(() => {
@@ -41,9 +45,13 @@ export default function LikeButton({
         });
 
         if (response.ok) {
+          const json = await response.json();
+          const user = json.data;
+          setCurrentUserId(user?.id);
           setIsLoggedIn(true);
         } else {
           setIsLoggedIn(false);
+          setCurrentUserId(null);
         }
 
         // 좋아요 상태 확인
@@ -74,6 +82,12 @@ export default function LikeButton({
       return;
     }
 
+    // 본인 글 확인
+    if (authorId && currentUserId === authorId) {
+      handleApiError({ message: '본인의 글에는 좋아요할 수 없습니다.' }, '좋아요 처리');
+      return;
+    }
+
     setIsLoading(true);
     setIsAnimating(true);
 
@@ -92,8 +106,7 @@ export default function LikeButton({
       // 애니메이션 완료 후 상태 초기화
       setTimeout(() => setIsAnimating(false), 300);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
-      alert(`${isLiked ? '좋아요 취소' : '좋아요'} 처리에 실패했어요.\n\n${errorMessage}`);
+      handleApiError(error, '좋아요 처리');
       setIsAnimating(false);
     } finally {
       setIsLoading(false);
