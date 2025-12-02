@@ -99,7 +99,7 @@ export default function ChatInput({
             onChange={(e) => setMessage(e.target.value)}
             rows={1}
             placeholder={isModelDisabled ? '모델 사용 불가' : '블로그 작성 도움받기'}
-            className="w-full min-h-[40px] max-h-[240px] resize-none bg-transparent outline-none text-[15px] placeholder:text-slate-400 placeholder:text-[15px] placeholder:font-extralight font-light leading-relaxed overflow-y-auto"
+            className="w-full min-h-[40px] max-h-[240px] resize-none bg-transparent outline-none text-[15px] placeholder:text-slate-400 placeholder:text-[15px] leading-relaxed overflow-y-auto"
             style={{ height: 'auto' }}
             onInput={(e) => {
               const target = e.target as HTMLTextAreaElement;
