@@ -1,5 +1,5 @@
 import { Minus, PanelRight, SquareSquare } from 'lucide-react';
-import Tooltip from '../../common/Tooltip';
+import Tooltip from '../Tooltip';
 
 interface AiChatHeaderProps {
   mode: 'sidebar' | 'floating';

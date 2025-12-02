@@ -4,7 +4,7 @@ import { ApiError } from '@/src/api/aiChatApi';
 import { useAiChatStreamMutation } from '@/src/api/useAiChatStream';
 import { ChatMessage, ModelAvailabilityDto, ModelOption, ModelOptionValue } from '@/src/types/ai';
 import { useEffect, useState } from 'react';
-import Tooltip from '../../common/Tooltip';
+import Tooltip from '../Tooltip';
 import AIChatBody from './AiChatBody';
 import AiChatHeader from './AiChatHeader';
 import AiChatSidebar from './AiChatSidebar';
