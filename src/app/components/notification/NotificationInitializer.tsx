@@ -2,11 +2,11 @@
 
 import { useNotificationSSE } from '@/src/hooks/useNotificationSSE';
 import { useAuth } from '@/src/providers/AuthProvider';
-import { useNotificationStore } from '@/src/stores/useNotificationStore'; // 이미 만든다면
+import { useNotificationStore } from '@/src/stores/userNotificationsStore';
 import { useCallback } from 'react';
 
 export default function NotificationInitializer() {
-  const { user } = useAuth(); // 로그인 정보
+  const { loginUser } = useAuth(); // 로그인 정보
   const addNotification = useNotificationStore((s) => s.addNotification);
 
   const handleMessage = useCallback(
@@ -18,7 +18,7 @@ export default function NotificationInitializer() {
   );
 
   useNotificationSSE({
-    enabled: !!user, // 로그인 된 상태에서만 SSE 연결
+    enabled: !!loginUser, // 로그인 된 상태에서만 SSE 연결
     onMessage: handleMessage,
   });
 
