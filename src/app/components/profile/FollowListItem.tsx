@@ -1,14 +1,15 @@
 'use client';
 
 import { useFollow } from '@/src/hooks/useFollow';
+import { useCurrentUser } from '@/src/hooks/useCurrentUser';
 import Link from 'next/link';
 
 interface FollowListItemProps {
   user: any;
-  myId: number;
 }
 
-export default function FollowListItem({ user, myId }: FollowListItemProps) {
+export default function FollowListItem({ user }: FollowListItemProps) {
+  const { data: currentUser } = useCurrentUser();
   const { isFollowing, loading, toggleFollow } = useFollow(user.id, user.isFollowing);
 
   return (
@@ -25,7 +26,7 @@ export default function FollowListItem({ user, myId }: FollowListItemProps) {
         </div>
 
         {/* 자기 자신이면 팔로우 버튼 제거 */}
-        {user.id !== myId && (
+        {user.id !== currentUser?.id && (
           <button
             onClick={(e) => {
               e.preventDefault();

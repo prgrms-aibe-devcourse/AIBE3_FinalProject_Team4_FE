@@ -18,12 +18,11 @@ interface ProfileHeaderProps {
     blogsCount: number;
   };
   isMyPage: boolean;
-  myId: number;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) => {
+export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
   // ✔ useFollow 훅 적용
   const {
     isFollowing,
@@ -212,7 +211,6 @@ export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) =
         nickname={profile.nickname}
         followingCount={profile.followingCount}
         followersCount={profile.followersCount}
-        myId={myId}
       />
     </>
   );

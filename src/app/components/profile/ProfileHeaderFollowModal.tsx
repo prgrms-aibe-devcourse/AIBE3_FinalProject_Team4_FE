@@ -13,7 +13,6 @@ interface FollowModalProps {
   nickname: string;
   followingCount: number;
   followersCount: number;
-  myId: number;
 }
 
 export default function FollowModal({
@@ -26,7 +25,6 @@ export default function FollowModal({
   nickname,
   followingCount,
   followersCount,
-  myId,
 }: FollowModalProps) {
   const [localList, setLocalList] = useState(list);
 
@@ -86,7 +84,7 @@ export default function FollowModal({
           ) : (
             <ul className="space-y-4">
               {localList.map((user) => (
-                <FollowListItem key={user.id} user={user} myId={myId} />
+                <FollowListItem key={user.id} user={user} />
               ))}
             </ul>
           )}
