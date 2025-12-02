@@ -21,9 +21,16 @@ interface AiGenerationProps {
   contentType: AiGenerateContentType;
   content?: string;
   onApply: (value: string) => void;
+  revealOnHover?: boolean;
 }
 
-export default function AiGeneration({ mode, contentType, content, onApply }: AiGenerationProps) {
+export default function AiGeneration({
+  mode,
+  contentType,
+  content,
+  onApply,
+  revealOnHover,
+}: AiGenerationProps) {
   // 각 패널 고유 id (랜덤)
   const panelIdRef = useRef<string>(Math.random().toString(36).slice(2));
   const panelId = panelIdRef.current;
@@ -205,40 +212,55 @@ export default function AiGeneration({ mode, contentType, content, onApply }: Ai
   return (
     <div ref={wrapperRef} className="relative inline-flex">
       {/* 추천 버튼 */}
-      <button
-        type="button"
-        onClick={handleButtonClick}
-        onMouseLeave={() => {
-          if (errorMsg) setIsExpanded(false);
-        }}
+      <div
         className={[
-          // 기본은 동그라미(최소폭만)
-          'group inline-flex h-7 items-center rounded-2xl border border-slate-200 bg-white font-medium text-main shadow-sm',
-          'transition-all duration-200 ease-out hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]',
-          // 폭 자동으로 늘어나게 padding을 기본/hover로 다르게
-          isLoading ? 'px-2 cursor-default' : 'pl-2 pr-1 hover:w-auto hover:px-3',
+          'relative group inline-flex', // 기존 tooltip group용
+          // ✅ revealOnHover일 때: 닫혀있으면 숨김, 부모 hover 시 보임
+          revealOnHover
+            ? isExpanded
+              ? 'opacity-100 scale-100'
+              : 'opacity-0 scale-90 translate-x-1 pointer-events-none ' +
+                'group-hover/ai:opacity-100 group-hover/ai:scale-100 group-hover/ai:translate-x-0 group-hover/ai:pointer-events-auto ' +
+                'transition-all duration-200 ease-out group-hover/ai:animate-[pulse_1.5s_ease-in-out_2]'
+            : '',
         ].join(' ')}
       >
-        {isLoading ? (
-          <LoadingSpinner size="sm" inline />
-        ) : (
-          <>
-            <span className="shrink-0">✦</span>
+        <button
+          type="button"
+          onClick={handleButtonClick}
+          onMouseLeave={() => {
+            if (errorMsg) setIsExpanded(false);
+          }}
+          className={[
+            'relative group inline-flex',
+            // 기본은 동그라미(최소폭만)
+            'group inline-flex h-7 items-center rounded-2xl border border-slate-200 bg-white font-medium text-main shadow-sm',
+            'transition-all duration-200 ease-out hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]',
+            // 폭 자동으로 늘어나게 padding을 기본/hover로 다르게
+            isLoading ? 'px-2 cursor-default' : 'pl-2 pr-1 hover:w-auto hover:px-3',
+          ].join(' ')}
+        >
+          {isLoading ? (
+            <LoadingSpinner size="sm" inline />
+          ) : (
+            <>
+              <span className="shrink-0">✦</span>
 
-            {/* hover 때만 펼쳐지는 텍스트 */}
-            <span
-              className={[
-                'text-xs ml-1 overflow-hidden whitespace-nowrap',
-                'max-w-0 opacity-0',
-                'transition-all duration-200 ease-out',
-                'group-hover:max-w-[160px] group-hover:opacity-100',
-              ].join(' ')}
-            >
-              {tooltipText}
-            </span>
-          </>
-        )}
-      </button>
+              {/* hover 때만 펼쳐지는 텍스트 */}
+              <span
+                className={[
+                  'text-xs ml-1 overflow-hidden whitespace-nowrap',
+                  'max-w-0 opacity-0',
+                  'transition-all duration-200 ease-out',
+                  'group-hover:max-w-[160px] group-hover:opacity-100',
+                ].join(' ')}
+              >
+                {tooltipText}
+              </span>
+            </>
+          )}
+        </button>
+      </div>
 
       {/* 확장 패널 */}
       <div
