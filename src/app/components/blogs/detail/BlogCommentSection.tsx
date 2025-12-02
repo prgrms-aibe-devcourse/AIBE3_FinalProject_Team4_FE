@@ -1,33 +1,31 @@
 'use client';
 
 import {
-  createComment,
-  deleteComment,
-  editComment,
-  getComments,
-  likeComment,
-  unlikeComment,
-} from '@/src/api/ShorlogComments';
-import CommentList from '@/src/app/components/comments/ShorlogCommentList';
+  createBlogComment,
+  deleteBlogComment,
+  editBlogComment,
+  getBlogComments,
+  likeBlogComment,
+  unlikeBlogComment,
+} from '@/src/api/BlogComments';
+import BlogCommentList from '@/src/app/components/comments/BlogCommentList';
 import { requireAuth } from '@/src/lib/auth';
-import { showGlobalToast } from '@/src/lib/toastStore';
 import { useEffect, useState } from 'react';
 
 interface Props {
-  shorlogId: number;
-  initialCommentCount?: number;
+  blogId: number;
 }
 
-export default function ShorlogCommentSection({ shorlogId, initialCommentCount }: Props) {
+export default function BlogCommentSection({ blogId }: Props) {
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  /** 댓글 목록 불러오기 */
+  /** 댓글 불러오기 */
   const fetchComments = async () => {
     setLoading(true);
     try {
-      const data = await getComments(shorlogId);
+      const data = await getBlogComments(blogId);
       setComments(data);
     } catch (err) {
       console.error(err);
@@ -38,51 +36,38 @@ export default function ShorlogCommentSection({ shorlogId, initialCommentCount }
 
   useEffect(() => {
     fetchComments();
-  }, [shorlogId]);
-
-  /** 댓글 입력창 포커스 */
-  const handleCommentFocus = async () => {
-    if (!(await requireAuth('댓글 작성'))) {
-      (document.activeElement as HTMLElement)?.blur();
-    }
-  };
+  }, [blogId]);
 
   /** 최상위 댓글 작성 */
   const handleCommentSubmit = async () => {
     if (!(await requireAuth('댓글 작성'))) return;
-    
-    if (!commentText.trim()) {
-      showGlobalToast('댓글 내용을 입력해주세요.', 'warning');
-      return;
-    }
+    if (!commentText.trim()) return alert('댓글을 입력해주세요.');
 
     try {
-      await createComment(shorlogId, commentText.trim(), undefined);
+      await createBlogComment(blogId, commentText.trim(), undefined);
       setCommentText('');
       await fetchComments();
-      showGlobalToast('댓글이 등록되었습니다.', 'success');
     } catch (err: any) {
-      showGlobalToast(err.message || '댓글 등록에 실패했습니다.', 'error');
+      alert(err.message);
     }
   };
 
   /** 대댓글 작성 */
   const handleReply = async (parentId: number, replyText: string) => {
-    if (!(await requireAuth('댓글 답글 작성'))) return;
-    if (!replyText.trim()) return;
+    if (!(await requireAuth('답글 작성'))) return;
+    if (!replyText.trim()) return alert('내용을 입력해주세요.');
 
     try {
-      await createComment(shorlogId, replyText.trim(), parentId);
+      await createBlogComment(blogId, replyText.trim(), parentId);
       await fetchComments();
-      showGlobalToast('답글이 등록되었습니다.', 'success');
     } catch (err: any) {
-      showGlobalToast(err.message || '답글 등록에 실패했습니다.', 'error');
+      alert(err.message);
     }
   };
 
   /** 좋아요 / 취소 */
   const handleLike = async (commentId: number) => {
-    if (!(await requireAuth('댓글 좋아요'))) return;
+    if (!(await requireAuth('좋아요'))) return;
 
     const target = findComment(commentId);
     if (!target) return;
@@ -94,14 +79,14 @@ export default function ShorlogCommentSection({ shorlogId, initialCommentCount }
 
     try {
       if (nextLiked) {
-        await likeComment(commentId);
+        await likeBlogComment(commentId);
       } else {
-        await unlikeComment(commentId);
+        await unlikeBlogComment(commentId);
       }
     } catch (err: any) {
       // 실패 → 롤백
       updateCommentLikeState(commentId, !nextLiked);
-      showGlobalToast(err.message || '좋아요 처리 중 오류가 발생했습니다.', 'error');
+      alert(err.message || '좋아요 처리 중 오류가 발생했습니다.');
     }
   };
 
@@ -156,11 +141,10 @@ export default function ShorlogCommentSection({ shorlogId, initialCommentCount }
     if (!(await requireAuth('댓글 수정'))) return;
 
     try {
-      await editComment(commentId, newContent);
+      await editBlogComment(commentId, newContent);
       await fetchComments();
-      showGlobalToast('댓글이 수정되었습니다.', 'success');
     } catch (err: any) {
-      showGlobalToast(err.message || '댓글 수정에 실패했습니다.', 'error');
+      alert(err.message);
     }
   };
 
@@ -169,54 +153,47 @@ export default function ShorlogCommentSection({ shorlogId, initialCommentCount }
     if (!(await requireAuth('댓글 삭제'))) return;
 
     try {
-      await deleteComment(commentId);
+      await deleteBlogComment(commentId);
       await fetchComments();
-      showGlobalToast('댓글이 삭제되었습니다.', 'success');
     } catch (err: any) {
-      showGlobalToast(err.message || '댓글 삭제에 실패했습니다.', 'error');
+      alert(err.message);
     }
   };
 
-  const totalCount = comments.length || initialCommentCount || 0;
-
   return (
-    <div>
-      <p className="mb-2 text-xs font-medium text-slate-500">
-        댓글 {totalCount}개
+    <div className="mt-6">
+      <p className="mb-2 text-sm font-semibold text-slate-700">
+        댓글 {comments.length}개
       </p>
 
       {/* 댓글 입력창 */}
-      <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2">
-        <span className="text-lg">😊</span>
+      <div className="flex items-center gap-2 rounded-lg border bg-slate-50 px-3 py-2">
         <input
           type="text"
+          className="flex-1 bg-transparent text-sm outline-none"
+          placeholder="댓글을 입력하세요..."
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
-          onFocus={handleCommentFocus}
-          placeholder="댓글 달기..."
-          className="flex-1 border-none bg-transparent text-xs outline-none placeholder:text-slate-400"
-          aria-label="댓글 입력"
         />
         <button
-          type="button"
           onClick={handleCommentSubmit}
-          className="text-xs font-semibold text-[#2979FF] hover:text-[#1863db]"
+          className="text-sm font-semibold text-blue-600 hover:text-blue-700"
         >
-          게시
+          등록
         </button>
       </div>
 
       {/* 댓글 리스트 */}
-      <div className="mt-3">
+      <div className="mt-4">
         {loading ? (
-          <p className="text-xs text-slate-400">댓글 불러오는 중...</p>
+          <p className="text-xs text-slate-400">불러오는 중...</p>
         ) : (
-          <CommentList
+          <BlogCommentList
             comments={comments}
             onReply={handleReply}
             onLike={handleLike}
-            onDelete={handleDelete}
             onEdit={handleEdit}
+            onDelete={handleDelete}
           />
         )}
       </div>

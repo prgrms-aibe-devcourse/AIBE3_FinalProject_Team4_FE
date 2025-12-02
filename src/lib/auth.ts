@@ -9,13 +9,20 @@ import { showGlobalToast } from './toastStore';
  * 로그인 여부 확인
  * @returns 로그인 상태 (true: 로그인됨, false: 비로그인)
  */
-export function isAuthenticated(): boolean {
-  // TODO: 실제 인증 로직으로 대체
-  // 예: localStorage의 토큰 확인, 쿠키 확인 등
-  if (typeof window === 'undefined') return false;
+export async function isAuthenticated(): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/me`,
+      {
+        method: 'GET',
+        credentials: 'include',
+      }
+    );
 
-  const token = localStorage.getItem('accessToken');
-  return !!token;
+    return res.ok;
+  } catch (e) {
+    return false;
+  }
 }
 
 /**
@@ -27,7 +34,6 @@ export function requireAuth(actionName: string): boolean {
     showGlobalToast('로그인이 필요한 기능입니다.', 'warning');
     return false;
   }
-
   return true;
 }
 
