@@ -1,6 +1,6 @@
 'use client';
 
-import { getGoogleImages, getUnsplashImages } from '@/src/api/blogImageApi';
+import { getPixabayImages, getUnsplashImages } from '@/src/api/blogImageApi';
 import { SearchField } from '@/src/app/components/common/SearchField';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
@@ -14,7 +14,7 @@ interface UnsplashImagePickerProps {
   selectedImage: string | null;
   originalImage: string | null;
   onSelect: (url: string) => void;
-  apiEndpoint?: 'unsplash' | 'google';
+  apiEndpoint?: 'unsplash' | 'pixabay';
 }
 
 const PAGE_SIZE = 20;
@@ -48,8 +48,8 @@ export default function FreeImagePicker({
             number: 0,
           };
         }
-        const res = await (apiEndpoint === 'google'
-          ? getGoogleImages(searchKeyword, pageParam, PAGE_SIZE)
+        const res = await (apiEndpoint === 'pixabay'
+          ? getPixabayImages(searchKeyword, pageParam, PAGE_SIZE)
           : getUnsplashImages(searchKeyword, pageParam, PAGE_SIZE));
         if (!res.ok) throw new Error('이미지 검색에 실패했습니다.');
         const json = await res.json();
@@ -194,7 +194,7 @@ export default function FreeImagePicker({
                   >
                     <img
                       src={img.url}
-                      alt={apiEndpoint === 'google' ? 'google' : 'unsplash'}
+                      alt={apiEndpoint === 'pixabay' ? 'pixabay' : 'unsplash'}
                       {...(img.width && img.height ? { width: img.width, height: img.height } : {})}
                       style={aspectRatio ? { aspectRatio: aspectRatio.toString() } : undefined}
                       onError={() => {
