@@ -220,13 +220,8 @@ export default function ShorlogDetailPageClient({ detail, isOwner = false, hideN
   }, [detail.id]);
 
   const handleOpenLinkedBlogs = async () => {
-    if (linkedBlogs.length === 1) {
-      // 블로그가 1개면 바로 이동
-      window.open(`/blogs/${linkedBlogs[0].id}`, '_blank');
-    } else if (linkedBlogs.length > 1) {
-      // 여러 개면 모달 열기
-      setShowLinkedBlogsModal(true);
-    }
+    // 연결된 블로그가 있으면 항상 모달 열기 (1개든 여러 개든)
+    setShowLinkedBlogsModal(true);
   };
 
   return (
@@ -299,7 +294,7 @@ export default function ShorlogDetailPageClient({ detail, isOwner = false, hideN
                   <button
                     type="button"
                     onClick={handleOpenLinkedBlogs}
-                    className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition"
+                    className="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-medium text-sky-700 hover:bg-sky-100 transition"
                   >
                     ⚡ 블로그 {linkedBlogCount}개 보기
                   </button>

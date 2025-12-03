@@ -1,9 +1,6 @@
 'use client';
 
-import {
-  fetchMyRecentBlogs,
-  linkShorlogToBlog
-} from '@/src/api/blogShorlogLink';
+import { fetchMyRecentBlogs, linkShorlogToBlog } from '@/src/api/blogShorlogLink';
 import { handleApiError } from '@/src/lib/handleApiError';
 import { showGlobalToast } from '@/src/lib/toastStore';
 import type { ShorlogBlogLinkResponse, MyBlogSummary } from '@/src/types/blog';
@@ -15,7 +12,6 @@ type ShorlogBlogLinkModalProps = {
   shorlogId: number;
   onClose: () => void;
   onLinked?: (res: ShorlogBlogLinkResponse) => void;
-  onUnlinked?: () => void;
 };
 
 export default function ShorlogBlogLinkModal({
@@ -23,7 +19,6 @@ export default function ShorlogBlogLinkModal({
   shorlogId,
   onClose,
   onLinked,
-  onUnlinked,
 }: ShorlogBlogLinkModalProps) {
   const [recentBlogs, setRecentBlogs] = useState<MyBlogSummary[]>([]);
   const [selectedBlogId, setSelectedBlogId] = useState<number | null>(null);
@@ -38,14 +33,13 @@ export default function ShorlogBlogLinkModal({
     async function load() {
       try {
         setLoading(true);
-        const blogsList = await fetchMyRecentBlogs(7);
-
+        const list = await fetchMyRecentBlogs(7);
         if (!cancelled) {
-          setRecentBlogs(blogsList);
+          setRecentBlogs(list);
         }
       } catch (e) {
         if (!cancelled) {
-          handleApiError(e, '블로그 정보 조회');
+          handleApiError(e, '최근 블로그 조회');
         }
       } finally {
         if (!cancelled) {
@@ -59,7 +53,7 @@ export default function ShorlogBlogLinkModal({
     return () => {
       cancelled = true;
     };
-  }, [isOpen, shorlogId]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -69,7 +63,6 @@ export default function ShorlogBlogLinkModal({
     try {
       setLinking(true);
       const res = await linkShorlogToBlog(shorlogId, blogId);
-
       onLinked?.(res);
       onClose();
     } catch (e) {
@@ -79,8 +72,6 @@ export default function ShorlogBlogLinkModal({
       setSelectedBlogId(null);
     }
   };
-
-
 
   return (
     <div
@@ -92,15 +83,15 @@ export default function ShorlogBlogLinkModal({
       <div className="w-full max-w-[600px] rounded-3xl bg-white shadow-2xl ring-1 ring-black/5">
         {/* Header */}
         <div className="flex items-start gap-4 px-8 pt-8 pb-6">
-          <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
-            <span className="text-base font-semibold">🔗</span>
+          <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-sky-500">
+            <span className="text-base font-semibold">⚡</span>
           </div>
           <div>
             <h2 id="shorlog-blog-link-title" className="text-lg font-semibold text-slate-900">
-              블로그 연결 관리
+              이 숏로그와 연결할 블로그 선택
             </h2>
             <p className="mt-2 text-sm text-slate-500">
-              이 숏로그와 연결할 블로그를 선택해 보세요.
+              내가 쓴 블로그 중에서 이 글과 연결할 항목을 골라 보세요.
             </p>
           </div>
         </div>
@@ -109,12 +100,12 @@ export default function ShorlogBlogLinkModal({
 
         {/* Body */}
         <div className="px-8 py-6">
-          {/* 블로그 연결 섹션 */}
+          {/* 섹션 타이틀 */}
           <div className="mb-4 flex items-center gap-2">
             <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-50">
               <span className="text-sm text-blue-600">📋</span>
             </div>
-            <p className="text-sm font-semibold text-slate-700">연결할 블로그 선택</p>
+            <p className="text-sm font-semibold text-slate-700">최근 블로그 중에서 선택</p>
             <div className="ml-3 h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent" />
           </div>
 
@@ -122,7 +113,7 @@ export default function ShorlogBlogLinkModal({
           <div className="mb-5 max-h-60 overflow-y-auto space-y-3 pr-1 scroll-smooth">
             {loading && (
               <p className="py-6 text-center text-xs text-slate-400">
-                블로그 목록을 불러오는 중입니다...
+                최근 블로그를 불러오는 중입니다...
               </p>
             )}
 
@@ -139,7 +130,6 @@ export default function ShorlogBlogLinkModal({
                     className={[
                       'group w-full rounded-2xl border px-5 py-4 text-left text-slate-800 shadow-sm transition-all duration-200',
                       'bg-white hover:scale-[1.01] hover:bg-[#f3f6ff] hover:shadow-md disabled:opacity-60',
-                      // 선택 상태일 때 ring + 진한 테두리
                       isSelected
                         ? 'border-[#2979FF] ring-2 ring-[#2979FF]/40'
                         : 'border-slate-200 hover:border-[#2979FF]',
@@ -215,9 +205,9 @@ export default function ShorlogBlogLinkModal({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex items-center min-w-[120px] justify-center rounded-full bg-slate-600 px-4 py-2 text-[14px] font-medium text-white shadow-sm transition hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-600"
+            className="inline-flex items-center min-w-[120px] justify-center rounded-full bg-[#2979FF] px-4 py-2 text-[14px] font-medium text-white shadow-sm transition hover:bg-[#1f63d1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]"
           >
-            완료
+            나중에 하기
           </button>
         </div>
       </div>

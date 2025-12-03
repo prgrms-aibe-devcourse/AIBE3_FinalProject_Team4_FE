@@ -123,9 +123,9 @@ export default function ShorlogAuthorHeader({
             </button>
 
             {menuOpen && (
-              <div className="absolute right-0 z-20 mt-1 w-40 rounded-xl border border-slate-100 bg-white py-1 text-xs text-slate-700 shadow-lg" role="menu">
+              <div className="absolute right-0 z-20 mt-1 w-32 rounded-xl border border-slate-100 bg-white py-1 text-xs text-slate-700 shadow-lg" role="menu">
                 <button type="button" onClick={() => handleMenuAction('블로그 연결')} className="flex w-full items-center justify-between px-3 py-1.5 hover:bg-slate-50">
-                  블로그 연결하기
+                  블로그와 연결
                 </button>
                 <button type="button" onClick={() => handleMenuAction('수정')} className="flex w-full items-center justify-between px-3 py-1.5 hover:bg-slate-50">
                   수정
