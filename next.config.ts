@@ -2,32 +2,65 @@
 const nextConfig = {
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'shorlog-dev-images.s3.ap-northeast-2.amazonaws.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'next5-dev-images.s3.ap-northeast-2.amazonaws.com',
-        pathname: '/**',
-      },
+      // --- HM dev images ---
       {
         protocol: 'https',
         hostname: 'hm-dev-images.s3.ap-northeast-2.amazonaws.com',
         pathname: '/**',
       },
       {
+        protocol: 'http',
+        hostname: 'hm-dev-images.s3.ap-northeast-2.amazonaws.com',
+        pathname: '/**',
+      },
+
+      // --- next5 dev images ---
+      {
+        protocol: 'https',
+        hostname: 'next5-dev-images.s3.ap-northeast-2.amazonaws.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'next5-dev-images.s3.ap-northeast-2.amazonaws.com',
+        pathname: '/**',
+      },
+
+      // --- shorlog dev images ---
+      {
+        protocol: 'https',
+        hostname: 'shorlog-dev-images.s3.ap-northeast-2.amazonaws.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'shorlog-dev-images.s3.ap-northeast-2.amazonaws.com',
+        pathname: '/**',
+      },
+
+      // --- Google profile ---
+      {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
         pathname: '/**',
       },
+
+      // --- Kakao profile (추가 필요 시) ---
+      {
+        protocol: 'https',
+        hostname: 'k.kakaocdn.net',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'k.kakaocdn.net',
+        pathname: '/**',
+      },
     ],
   },
-  eslint: {
-    // 빌드 시 ESLint 에러가 나도 빌드는 계속 진행
-    ignoreDuringBuilds: true,
-  },
+
+  eslint: { ignoreDuringBuilds: true },
+
   async rewrites() {
     return [
       {
