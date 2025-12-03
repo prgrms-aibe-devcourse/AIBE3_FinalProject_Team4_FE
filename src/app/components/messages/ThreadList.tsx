@@ -107,7 +107,7 @@ export default function ThreadList({
                           <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-slate-200 ring-1 ring-slate-400">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                              src={t.user.avatarUrl ?? '/images/avatars/fallback.png'}
+                              src={t.user.avatarUrl || '/tmpProfile.png'}
                               alt={`${t.user.name} 프로필`}
                               className="h-full w-full object-cover"
                             />
@@ -117,12 +117,8 @@ export default function ThreadList({
                             <p className="truncate text-sm font-semibold text-slate-900">
                               {t.user.name}
                             </p>
-                            {t.user.handle ? (
-                              <p className="truncate text-[13px] text-slate-500">{t.user.handle}</p>
-                            ) : null}
                           </div>
                         </div>
-
                         <p className="mt-2 line-clamp-1 text-[13px] text-slate-700">
                           {t.lastMessage}
                         </p>

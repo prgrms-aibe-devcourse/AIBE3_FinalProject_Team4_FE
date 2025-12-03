@@ -183,7 +183,7 @@ export default function ChatPanel({
     );
   }
 
-  const avatarUrl = thread.user.avatarUrl ?? '/images/avatars/fallback.png';
+  const avatarUrl = thread.user.avatarUrl || '/tmpProfile.png';
 
   return (
     <div className="flex h-[calc(100vh-220px)] flex-col overflow-hidden rounded-lg bg-white shadow-lg shadow-slate-200/60 ring-1 ring-slate-400">
@@ -199,9 +199,6 @@ export default function ChatPanel({
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-900">{thread.user.name}</p>
-            <p className="truncate text-[13px] text-slate-600">
-              {thread.user.handle ?? 'TexTok 사용자'}
-            </p>
           </div>
         </div>
 

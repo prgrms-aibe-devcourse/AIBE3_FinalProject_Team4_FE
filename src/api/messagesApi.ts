@@ -1,0 +1,20 @@
+import apiClient from '@/src/api/clientForRs';
+import type {
+  CreateMessageThreadResponseDto,
+  MessageThreadDetailDto,
+  MessageThreadListItemDto,
+} from '@/src/types/message';
+
+export const messagesApi = {
+  getThreads: () => apiClient<MessageThreadListItemDto[]>('/api/v1/message/threads'),
+
+  getThread: (threadId: number) =>
+    apiClient<MessageThreadDetailDto>(`/api/v1/message/threads/${threadId}`),
+
+  // ✅ 생성은 RequestParam: POST /message-threads?otherUserId=xx
+  createThread: (otherUserId: number) =>
+    apiClient<CreateMessageThreadResponseDto>('/api/v1/message/threads', {
+      method: 'POST',
+      params: { otherUserId: String(otherUserId) },
+    }),
+};
