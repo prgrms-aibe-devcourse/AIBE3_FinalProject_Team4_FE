@@ -14,9 +14,7 @@ export default function NotificationItem({ n }: { n: any }) {
   return (
     <div
       className="flex items-start gap-3 p-4 border border-gray-200 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition cursor-pointer"
-      onClick={() => {
-        // 알림 타입 기반 이동도 가능함. 원하면 추가해 줄게!
-      }}
+      onClick={() => {}}
     >
       {/* 프로필 이미지 */}
       <img

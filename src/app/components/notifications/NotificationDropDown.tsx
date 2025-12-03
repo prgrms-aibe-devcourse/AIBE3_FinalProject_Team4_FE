@@ -17,7 +17,6 @@ export default function NotificationDropdown({ onClose }: Props) {
 
   const recent = useNotificationStore((s) => s.notifications);
   const setNotifications = useNotificationStore((s) => s.setNotifications);
-  const markAll = useNotificationStore((s) => s.markAllAsRead);
 
   // 외부 클릭 시 닫기
   useEffect(() => {
@@ -38,26 +37,37 @@ export default function NotificationDropdown({ onClose }: Props) {
       .finally(() => setLoading(false));
   }, [setNotifications]);
 
+  const visible = recent.slice(0, 5); // 🔥 5개만 표시
+
   return (
     <div
       ref={dropdownRef}
       className="
-        absolute top-16 left-20
-        w-80 bg-white shadow-xl rounded-xl border border-gray-200
-        py-2 z-[200]
+        absolute top-16 left-[280px]   /* 🔥 오른쪽으로 이동 */
+        w-96 bg-white shadow-xl rounded-xl border border-gray-200
+        py-3 z-[200]
       "
     >
-      <div className="px-4 pb-2 border-b border-gray-100 font-medium text-sm">알림</div>
-      <div className="max-h-[400px] overflow-y-auto">
+      {/* Header */}
+      <div className="px-5 pb-3 border-b border-gray-100 font-semibold text-sm">알림</div>
+
+      {/* Scroll List */}
+      <div className="max-h-[430px] overflow-y-auto px-3 py-2 space-y-2">
         {loading ? (
           <p className="text-sm text-gray-400 text-center py-6">불러오는 중...</p>
-        ) : recent.length === 0 ? (
+        ) : visible.length === 0 ? (
           <p className="text-sm text-gray-500 text-center py-6">새로운 알림이 없습니다.</p>
         ) : (
-          recent.map((n) => <NotificationItem key={n.id} n={n} />)
+          visible.map((n) => (
+            <div key={n.id} className="rounded-lg hover:bg-gray-50 transition px-2 py-2">
+              <NotificationItem n={n} />
+            </div>
+          ))
         )}
       </div>
-      <div className="p-2 border-t border-gray-100">
+
+      {/* Footer */}
+      <div className="p-3 border-t border-gray-100">
         <Link href="/notifications">
           <span className="block text-center text-sm text-blue-600 hover:text-blue-700">
             전체 알림 보기
