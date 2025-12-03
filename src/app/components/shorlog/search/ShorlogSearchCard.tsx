@@ -78,7 +78,7 @@ export default function ShorlogSearchCard({
         <div className="flex flex-col items-center text-center">
           <div className="h-12 w-12 overflow-hidden rounded-full bg-slate-200">
             <img
-              src={item.profileImgUrl}
+              src={item.profileImgUrl || '/tmpProfile.png'}
               alt={`${item.nickname} 프로필 이미지`}
               className="h-full w-full object-cover"
               loading="lazy"

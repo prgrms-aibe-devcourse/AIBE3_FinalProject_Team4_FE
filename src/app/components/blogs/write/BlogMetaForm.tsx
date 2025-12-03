@@ -2,9 +2,11 @@
 
 import { KeyboardEvent, useState } from 'react';
 import type { BlogVisibility } from '../../../../types/blog';
+import AiGeneration from '../../ai/generate/AiGeneration';
 
 type BlogMetaFormProps = {
   title: string;
+  content: string;
   onTitleChange: (v: string) => void;
   tags: string[];
   onTagsChange: (tags: string[]) => void;
@@ -14,6 +16,7 @@ type BlogMetaFormProps = {
 
 export function BlogMetaForm({
   title,
+  content,
   onTitleChange,
   tags,
   onTagsChange,
@@ -41,20 +44,29 @@ export function BlogMetaForm({
   return (
     <div className="space-y-4">
       {/* 제목 */}
-      <div>
+      <div className="group/ai relative flex items-center gap-2">
         <input
           type="text"
-          className="w-full border-0 bg-transparent text-xl font-semibold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-0"
+          className="flex-1 border-0 bg-transparent text-xl font-semibold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-0"
           placeholder="제목을 입력하세요"
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
         />
+        <div className="absolute z-10 right-0 top-1/2 -translate-y-1/2">
+          <AiGeneration
+            mode="title"
+            contentType="blog"
+            content={content}
+            onApply={onTitleChange}
+            revealOnHover={false}
+          />
+        </div>
       </div>
 
       {/* 태그 + 공개범위 */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="relative w-full pr-10">
         {/* 태그 입력 */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="group/ai flex flex-wrap items-center gap-2">
           {tags.map((tag) => (
             <button
               key={tag}
@@ -74,6 +86,20 @@ export function BlogMetaForm({
             onChange={(e) => setTagInput(e.target.value)}
             onKeyDown={handleTagKeyDown}
           />
+          <div className="absolute right-0 top-1/2 -translate-y-1/2">
+            <AiGeneration
+              mode="hashtag"
+              contentType="blog"
+              content={content}
+              onApply={(tag) => {
+                const trimmed = tag.trim();
+                if (trimmed && !tags.includes(trimmed)) {
+                  onTagsChange([...tags, trimmed]);
+                }
+              }}
+              revealOnHover
+            />
+          </div>
         </div>
 
         {/* 공개 범위

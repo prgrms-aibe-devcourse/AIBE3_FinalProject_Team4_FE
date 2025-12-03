@@ -22,7 +22,7 @@ export default function Tooltip({
   side = 'top',
   align = 'center',
   positionClass,
-  className = 'bg-slate-700 text-white text-[12.5px] text-center font-light px-2 py-1 rounded-md border-none shadow',
+  className = 'bg-gray-700 text-white text-[12.5px] text-center font-light px-2 py-1 rounded-md border-none shadow',
   animationClass = '',
   style,
 }: TooltipProps) {
