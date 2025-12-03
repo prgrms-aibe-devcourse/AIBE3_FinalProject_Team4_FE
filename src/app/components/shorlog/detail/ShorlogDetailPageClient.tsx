@@ -170,7 +170,6 @@ export default function ShorlogDetailPageClient({ detail, isOwner = false, hideN
   const [linkedBlogs, setLinkedBlogs] = useState<LinkedBlogDetail[]>([]);
   const [linkedBlogCount, setLinkedBlogCount] = useState(0);
   const [showLinkedBlogsModal, setShowLinkedBlogsModal] = useState(false);
-  const [loadingLinkedBlogs, setLoadingLinkedBlogs] = useState(false);
   const firstLineForAlt = detail.content.split('\n')[0]?.slice(0, 40) ?? '';
 
   const formatDate = (dateStr: string) => {
@@ -329,7 +328,7 @@ export default function ShorlogDetailPageClient({ detail, isOwner = false, hideN
       {/* 연결된 블로그 목록 모달 */}
       <LinkedBlogListModal
         open={showLinkedBlogsModal}
-        loading={loadingLinkedBlogs}
+        loading={false}
         items={linkedBlogs}
         shorlogId={detail.id}
         isOwner={isOwner}

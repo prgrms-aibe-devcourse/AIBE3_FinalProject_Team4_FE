@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+
 import { deleteShorlog } from '@/src/app/components/shorlog/edit/api';
 import { showGlobalToast } from '@/src/lib/toastStore';
 import FollowButton from '../../common/FollowButton';
@@ -15,7 +15,7 @@ interface Props {
   isOwner?: boolean;
   shorlogId?: number;
   userId?: number;
-  onBlogConnectionUpdate?: () => void;
+  onBlogConnectionUpdate?: () => void | Promise<void>;
 }
 
 export default function ShorlogAuthorHeader({
@@ -27,7 +27,6 @@ export default function ShorlogAuthorHeader({
   userId,
   onBlogConnectionUpdate,
 }: Props) {
-  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showBlogLinkModal, setShowBlogLinkModal] = useState(false);
