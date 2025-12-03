@@ -10,46 +10,42 @@ export type NotificationItem = {
   message: string;
   isRead: boolean;
   createdAt: string;
+  relativeTime?: string;
 };
 
-type NotificationState = {
+interface NotificationStore {
   notifications: NotificationItem[];
-
   unreadCount: number;
 
   addNotification: (n: NotificationItem) => void;
-
   setNotifications: (list: NotificationItem[]) => void;
-
-  markAsRead: (id: number) => void;
-
   markAllAsRead: () => void;
 
-  clear: () => void;
-};
+  setUnreadCount: (count: number) => void;
+}
 
-export const useNotificationStore = create<NotificationState>((set) => ({
+export const useNotificationStore = create<NotificationStore>((set) => ({
   notifications: [],
   unreadCount: 0,
 
+  /** SSE로 새 알림 추가 */
   addNotification: (n) =>
     set((state) => ({
       notifications: [n, ...state.notifications],
       unreadCount: state.unreadCount + (n.isRead ? 0 : 1),
     })),
 
+  /** 알림 목록 전체 세팅 */
   setNotifications: (list) =>
-    set(() => ({
-      notifications: list,
-      unreadCount: list.filter((n) => !n.isRead).length,
-    })),
+    set(() => {
+      const unread = list.filter((n) => !n.isRead).length;
+      return {
+        notifications: list,
+        unreadCount: unread,
+      };
+    }),
 
-  markAsRead: (id) =>
-    set((state) => ({
-      notifications: state.notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
-      unreadCount: Math.max(0, state.notifications.filter((n) => !n.isRead && n.id !== id).length),
-    })),
-
+  /** 전체 읽음 처리 */
   markAllAsRead: () =>
     set((state) => ({
       notifications: state.notifications.map((n) => ({
@@ -59,5 +55,8 @@ export const useNotificationStore = create<NotificationState>((set) => ({
       unreadCount: 0,
     })),
 
-  clear: () => set({ notifications: [], unreadCount: 0 }),
+  setUnreadCount: (count: number) =>
+    set(() => ({
+      unreadCount: count,
+    })),
 }));
