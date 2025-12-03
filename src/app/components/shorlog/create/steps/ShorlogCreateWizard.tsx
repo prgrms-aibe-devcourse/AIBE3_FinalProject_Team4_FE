@@ -1,21 +1,21 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { AiGenerateSingleResponse, generateAiContent } from '@/src/api/aiApi';
+import { fetchBlogDetail } from '@/src/api/blogDetail';
+import { showGlobalToast } from '@/src/lib/toastStore';
+import React, { useEffect, useState } from 'react';
+import { createDraft, deleteDraft, DraftResponse, getDraft, getDrafts } from '../api';
+import DraftManagerModal from '../DraftManagerModal';
+import { useFreeImageModal } from '../hooks/useFreeImageModal';
+import { useHashtag } from '../hooks/useHashtag';
+import { useShorlogCreate } from '../hooks/useShorlogCreate';
 import { MAX_FILES } from '../types';
-import WizardHeader from './WizardHeader';
-import ThumbnailSelectStep from './ThumbnailSelectStep';
-import ImageEditStep from './ImageEditStep';
 import ContentComposeStep from './ContentComposeStep';
 import FreeImageSelectModal from './FreeImageSelectModal';
+import ImageEditStep from './ImageEditStep';
 import ShorlogConnectBlogModal from './ShorlogConnectBlogModal';
-import DraftManagerModal from '../DraftManagerModal';
-import { useShorlogCreate } from '../hooks/useShorlogCreate';
-import { useHashtag } from '../hooks/useHashtag';
-import { useFreeImageModal } from '../hooks/useFreeImageModal';
-import { getDrafts, getDraft, deleteDraft, createDraft, DraftResponse } from '../api';
-import { showGlobalToast } from '@/src/lib/toastStore';
-import { fetchBlogDetail } from '@/src/api/blogDetail';
-import { generateAiContent, AiGenerateSingleResponse } from '@/src/api/aiApi';
+import ThumbnailSelectStep from './ThumbnailSelectStep';
+import WizardHeader from './WizardHeader';
 
 interface ShorlogCreateWizardProps {
   blogId?: number | null;
@@ -87,7 +87,10 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
 
       // 5개 제한 확인
       if (drafts.length >= 5) {
-        showGlobalToast('임시저장이 5개로 가득 찼어요. 기존 임시저장을 삭제한 후 다시 시도해주세요.', 'warning');
+        showGlobalToast(
+          '임시저장이 5개로 가득 찼어요. 기존 임시저장을 삭제한 후 다시 시도해주세요.',
+          'warning',
+        );
         setIsDraftLoading(false);
         setShowDraftModal(true); // 모달 열어서 삭제할 수 있게
         return;
@@ -98,7 +101,7 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
         throw new Error('이미지 업로드에 실패했습니다.');
       }
 
-      const imageIds = uploadedImages.map(img => img.id);
+      const imageIds = uploadedImages.map((img) => img.id);
 
       await createDraft({
         content: content || '',
@@ -234,7 +237,8 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
       showGlobalToast('블로그 내용을 숏로그로 요약했어요!', 'success');
     } catch (error) {
       console.error('블로그 → 숏로그 변환 실패:', error);
-      const errorMessage = error instanceof Error ? error.message : '블로그를 숏로그로 변환하는데 실패했습니다.';
+      const errorMessage =
+        error instanceof Error ? error.message : '블로그를 숏로그로 변환하는데 실패했습니다.';
       showGlobalToast(errorMessage, 'error');
     } finally {
       setIsBlogConverting(false);
@@ -253,9 +257,10 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
     );
   };
 
-  // Google 이미지 선택
-  const handleGoogleImagesSelect = async (selectedUrls: string[]) => {
-    await freeImage.handleGoogleImagesSelect(
+  // Pixabay 이미지 선택
+  const handlePixabayImagesSelect = async (selectedUrls: string[]) => {
+    shorlogCreate.setError(null);
+    await freeImage.handlePixabayImagesSelect(
       selectedUrls,
       shorlogCreate.images,
       shorlogCreate.setImages,
@@ -278,7 +283,7 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
             onAddFiles={shorlogCreate.addFiles}
             onNext={handleNextFromStep1}
             onUnsplashPhoto={freeImage.handleUnsplashPhoto}
-            onGooglePhoto={freeImage.handleGooglePhoto}
+            onPixabayPhoto={freeImage.handlePixabayPhoto}
           />
         )}
 
@@ -328,11 +333,11 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
           />
         )}
 
-        {freeImage.showGoogleModal && (
+        {freeImage.showPixabayModal && (
           <FreeImageSelectModal
-            apiType="google"
-            onSelect={handleGoogleImagesSelect}
-            onClose={() => freeImage.setShowGoogleModal(false)}
+            apiType="pixabay"
+            onSelect={handlePixabayImagesSelect}
+            onClose={() => freeImage.setShowPixabayModal(false)}
             maxSelect={MAX_FILES - shorlogCreate.images.length}
           />
         )}

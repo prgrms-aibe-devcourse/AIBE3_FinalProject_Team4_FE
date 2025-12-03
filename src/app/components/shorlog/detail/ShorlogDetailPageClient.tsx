@@ -1,5 +1,8 @@
 'use client';
 
+import { fetchShorlogView } from '@/src/api/viewApi';
+import { useRegisterView } from '@/src/hooks/useRegisterView';
+import { useMutation } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import ShorlogAuthorHeader from './ShorlogAuthorHeader';
@@ -30,7 +33,11 @@ function HighlightedContent({ content, progress }: { content: string; progress: 
   const highlightLength = Math.floor(totalLength * clamped);
 
   if (highlightLength <= 0) {
-    return <p className="whitespace-pre-line text-[15px] md:text-base leading-relaxed text-slate-900">{content}</p>;
+    return (
+      <p className="whitespace-pre-line text-[15px] md:text-base leading-relaxed text-slate-900">
+        {content}
+      </p>
+    );
   }
 
   if (highlightLength >= totalLength) {
@@ -68,7 +75,7 @@ function PrevNextNavArrows({ currentId }: { currentId: number }) {
         if (feedIdsStr) {
           try {
             const feedIds: number[] = JSON.parse(feedIdsStr);
-            const currentIndex = feedIds.findIndex(id => id === currentId);
+            const currentIndex = feedIds.findIndex((id) => id === currentId);
 
             if (currentIndex !== -1) {
               if (currentIndex > 0) prev = feedIds[currentIndex - 1].toString();
@@ -104,7 +111,7 @@ function PrevNextNavArrows({ currentId }: { currentId: number }) {
         if (feedIdsStr) {
           try {
             const feedIds: number[] = JSON.parse(feedIdsStr);
-            const targetIndex = feedIds.findIndex(id => id === parseInt(targetId));
+            const targetIndex = feedIds.findIndex((id) => id === parseInt(targetId));
 
             if (targetIndex !== -1) {
               if (targetIndex > 0) {
@@ -165,7 +172,11 @@ function PrevNextNavArrows({ currentId }: { currentId: number }) {
   );
 }
 
-export default function ShorlogDetailPageClient({ detail, isOwner = false, hideNavArrows = false }: Props) {
+export default function ShorlogDetailPageClient({
+  detail,
+  isOwner = false,
+  hideNavArrows = false,
+}: Props) {
   const [ttsProgress, setTtsProgress] = useState(0);
   const [linkedBlogs, setLinkedBlogs] = useState<LinkedBlogDetail[]>([]);
   const [linkedBlogCount, setLinkedBlogCount] = useState(0);
@@ -223,6 +234,17 @@ export default function ShorlogDetailPageClient({ detail, isOwner = false, hideN
     // 연결된 블로그가 있으면 항상 모달 열기 (1개든 여러 개든)
     setShowLinkedBlogsModal(true);
   };
+  // 최근 본 게시물 등록
+  const viewMutation = useMutation({
+    mutationFn: () => fetchShorlogView(detail.id),
+  });
+
+  useRegisterView({
+    contentKey: `shorlog:${detail.id}`, // 고유키
+    cooldownMs: 5 * 60 * 1000, // 5분 쿨다운
+    dwellMs: 3000, // 숏로그 3초
+    onRegister: () => viewMutation.mutate(),
+  });
 
   return (
     <div className="relative flex h-full w-full items-stretch">
@@ -264,9 +286,7 @@ export default function ShorlogDetailPageClient({ detail, isOwner = false, hideN
               )}
 
               <div className="mt-3 flex items-center gap-2 text-xs text-slate-400">
-                <time dateTime={detail.createdAt}>
-                  {formatDate(detail.createdAt)}
-                </time>
+                <time dateTime={detail.createdAt}>{formatDate(detail.createdAt)}</time>
                 {isModified && (
                   <>
                     <span>·</span>

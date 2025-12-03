@@ -1,7 +1,8 @@
 'use client';
 
 import { useFollow } from '@/src/hooks/useFollow';
-import { useCurrentUser } from '@/src/hooks/useCurrentUser';
+import { useAuth } from '@/src/providers/AuthProvider';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import ProfileEditModal from './ProfileHeaderEditModal';
 import FollowModal from './ProfileHeaderFollowModal';
@@ -19,15 +20,15 @@ interface ProfileHeaderProps {
     blogsCount: number;
   };
   isMyPage: boolean;
+  myId: number;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
-  const { data: currentUser } = useCurrentUser();
-  const myId = currentUser?.id ?? 0;
+export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) => {
+  const { refreshUser } = useAuth();
+  const router = useRouter();
 
-  // ✔ useFollow 훅 적용
   const {
     isFollowing,
     loading: followLoading,
@@ -35,6 +36,7 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
     setIsFollowing,
   } = useFollow(profile.id, false);
 
+  /** 팔로잉/팔로워 모달 */
   const [followModalOpen, setFollowModalOpen] = useState(false);
   const [tab, setTab] = useState<'following' | 'followers'>('following');
   const [list, setList] = useState<any[]>([]);
@@ -49,7 +51,7 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
     setFollowersCount(profile.followersCount);
   }, [profile.id, profile.followingCount, profile.followersCount]);
 
-  // ✔ 모달 리스트 로딩
+  // 모달 리스트 로딩
   useEffect(() => {
     if (!followModalOpen) return;
 
@@ -74,7 +76,7 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
     load();
   }, [followModalOpen, tab, profile.id]);
 
-  // ✔ 페이지 진입 시 /is-following 호출, 훅에 적용
+  // 페이지 진입 시 follow 상태 체크(내 페이지는 불필요)
   useEffect(() => {
     if (isMyPage) return;
 
@@ -85,11 +87,48 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
       });
 
       const json = await res.json();
-      setIsFollowing(json.data.isFollowing);
+      setIsFollowing(!!json?.data?.isFollowing);
     }
 
     checkFollowing();
   }, [profile.id, isMyPage, setIsFollowing]);
+
+  // ✅ 헤더 팔로우/언팔로우 시, 상대의 followersCount 즉각 반영 + 서버로 보정
+  const handleHeaderFollowToggle = async () => {
+    if (followLoading) return;
+
+    const prev = !!isFollowing;
+    const next = !prev;
+
+    // 1) 즉각 반영: 내가 누르는 건 "이 사람의 팔로워 수" 변화
+    setFollowersCount((c) => Math.max(0, c + (next ? 1 : -1)));
+
+    // 2) 실제 토글(API)
+    await toggleFollow();
+
+    // 3) 서버 정답으로 보정 (훅이 실패를 밖으로 알려주지 않아도 맞춰짐)
+    try {
+      const r1 = await fetch(`${API_BASE_URL}/api/v1/follow/is-following/${profile.id}`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      const j1 = await r1.json();
+      const serverIsFollowing = !!j1?.data?.isFollowing;
+      setIsFollowing(serverIsFollowing);
+
+      const r2 = await fetch(`${API_BASE_URL}/api/v1/users/${profile.id}`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      const j2 = await r2.json();
+      if (j2?.data) {
+        setFollowersCount(j2.data.followersCount ?? followersCount);
+        setFollowingCount(j2.data.followingCount ?? followingCount);
+      }
+    } catch (e) {
+      console.error('팔로우 보정 실패:', e);
+    }
+  };
 
   /** 프로필 편집 모달 */
   const [editOpen, setEditOpen] = useState(false);
@@ -142,7 +181,7 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
             ) : (
               <>
                 <button
-                  onClick={toggleFollow}
+                  onClick={handleHeaderFollowToggle}
                   disabled={followLoading}
                   className={`rounded-md px-8 h-10 text-sm font-medium
                     ${
@@ -204,6 +243,10 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
       <ProfileEditModal
         isOpen={editOpen}
         onClose={() => setEditOpen(false)}
+        onSave={async () => {
+          await refreshUser();
+          router.refresh();
+        }}
         profile={{
           id: profile.id,
           nickname: profile.nickname,
@@ -212,7 +255,7 @@ export const ProfileHeader = ({ profile, isMyPage }: ProfileHeaderProps) => {
         }}
       />
 
-      {/* 팔로우/팔로잉 모달 */}
+      {/* 팔로잉/팔로워 모달 */}
       <FollowModal
         isOpen={followModalOpen}
         onClose={(payload) => {
