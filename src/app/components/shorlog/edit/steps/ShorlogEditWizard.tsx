@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useFreeImageModal } from '../../create/hooks/useFreeImageModal';
-import { useHashtag } from '../../create/hooks/useHashtag';
 import ContentComposeStep from '../../create/steps/ContentComposeStep';
 import FreeImageSelectModal from '../../create/steps/FreeImageSelectModal';
 
@@ -10,12 +8,10 @@ import { useShorlogEdit } from '../hooks/useShorlogEdit';
 import { useHashtag } from '../../create/hooks/useHashtag';
 import { useFreeImageModal } from '../../create/hooks/useFreeImageModal';
 import ImageEditStep from '../../create/steps/ImageEditStep';
-import ShorlogConnectBlogModal from '../../create/steps/ShorlogConnectBlogModal';
 import ThumbnailSelectStep from '../../create/steps/ThumbnailSelectStep';
 import WizardHeader from '../../create/steps/WizardHeader';
 import { MAX_FILES } from '../../create/types';
 import type { ShorlogDetail } from '../../detail/types';
-import { useShorlogEdit } from '../hooks/useShorlogEdit';
 
 interface ShorlogEditWizardProps {
   shorlogId: string;
@@ -83,16 +79,6 @@ export default function ShorlogEditWizard({ shorlogId, initialData }: ShorlogEdi
       (step) => shorlogEdit.goToStep(step),
       shorlogEdit.setSelectedIndex,
     );
-  };
-
-
-  // 블로그 연결 선택
-  const handleSelectBlog = async (blogId: number) => {
-    await shorlogEdit.handleConnectBlog(blogId);
-    const blog = shorlogEdit.recentBlogs.find((b) => b.id === blogId);
-    if (blog) {
-      setLinkedBlogTitle(blog.title);
-    }
   };
 
   // --------- 렌더 ---------

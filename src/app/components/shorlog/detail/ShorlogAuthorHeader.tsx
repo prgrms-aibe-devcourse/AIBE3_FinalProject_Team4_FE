@@ -96,13 +96,13 @@ export default function ShorlogAuthorHeader({
         <div className="h-9 w-9 overflow-hidden rounded-full bg-slate-200 md:h-10 md:w-10">
           <img
             src={profileImgUrl || '/tmpProfile.png'}
-            alt={`${username} 프로필 이미지`}
+            alt={`${nickname} 프로필 이미지`}
             className="h-full w-full object-cover"
           />
         </div>
         <div className="flex flex-col">
-          <span className="text-[15px] font-semibold text-slate-900">@{username}</span>
-          <span className="text-[13px] text-slate-500">{nickname}</span>
+          <span className="text-[15px] font-semibold text-slate-900">{nickname}</span>
+          <span className="text-[13px] text-slate-500">@{username}</span>
         </div>
       </div>
 
@@ -182,10 +182,6 @@ export default function ShorlogAuthorHeader({
           onClose={() => setShowBlogLinkModal(false)}
           onLinked={() => {
             showGlobalToast('블로그와 연결되었어요!', 'success');
-            onBlogConnectionUpdate?.();
-          }}
-          onUnlinked={() => {
-            showGlobalToast('블로그 연결이 해제되었어요.', 'success');
             onBlogConnectionUpdate?.();
           }}
         />
