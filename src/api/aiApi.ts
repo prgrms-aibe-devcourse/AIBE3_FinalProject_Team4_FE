@@ -19,20 +19,16 @@ export async function fetchAiGenerate(
   return response.json();
 }
 
-// AI 생성 요청 타입
-export interface AiGenerateRequest {
-  mode:
-    | 'title'
-    | 'hashtag'
-    | 'summary'
-    | 'keyword'
-    | 'keywordForUnsplash'
-    | 'keywordForGoogle'
-    | 'thumbnailText';
-  contentType: 'blog' | 'shorlog';
-  message?: string;
-  content?: string;
-}
+// ================== AI 모델 사용 가능 여부 조회 ==================
+export const fetchModelAvailability = async (): Promise<RsData<ModelAvailabilityDto[]>> => {
+  const response = await apiClient('/api/v1/ais/model', {
+    method: 'GET',
+  });
+
+  if (!response.ok) throw new Error('모델 정보를 불러오지 못했습니다.');
+
+  return response.json();
+};
 
 // 백엔드 AiGenerateSingleResultResponse가 RsData로 감싸진 형태
 export interface AiGenerateSingleResponse {
@@ -51,19 +47,6 @@ export interface AiGenerateMultiResponse {
     results: string[];
   };
 }
-
-// export const fetchModelAvailability = async (): Promise<ModelAvailabilityResponse> => {
-
-// ================== AI 모델 사용 가능 여부 조회 ==================
-export const fetchModelAvailability = async (): Promise<RsData<ModelAvailabilityDto[]>> => {
-  const response = await apiClient('/api/v1/ais/model', {
-    method: 'GET',
-  });
-
-  if (!response.ok) throw new Error('모델 정보를 불러오지 못했습니다.');
-
-  return response.json();
-};
 
 export const generateAiContent = async (
   request: AiGenerateRequest,
