@@ -10,7 +10,7 @@ import {
   List,
   Quote,
 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -18,13 +18,51 @@ type MarkdownEditorProps = {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  onUploadImage?: (file: File) => Promise<string>;
 };
 
 type Mode = 'write' | 'preview';
 
-export function MarkdownEditor({ value, onChange, placeholder }: MarkdownEditorProps) {
+export function MarkdownEditor({
+  value,
+  onChange,
+  placeholder,
+  onUploadImage,
+}: MarkdownEditorProps) {
   const [mode, setMode] = useState<Mode>('write');
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const openImageFilePicker = () => {
+    if (!onUploadImage) {
+      alert('이미지 업로드 기능이 아직 연결되지 않았습니다.');
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!onUploadImage) return;
+
+    try {
+      setIsUploadingImage(true);
+      const url = await onUploadImage(file);
+
+      const next = (value ? value.replace(/\s+$/, '') + '\n\n' : '') + `![이미지 설명](${url})\n`;
+      onChange(next);
+      // setMode('preview');
+    } catch (err) {
+      console.error(err);
+      alert('이미지 업로드 중 오류가 발생했습니다.');
+    } finally {
+      setIsUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  // 마크다운 기본 동작
   const applyWrap = (prefix: string, suffix: string = prefix) => {
     if (!value) return onChange(`${prefix}텍스트${suffix}`);
     onChange(`${prefix}${value}${suffix}`);
@@ -60,10 +98,9 @@ export function MarkdownEditor({ value, onChange, placeholder }: MarkdownEditorP
         />
         <ToolbarButton
           icon={<ImageIcon size={14} />}
-          label="이미지"
-          onClick={() =>
-            onChange(value + (value ? '\n' : '') + '![이미지 설명](https://image-url)')
-          }
+          label={isUploadingImage ? '이미지 업로드 중...' : '이미지'}
+          disabled={isUploadingImage}
+          onClick={openImageFilePicker}
         />
       </div>
 
@@ -115,6 +152,13 @@ export function MarkdownEditor({ value, onChange, placeholder }: MarkdownEditorP
         <span>Markdown 지원</span>
         <span>{value.trim().length}자</span>
       </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleImageFileChange}
+      />
     </div>
   );
 }
@@ -123,14 +167,18 @@ type ToolbarButtonProps = {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
+  disabled?: boolean;
 };
 
-function ToolbarButton({ icon, label, onClick }: ToolbarButtonProps) {
+function ToolbarButton({ icon, label, onClick, disabled }: ToolbarButtonProps) {
   return (
     <button
       type="button"
-      onClick={onClick}
-      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-slate-600 hover:bg-slate-100"
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] ${
+        disabled ? 'cursor-not-allowed text-slate-300' : 'text-slate-600 hover:bg-slate-100'
+      }`}
       aria-label={label}
     >
       {icon}

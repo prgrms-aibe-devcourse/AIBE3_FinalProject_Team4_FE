@@ -1,5 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   LocalImage,
   MAX_CONTENT_LENGTH,
@@ -11,10 +10,10 @@ import {
 } from '../../create/types';
 import { uploadImagesBatch } from '../api';
 import { updateShorlog, connectBlogToShorlog, disconnectBlogFromShorlog } from '../api';
+import { showGlobalToast } from '@/src/lib/toastStore';
 import type { ShorlogDetail } from '../../detail/types';
 
 export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
-  const router = useRouter();
 
   // 기존 이미지를 LocalImage 형태로 변환 (모두 재업로드할 예정)
   const initialImages: LocalImage[] = initialData.thumbnailUrls.map((url, index) => ({
@@ -178,8 +177,9 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
         linkedBlogId: linkedBlogId,
       });
 
-      alert('숏로그가 성공적으로 수정되었습니다!');
-      router.push(`/profile/${result.userId || initialData.userId}`);
+      showGlobalToast('숏로그가 성공적으로 수정되었습니다!', 'success');
+      // 기존 모달 상태를 정리하기 위해 새로고침 방식으로 이동
+      window.location.href = `/profile/${result.userId || initialData.userId}`;
     } catch (e) {
       console.error(e);
       setError(e instanceof Error ? e.message : '숏로그 수정 중 오류가 발생했습니다.');
@@ -215,7 +215,7 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
       await connectBlogToShorlog(shorlogId, blogId);
       setLinkedBlogId(blogId);
       setShowBlogConnectModal(false);
-      alert('블로그가 연결되었습니다!');
+      showGlobalToast('블로그가 연결되었습니다!', 'success');
     } catch (e) {
       console.error(e);
       setError('블로그 연결 중 오류가 발생했습니다.');
@@ -229,7 +229,7 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
     try {
       await disconnectBlogFromShorlog(shorlogId);
       setLinkedBlogId(null);
-      alert('블로그 연결이 해제되었습니다.');
+      showGlobalToast('블로그 연결이 해제되었습니다.', 'success');
     } catch (e) {
       console.error(e);
       setError('블로그 연결 해제 중 오류가 발생했습니다.');

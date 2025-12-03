@@ -146,3 +146,113 @@ export async function callAiApi(params: {
     throw error;
   }
 }
+
+// ========== 임시저장 API ==========
+
+export interface DraftData {
+  content: string;
+  imageIds: number[];
+  hashtags: string[];
+}
+
+export interface DraftResponse {
+  id: number;
+  content: string;
+  thumbnailUrls: string[];
+  hashtags: string[];
+  createdAt: string;
+}
+
+// 임시저장 목록 조회
+export async function getDrafts(): Promise<DraftResponse[]> {
+  try {
+    const response = await fetch('/api/v1/shorlog/draft', {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `임시저장 조회 실패 (${response.status})`);
+    }
+
+    const result = await response.json();
+    return result.data || [];
+  } catch (error) {
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new Error('서버에 연결할 수 없습니다.');
+    }
+    throw error;
+  }
+}
+
+// 임시저장 생성
+export async function createDraft(data: DraftData): Promise<DraftResponse> {
+  try {
+    const response = await fetch('/api/v1/shorlog/draft', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `임시저장 실패 (${response.status})`);
+    }
+
+    const result = await response.json();
+    return result.data;
+  } catch (error) {
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new Error('서버에 연결할 수 없습니다.');
+    }
+    throw error;
+  }
+}
+
+// 임시저장 상세 조회
+export async function getDraft(id: number): Promise<DraftResponse> {
+  try {
+    const response = await fetch(`/api/v1/shorlog/draft/${id}`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `임시저장 조회 실패 (${response.status})`);
+    }
+
+    const result = await response.json();
+    return result.data;
+  } catch (error) {
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new Error('서버에 연결할 수 없습니다.');
+    }
+    throw error;
+  }
+}
+
+// 임시저장 삭제
+export async function deleteDraft(id: number): Promise<void> {
+  try {
+    const response = await fetch(`/api/v1/shorlog/draft/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `임시저장 삭제 실패 (${response.status})`);
+    }
+  } catch (error) {
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new Error('서버에 연결할 수 없습니다.');
+    }
+    throw error;
+  }
+}
+

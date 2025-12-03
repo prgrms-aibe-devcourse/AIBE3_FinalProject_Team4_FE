@@ -1,19 +1,31 @@
 'use client';
 
-// import { uploadBlogImage } from '@/src/api/blogImageApi';
+import { uploadBlogImage } from '@/src/api/blogImageApi';
+import type { BlogFileDto, BlogImage, BlogMediaUploadResponse, RsData } from '@/src/types/blog';
 import { SetStateAction, useState } from 'react';
 import Cropper from './Cropper';
 import BlogImageTab from './tabs/BlogImageTab';
 import UnsplashImagePicker from './tabs/UnsplashImageTab';
 import UploadTab from './tabs/UploadImageTab';
-import type { BlogImage } from '@/src/types/blog';
+import { handleApiError } from '@/src/lib/handleApiError';
 
 interface ImageSelectorProps {
   blogId: number | null;
   blogImages: BlogImage[];
+  thumbnailUrl: string | null;
+  onChangeImages: (images: BlogFileDto[]) => void;
+  onChangeThumbnail: (url: string | null) => void;
+  ensureDraft: () => Promise<number>;
 }
 
-export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps) {
+export default function ImageSelector({
+  blogId,
+  blogImages,
+  thumbnailUrl,
+  onChangeImages,
+  onChangeThumbnail,
+  ensureDraft,
+}: ImageSelectorProps) {
   const [selectedTab, setSelectedTab] = useState('upload');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -36,18 +48,24 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
   };
 
   const handleSubmit = async () => {
-    // 섬네일 이미지 업로드
+    if (!selectedImage) {
+      showToast('먼저 이미지를 선택해 주세요.', 'warning');
+      return;
+    }
+
     const formData = new FormData();
-    // 파일 업로드인 경우
+
     if (imageSourceType === 'file' && uploadedFile) {
       formData.append('files', uploadedFile);
-    }
-    // URL인 경우
-    else if (imageSourceType === 'url' && originalImage) {
+    } else if (imageSourceType === 'url' && originalImage) {
       formData.append('url', originalImage);
+    } else {
+      showToast('업로드할 이미지가 없습니다.', 'warning');
+      return;
     }
+
     formData.append('type', 'THUMBNAIL');
-    // aspectRatios 변환 ("원본" -> "original")
+
     const aspectRatioMap: Record<string, string> = {
       원본: 'original',
       '1:1': '1:1',
@@ -55,28 +73,60 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
       '16:9': '16:9',
     };
     formData.append('aspectRatios', aspectRatioMap[lastAspect] || 'original');
-    // try {
-    //   const response = await uploadBlogImage(blogId, formData);
-    //   if (response.ok) {
-    //     showToast('썸네일이 성공적으로 업로드되었습니다!', 'success');
-    //   } else {
-    //     // 상태코드별 메시지
-    //     if (response.status === 401) {
-    //       showToast('로그인이 필요합니다. 다시 로그인해주세요.', 'error');
-    //     } else if (response.status === 403) {
-    //       showToast('접근 권한이 없습니다.', 'error');
-    //     } else if (response.status === 404) {
-    //       showToast('블로그를 찾을 수 없습니다.', 'error');
-    //     } else if (response.status >= 500) {
-    //       showToast('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
-    //     } else {
-    //       showToast('업로드에 실패했습니다.', 'error');
-    //     }
-    //   }
-    // } catch (error) {
-    //   showToast('네트워크 오류가 발생했습니다.', 'error');
-    //   console.error('업로드 중 오류 발생:', error);
-    // }
+
+    try {
+      const validBlogId = blogId ?? (await ensureDraft());
+      // 1) Response 받기
+      const res = await uploadBlogImage(validBlogId, formData);
+
+      // 2) 상태코드 체크
+      if (!res.ok) {
+        if (res.status === 401) {
+          showToast('로그인이 필요합니다. 다시 로그인해주세요.', 'error');
+        } else if (res.status === 403) {
+          showToast('접근 권한이 없습니다.', 'error');
+        } else if (res.status === 404) {
+          showToast('블로그를 찾을 수 없습니다.', 'error');
+        } else if (res.status >= 500) {
+          showToast('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
+        } else {
+          showToast('업로드에 실패했습니다.', 'error');
+        }
+        return;
+      }
+
+      // 3) JSON 파싱해서 RsData 구조로 해석
+      const rs: RsData<BlogMediaUploadResponse> = await res.json();
+      const dto = rs.data;
+      if (!dto) {
+        showToast('업로드 응답이 올바르지 않습니다.', 'error');
+        return;
+      }
+
+      // 4) 썸네일 URL을 부모에 반영
+      onChangeThumbnail(dto.url);
+      // 필요하면 이미지 리스트에도 추가
+      const newImage: BlogFileDto = {
+        imageId: dto.imageId,
+        url: dto.url,
+        sortOrder: blogImages.length,
+        contentType: 'IMAGE',
+      };
+      onChangeImages([...blogImages, newImage]);
+
+      // 로컬 선택 상태도 업데이트
+      setUploadedFile(null);
+      setUploadedFileUrl(null);
+      setSelectedImage(null);
+      setOriginalImage(null);
+      setCroppingImage(null);
+      setImageSourceType('file');
+
+      showToast('썸네일이 성공적으로 업로드되었습니다!', 'success');
+    } catch (error) {
+      console.error('업로드 중 오류 발생:', error);
+      handleApiError(error);
+    }
   };
 
   return (
@@ -135,10 +185,10 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
           <div className="flex items-start gap-4">
             {/* 썸네일 */}
             <div className="flex-shrink-0">
-              {selectedImage ? (
+              {selectedImage || thumbnailUrl ? (
                 <div className="relative h-20 w-20 overflow-hidden rounded-xl bg-slate-100">
                   <img
-                    src={selectedImage}
+                    src={selectedImage ?? thumbnailUrl ?? ''}
                     alt="선택된 썸네일"
                     className="h-full w-full object-cover"
                   />
@@ -155,7 +205,7 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
               <div>
                 <h3 className="text-sm font-semibold text-slate-900">썸네일 이미지 선택하기</h3>
                 <p className="mt-1 text-xs text-slate-500">
-                  아래 탭에서 이미지를 선택하거나 업로드하세요
+                  제목과 내용 입력 후, 아래 탭에서 이미지를 선택하거나 업로드하고 적용하기 버튼을 누르세요.
                 </p>
               </div>
 
@@ -171,12 +221,12 @@ export default function ImageSelector({ blogId, blogImages }: ImageSelectorProps
                     >
                       자르기
                     </button>
-                    {/* <button
+                    <button
                       onClick={handleSubmit}
                       className="rounded-lg bg-[#2979FF] px-4 py-1.5 text-xs text-white shadow-sm transition hover:opacity-90"
                     >
                       적용하기
-                    </button> */}
+                    </button>
                   </>
                 )}
               </div>

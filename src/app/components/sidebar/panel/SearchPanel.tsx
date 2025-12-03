@@ -105,7 +105,7 @@ export default function SearchPanel({
           w-80 h-screen 
           bg-white border-r border-gray-200 
           shadow-md animate-slideIn 
-          z-50
+          z-[110]
         "
       >
         {/* Header */}

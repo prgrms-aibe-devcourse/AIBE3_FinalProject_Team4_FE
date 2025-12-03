@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { requireAuth } from '@/src/lib/auth';
 import { deleteShorlog } from '@/src/app/components/shorlog/edit/api';
+import { showGlobalToast } from '@/src/lib/toastStore';
+import FollowButton from '../../common/FollowButton';
 
 interface Props {
   username: string;
@@ -23,24 +24,18 @@ export default function ShorlogAuthorHeader({
   userId,
 }: Props) {
   const router = useRouter();
-  const [isFollowing, setIsFollowing] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-
-  const toggleFollow = () => {
-    if (!requireAuth('팔로우')) return;
-    // TODO: 1번(주권영) 팔로우 컴포넌트 연동
-    setIsFollowing((prev) => !prev);
-  };
 
   const handleMenuAction = (action: string) => {
     setMenuOpen(false);
 
     if (action === '수정') {
       if (shorlogId) {
-        router.push(`/shorlog/${shorlogId}/edit`);
+        // 기존 모달을 완전히 닫기 위해 새로고침 방식으로 이동
+        window.location.href = `/shorlog/${shorlogId}/edit`;
       }
       return;
     }
@@ -51,7 +46,7 @@ export default function ShorlogAuthorHeader({
     }
 
     // TODO: 블로그 연결 기능 구현
-    alert(`${action} 기능은 추후 제공될 예정입니다.`);
+    showGlobalToast(`${action} 기능은 추후 제공될 예정입니다.`, 'warning');
   };
 
   const handleDelete = async () => {
@@ -60,11 +55,11 @@ export default function ShorlogAuthorHeader({
     setIsDeleting(true);
     try {
       await deleteShorlog(shorlogId.toString());
-      alert('숏로그가 삭제되었습니다.');
+      showGlobalToast('숏로그가 삭제되었습니다.', 'success');
       router.push(`/profile/${userId}`);
     } catch (error) {
       console.error('삭제 오류:', error);
-      alert(error instanceof Error ? error.message : '숏로그 삭제 중 오류가 발생했습니다.');
+      showGlobalToast(error instanceof Error ? error.message : '숏로그 삭제 중 오류가 발생했습니다.', 'error');
     } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);
@@ -104,18 +99,8 @@ export default function ShorlogAuthorHeader({
       </div>
 
       <div className="flex items-center gap-1.5">
-        {!isOwner && (
-          <button
-            type="button"
-            onClick={toggleFollow}
-            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
-              isFollowing
-                ? 'bg-slate-100 text-slate-700 ring-1 ring-slate-200 hover:bg-slate-200 focus-visible:ring-slate-300'
-                : 'bg-[#2979FF] text-white hover:bg-[#1863db] focus-visible:ring-[#2979FF]'
-            }`}
-          >
-            {isFollowing ? '팔로잉' : '팔로우'}
-          </button>
+        {!isOwner && userId && (
+          <FollowButton userId={userId} variant="small" />
         )}
 
         {isOwner && (

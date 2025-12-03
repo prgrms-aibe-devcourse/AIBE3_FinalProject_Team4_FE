@@ -37,6 +37,7 @@ export type BlogDetailDto = {
   id: number;
   title: string;
   content: string;
+  userId: number;
   username: string;
   nickname: string;
   profileImageUrl: string | null;
@@ -114,3 +115,39 @@ export interface BlogDraftDto {
   status: BlogStatus; // Java의 BlogStatus enum
   modifiedAt: string; // LocalDateTime -> ISO string
 }
+
+export type BlogLikeResponse = {
+  blogId: number;
+  isLiked: boolean;
+  likeCount: number;
+};
+
+export type BlogBookmarkResponse = {
+  blogId: number;
+  isBookmarked: boolean;
+  bookmarkCount: number;
+};
+
+export type ViewResponse = {
+  blogId: number;
+  viewCount: number;
+};
+//연결
+export type LinkedShorlogSummary = {
+  shorlogId: number;
+  comment: string;
+  modifiedAt: string;
+};
+export type MyShorlogSummary = {
+  id: number;
+  title: string;
+  hashtags: string[];
+  modifiedAt: string; // LocalDateTime → 문자열
+};
+
+export type BlogShorlogLinkResponse = {
+  blogId: number;
+  shorlogId: number;
+  haveLink: boolean;
+  linkedCount: number;
+};

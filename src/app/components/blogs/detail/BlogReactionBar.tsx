@@ -5,6 +5,10 @@ import { Bookmark, BookmarkCheck, Heart, MessageCircle, Share2 } from 'lucide-re
 
 type BlogReactionBarProps = {
   blog: BlogDetailDto;
+  isLiked: boolean;
+  likeCount: number;
+  isBookmarked: boolean;
+  bookmarkCount: number;
   onToggleLike?: () => void;
   onToggleBookmark?: () => void;
   onOpenLinkedShorlogs?: () => void;
@@ -13,13 +17,17 @@ type BlogReactionBarProps = {
 
 export function BlogReactionBar({
   blog,
+  isLiked,
+  likeCount,
+  isBookmarked,
+  bookmarkCount,
   onToggleLike,
   onToggleBookmark,
   onOpenLinkedShorlogs,
   onShare,
 }: BlogReactionBarProps) {
-  const liked = Boolean(blog.isLiked);
-  const bookmarked = Boolean(blog.isBookmarked);
+ const liked = isLiked;
+ const bookmarked = isBookmarked;
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/60 px-5 py-3.5 text-xs text-slate-500 sm:px-8">
@@ -36,7 +44,7 @@ export function BlogReactionBar({
           ].join(' ')}
         >
           <Heart className="h-3.5 w-3.5" fill={liked ? 'currentColor' : 'none'} />
-          <span className="font-medium">{blog.likeCount}</span>
+          <span className="font-medium">{likeCount}</span>
         </button>
 
         {/* 북마크 */}
@@ -55,7 +63,7 @@ export function BlogReactionBar({
           ) : (
             <Bookmark className="h-3.5 w-3.5" />
           )}
-          <span className="font-medium">{blog.bookmarkCount}</span>
+          <span className="font-medium">{bookmarkCount}</span>
         </button>
 
         {/* 연결된 숏로그 보기 */}

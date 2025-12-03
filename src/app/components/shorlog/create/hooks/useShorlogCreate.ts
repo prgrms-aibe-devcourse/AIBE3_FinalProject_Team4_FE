@@ -10,6 +10,7 @@ import {
   ShorlogRelatedBlogSummary,
 } from '../types';
 import { uploadImagesBatch, createShorlog } from '../api';
+import { showGlobalToast } from '@/src/lib/toastStore';
 
 export function useShorlogCreate() {
   const router = useRouter();
@@ -128,6 +129,22 @@ export function useShorlogCreate() {
     }
   };
 
+  // 이미지만 업로드하는 메서드 (임시저장용)
+  const uploadImages = async () => {
+    if (!images.length) {
+      throw new Error('편집할 이미지가 없습니다.');
+    }
+
+    try {
+      const uploaded = await uploadImagesBatch(images);
+      setUploadedImages(uploaded);
+      return uploaded;
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  };
+
   const handleSubmit = async (content: string, hashtags: string[]) => {
     const trimmed = content.trim();
 
@@ -162,7 +179,7 @@ export function useShorlogCreate() {
         await fetchRecentBlogs();
         setShowBlogConnectModal(true);
       } else {
-        alert('숏로그가 성공적으로 생성되었습니다!');
+        showGlobalToast('숏로그가 성공적으로 생성되었습니다!', 'success');
           router.push(`/profile/${userId}`);
       }
     } catch (e) {
@@ -202,7 +219,7 @@ export function useShorlogCreate() {
       console.log('블로그 연결:', { shorlogId: createdShorlogId, blogId });
 
       // TODO: 블로그 연결 API 호출 구현 예정
-      alert('연결은 곧 추가됩니다');
+      showGlobalToast('블로그 연결 기능은 곧 추가됩니다!', 'warning');
 
       setShowBlogConnectModal(false);
       router.push(`/profile/${createdUserId}`);
@@ -214,7 +231,7 @@ export function useShorlogCreate() {
 
   const handleCreateNewBlog = () => {
     setShowBlogConnectModal(false);
-    router.push('/blogs/write');
+    router.push('/blogs/new');
   };
 
   const handleSkipConnection = () => {
@@ -248,6 +265,7 @@ export function useShorlogCreate() {
     addFiles,
     goToStep,
     handleNextFromStep2,
+    uploadImages,
     handleSubmit,
     changeAspectRatio,
     deleteImage,
