@@ -117,20 +117,8 @@ export default function BlogSearchPage() {
   if (!keyword) {
     return (
       <>
-        <main className="min-h-[60vh] bg-gradient-to-b from-slate-50  to-slate-50">
+        <main className="min-h-[60vh]   ">
           <div className="mx-auto w-full max-w-5xl px-4 pb-16 pt-10">
-            <SearchHeader
-              keyword={keyword}
-              totalCount={totalCount}
-              sortEnum={sortEnum}
-              onChangeSort={(next) =>
-                router.push(
-                  `/search/blog?keyword=${encodeURIComponent(
-                    keyword,
-                  )}&sort=${ENUM_TO_SORT_PARAM[next]}`,
-                )
-              }
-            />
             <div className="mt-10 flex flex-col items-center justify-center">
               <p className="text-lg font-medium text-slate-900">검색어를 입력해주세요</p>
               <p className="mt-2 text-sm text-slate-500">보고 싶은 블로그를 키워드로 찾아보세요.</p>
@@ -144,21 +132,8 @@ export default function BlogSearchPage() {
   const isEmpty = !loading && !error && items.length === 0;
 
   return (
-    <main className="min-h-[60vh] bg-gradient-to-b from-slate-50 to-slate-50">
-      <div className="mx-auto w-full max-w-5xl px-4 pb-16 pt-10">
-        <SearchHeader
-          keyword={keyword}
-          totalCount={totalCount}
-          sortEnum={sortEnum}
-          onChangeSort={(next) =>
-            router.push(
-              `/search/blog?keyword=${encodeURIComponent(
-                keyword,
-              )}&sort=${ENUM_TO_SORT_PARAM[next]}`,
-            )
-          }
-        />
-
+    <main className="min-h-[60vh] bg-gradient-to-b ">
+      <div>
         {/* 상태별 영역 */}
         {loading ? (
           <div className="flex justify-center py-16 text-sm text-slate-500">
@@ -210,20 +185,6 @@ type SearchHeaderProps = {
   onChangeSort: (value: BlogSearchSort) => void;
 };
 
-function SearchHeader({ keyword, sortEnum, totalCount, onChangeSort }: SearchHeaderProps) {
-  return (
-    <div className="mb-6">
-      <h1 className="text-xl font-bold text-slate-900">"{keyword}" 검색 결과</h1>
-      <p className="text-sm text-slate-500">{totalCount}개의 블로그를 찾았습니다</p>
-      {/* {totalCount !== null && (
-        <p className="text-sm text-slate-500">
-          {totalCount.toLocaleString()}개의 블로그를 찾았습니다.
-        </p>
-      )} */}
-    </div>
-  );
-}
-
 /* ====== 에러 / 빈 상태 컴포넌트 ====== */
 
 function BlogSearchErrorState({ onRetry }: { onRetry: () => void }) {
@@ -242,11 +203,12 @@ function BlogSearchErrorState({ onRetry }: { onRetry: () => void }) {
   );
 }
 
+
 function BlogSearchEmptyState({ keyword }: { keyword: string }) {
   return (
-    <div className="mt-10 flex flex-col items-center justify-center py-16">
+    <div className="flex flex-col items-center justify-center py-16">
       <div className="text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+        <div className="mx-auto h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center">
           <svg
             className="h-6 w-6 text-slate-400"
             fill="none"
@@ -262,15 +224,13 @@ function BlogSearchEmptyState({ keyword }: { keyword: string }) {
           </svg>
         </div>
         <p className="mt-4 text-lg font-medium text-slate-900">
-          "{keyword}"에 대한 블로그 검색 결과가 없어요
+          "{keyword}"에 대한 검색 결과가 없습니다
         </p>
-        <p className="mt-2 text-sm text-slate-500">
-          다른 키워드나 더 일반적인 단어로 다시 검색해 보세요.
-        </p>
-        <div className="mt-4 text-xs text-slate-400 space-y-1">
-          <p>• 단어의 철자가 정확한지 확인해 보세요</p>
-          <p>• 다른 검색어를 사용해 보세요</p>
-          <p>• 더 일반적인 검색어를 사용해 보세요</p>
+        <p className="mt-2 text-sm text-slate-500">다른 검색어로 시도해보세요</p>
+        <div className="mt-4 text-xs text-slate-400">
+          <p>• 단어의 철자가 정확한지 확인해보세요</p>
+          <p>• 다른 검색어를 사용해보세요</p>
+          <p>• 더 일반적인 검색어를 사용해보세요</p>
         </div>
       </div>
     </div>
