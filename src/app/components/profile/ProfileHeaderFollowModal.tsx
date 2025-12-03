@@ -49,10 +49,9 @@ export default function FollowModal({
 
   // 리스트는 탭 전환 시에도 업데이트
   useEffect(() => {
-    if (isOpen) {
-      setLocalList(list);
-    }
-  }, [isOpen, list]);
+    if (!isOpen) return;
+    setLocalList(sortFollowList(list, myId));
+  }, [isOpen, list, myId]);
 
   const hasChanges = useMemo(() => {
     return (
@@ -60,6 +59,23 @@ export default function FollowModal({
       localFollowersCount !== initialRef.current.followersCount
     );
   }, [localFollowingCount, localFollowersCount]);
+
+  const sortFollowList = (arr: any[], myId: number) => {
+    const score = (u: any) => {
+      if (u.id === myId) return 0; // 나
+      if (u.isFollowing) return 1; // 내가 팔로우 중
+      return 2; // 나머지
+    };
+
+    // 안정 정렬(원래 순서 유지) 위해 index 추가
+    return arr
+      .map((u, idx) => ({ u, idx }))
+      .sort((a, b) => {
+        const diff = score(a.u) - score(b.u);
+        return diff !== 0 ? diff : a.idx - b.idx;
+      })
+      .map(({ u }) => u);
+  };
 
   const handleClose = () => {
     // 변경이 있었으면 부모에 최종 카운트 전달 → 프로필 페이지 즉시 반영 가능
@@ -72,9 +88,12 @@ export default function FollowModal({
 
   // 리스트 아이템에서 팔로우 변경을 올려받아 즉시 반영
   const handleToggleFollow = (targetUserId: number, nextIsFollowing: boolean) => {
-    setLocalList((prev) =>
-      prev.map((u) => (u.id === targetUserId ? { ...u, isFollowing: nextIsFollowing } : u)),
-    );
+    setLocalList((prev) => {
+      const updated = prev.map((u) =>
+        u.id === targetUserId ? { ...u, isFollowing: nextIsFollowing } : u,
+      );
+      return sortFollowList(updated, myId);
+    });
 
     // 내 프로필일 때만 카운트 업데이트
     if (isMyProfile) {

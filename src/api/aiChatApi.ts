@@ -1,12 +1,6 @@
-import { AiChatRequest, ModelAvailabilityDto } from '@/src/types/ai';
+import { AiChatRequest, ModelAvailabilityDto, RsData } from '@/src/types/ai';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
-
-export interface RsData<T> {
-  resultCode: string;
-  msg: string;
-  data: T;
-}
 
 // UI에서 구분해서 쓰기 쉬운 커스텀 에러
 export class ApiError extends Error {

@@ -87,7 +87,7 @@ export default function ShorlogAuthorHeader({
       <div className="flex items-center gap-3">
         <div className="h-9 w-9 overflow-hidden rounded-full bg-slate-200 md:h-10 md:w-10">
           <img
-            src={profileImgUrl ?? 'https://api.dicebear.com/7.x/identicon/svg?seed=shorlog-user'}
+            src={profileImgUrl || '/tmpProfile.png'}
             alt={`${username} 프로필 이미지`}
             className="h-full w-full object-cover"
           />
