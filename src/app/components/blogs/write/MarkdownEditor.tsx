@@ -14,8 +14,7 @@ import {
   Quote,
 } from 'lucide-react';
 import React, { useCallback, useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { MarkdownViewer } from './MarkdownViewer';
 
 type MarkdownEditorProps = {
   value: string;
@@ -485,9 +484,7 @@ export function MarkdownEditor({
       ) : (
         <div className="prose prose-sm max-w-none px-3 py-2 text-sm text-slate-800">
           {value ? (
-            <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-              {value}
-            </ReactMarkdown>
+            <MarkdownViewer markdown={value} />
           ) : (
             <p className="text-xs text-slate-400">미리볼 내용이 없습니다.</p>
           )}
