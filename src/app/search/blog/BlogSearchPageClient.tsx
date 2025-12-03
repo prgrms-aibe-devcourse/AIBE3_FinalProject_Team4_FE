@@ -145,9 +145,9 @@ export default function BlogSearchPage() {
           <BlogSearchEmptyState keyword={keyword} />
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-4 pt-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+            <div className="pt-2 space-y-2">
               {items.map((blog) => (
-                <BlogSearchCard key={blog.id} item={blog} />
+                <BlogSearchCard key={blog.id} item={blog} searchKeyword={keyword} />
               ))}
             </div>
 
