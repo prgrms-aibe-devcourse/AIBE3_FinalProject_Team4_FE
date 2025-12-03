@@ -255,7 +255,12 @@ export default function ShorlogDetailPageClient({ detail, isOwner = false, hideN
             </section>
 
             <section aria-label="TTS 컨트롤" className="mt-4">
-              <ShorlogTtsController progress={ttsProgress} setProgress={setTtsProgress} />
+              <ShorlogTtsController
+                shorlogId={detail.id}
+                content={detail.content}
+                progress={ttsProgress}
+                setProgress={setTtsProgress}
+              />
             </section>
 
             <section aria-label="댓글" className="mt-4 border-t border-slate-100 pt-3">

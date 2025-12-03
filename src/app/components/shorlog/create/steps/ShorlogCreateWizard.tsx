@@ -14,8 +14,14 @@ import { useHashtag } from '../hooks/useHashtag';
 import { useFreeImageModal } from '../hooks/useFreeImageModal';
 import { getDrafts, getDraft, deleteDraft, createDraft, DraftResponse } from '../api';
 import { showGlobalToast } from '@/src/lib/toastStore';
+import { fetchBlogDetail } from '@/src/api/blogDetail';
+import { generateAiContent, AiGenerateSingleResponse } from '@/src/api/aiApi';
 
-export default function ShorlogCreateWizard() {
+interface ShorlogCreateWizardProps {
+  blogId?: number | null;
+}
+
+export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps) {
   const [content, setContent] = useState('');
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [drafts, setDrafts] = useState<DraftResponse[]>([]);
@@ -167,38 +173,76 @@ export default function ShorlogCreateWizard() {
   const handleAiHashtagClick = async () => {
     const result = await hashtag.handleAiHashtagClick(content);
     if (result.error) {
-      shorlogCreate.setError(result.error);
+      showGlobalToast(result.error, 'warning');
     }
   };
 
+  // 블로그 → 숏로그 변환 상태
+  const [isBlogConverting, setIsBlogConverting] = useState(false);
+
   // 블로그 → 숏로그 변환
   const handleBlogToShorlogClick = async () => {
-    // TODO: 블로그 내용 기반 요약 생성 기능 구현
-    //
-    // [조건] 블로그 생성 후 숏로그 생성 시에만 이 버튼이 보여야 함
-    // - URL에서 blogId 파라미터 확인 (예: /shorlog/create?blogId=123)
-    // - blogId가 있을 때만 onBlogToShorlogClick prop 전달
-    //
-    // [구현 순서]
-    // 1. blogId로 해당 블로그 내용 조회
-    //    GET /api/v1/blogs/{blogId}
-    //
-    // 2. 블로그 내용을 AI로 요약 (200-800자)
-    //    POST /api/v1/ais
-    //
-    // 3. 요약 결과를 content에 설정
-    //    setContent(result.data)
-    //
-    // 4. 사용자에게 성공 알림
-    //    "블로그 내용을 숏로그로 요약했어요!"
+    if (!blogId) {
+      showGlobalToast('연결된 블로그가 없습니다.', 'error');
+      return;
+    }
 
-    console.log('블로그 → 숏로그 변환 기능 (구현 예정)');
-    showGlobalToast('블로그 → 숏로그 변환 기능은 곧 추가됩니다!', 'warning');
+    if (isBlogConverting) return;
+
+    try {
+      setIsBlogConverting(true);
+
+      // 1. blogId로 해당 블로그 내용 조회
+      const blogDetail = await fetchBlogDetail(blogId);
+
+      if (!blogDetail.content || !blogDetail.content.trim()) {
+        showGlobalToast('블로그 내용이 없어서 요약할 수 없습니다.', 'warning');
+        return;
+      }
+
+      // 2. 블로그 내용을 AI로 요약 (200-800자)
+      const aiResponse = await generateAiContent({
+        mode: 'summary',
+        contentType: 'shorlog',
+        content: blogDetail.content,
+      });
+
+      console.log('AI 응답:', aiResponse); // 디버깅용
+
+      // 응답이 성공인지 확인 (백엔드는 200-1을 성공 코드로 사용)
+      if (!aiResponse.resultCode || !aiResponse.resultCode.startsWith('200')) {
+        throw new Error(`AI 서버 오류: ${aiResponse.msg || '알 수 없는 오류'}`);
+      }
+
+      // data가 있는지 확인
+      if (!aiResponse.data) {
+        throw new Error('AI 응답에 데이터가 없습니다.');
+      }
+
+      // summary 모드는 AiGenerateSingleResponse 형태로 data.result를 반환
+      const singleResponse = aiResponse as AiGenerateSingleResponse;
+      const summaryResult = singleResponse.data.result;
+
+      if (!summaryResult || summaryResult.trim() === '') {
+        throw new Error('AI가 빈 요약을 반환했습니다.');
+      }
+
+      // 3. 요약 결과를 content에 설정
+      setContent(summaryResult.trim());
+
+      // 4. 사용자에게 성공 알림
+      showGlobalToast('블로그 내용을 숏로그로 요약했어요!', 'success');
+    } catch (error) {
+      console.error('블로그 → 숏로그 변환 실패:', error);
+      const errorMessage = error instanceof Error ? error.message : '블로그를 숏로그로 변환하는데 실패했습니다.';
+      showGlobalToast(errorMessage, 'error');
+    } finally {
+      setIsBlogConverting(false);
+    }
   };
 
   // Unsplash 이미지 선택
   const handleUnsplashImagesSelect = async (selectedUrls: string[]) => {
-    shorlogCreate.setError(null);
     await freeImage.handleUnsplashImagesSelect(
       selectedUrls,
       shorlogCreate.images,
@@ -211,7 +255,6 @@ export default function ShorlogCreateWizard() {
 
   // Google 이미지 선택
   const handleGoogleImagesSelect = async (selectedUrls: string[]) => {
-    shorlogCreate.setError(null);
     await freeImage.handleGoogleImagesSelect(
       selectedUrls,
       shorlogCreate.images,
@@ -267,8 +310,8 @@ export default function ShorlogCreateWizard() {
             removeHashtag={hashtag.removeHashtag}
             onAiHashtagClick={handleAiHashtagClick}
             isAiLoading={hashtag.isAiLoading}
-            onBlogToShorlogClick={handleBlogToShorlogClick}
-            isBlogConverting={false}
+            onBlogToShorlogClick={blogId ? handleBlogToShorlogClick : undefined}
+            isBlogConverting={isBlogConverting}
             onPrev={() => shorlogCreate.goToStep(2)}
             onSaveDraft={handleSaveDraft}
             onSubmit={handleSubmit}
