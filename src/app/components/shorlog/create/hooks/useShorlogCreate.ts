@@ -110,7 +110,7 @@ export function useShorlogCreate() {
 
   const handleNextFromStep2 = async () => {
     if (!images.length) {
-      setError('편집할 이미지가 없습니다.');
+      showGlobalToast('편집할 이미지가 없습니다.', 'warning');
       return;
     }
 
@@ -123,7 +123,7 @@ export function useShorlogCreate() {
       goToStep(3);
     } catch (e) {
       console.error(e);
-      setError(e instanceof Error ? e.message : '이미지 업로드 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.');
+      showGlobalToast(e instanceof Error ? e.message : '이미지 업로드 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.', 'error');
     } finally {
       setIsUploading(false);
     }
@@ -149,15 +149,15 @@ export function useShorlogCreate() {
     const trimmed = content.trim();
 
     if (!trimmed) {
-      setError('내용을 입력해주세요.');
+      showGlobalToast('내용을 입력해주세요.', 'warning');
       return;
     }
     if (trimmed.length > MAX_CONTENT_LENGTH) {
-      setError(`내용은 최대 ${MAX_CONTENT_LENGTH}자까지 작성할 수 있어요.`);
+      showGlobalToast(`내용은 최대 ${MAX_CONTENT_LENGTH}자까지 작성할 수 있어요.`, 'warning');
       return;
     }
     if (!uploadedImages.length) {
-      setError('이미지를 먼저 업로드해주세요.');
+      showGlobalToast('이미지를 먼저 업로드해주세요.', 'warning');
       return;
     }
 
@@ -184,7 +184,7 @@ export function useShorlogCreate() {
       }
     } catch (e) {
       console.error(e);
-      setError(e instanceof Error ? e.message : '숏로그 생성 중 오류가 발생했습니다.');
+      showGlobalToast(e instanceof Error ? e.message : '숏로그 생성 중 오류가 발생했습니다.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -225,7 +225,7 @@ export function useShorlogCreate() {
       router.push(`/profile/${createdUserId}`);
     } catch (e) {
       console.error('블로그 연결 실패:', e);
-      setError(e instanceof Error ? e.message : '블로그 연결 중 오류가 발생했습니다.');
+      showGlobalToast(e instanceof Error ? e.message : '블로그 연결 중 오류가 발생했습니다.', 'error');
     }
   };
 

@@ -8,7 +8,7 @@ interface ThumbnailSelectStepProps {
   onAddFiles: (files: File[]) => void;
   onNext: () => void;
   onUnsplashPhoto: () => void;
-  onGooglePhoto: () => void;
+  onPixabayPhoto: () => void;
 }
 
 export default function ThumbnailSelectStep({
@@ -17,7 +17,7 @@ export default function ThumbnailSelectStep({
   onAddFiles,
   onNext,
   onUnsplashPhoto,
-  onGooglePhoto,
+  onPixabayPhoto,
 }: ThumbnailSelectStepProps) {
   const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
@@ -41,9 +41,7 @@ export default function ThumbnailSelectStep({
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm">
           <span className="text-2xl">🖼️</span>
         </div>
-        <p className="mt-3 text-sm font-medium text-slate-900">
-          섬네일로 사용할 사진을 선택하세요
-        </p>
+        <p className="mt-3 text-sm font-medium text-slate-900">섬네일로 사용할 사진을 선택하세요</p>
         <p className="mt-1 text-xs text-slate-500">
           JPG / PNG / WEBP 형식의 이미지를 1~10장까지 업로드할 수 있어요.
         </p>
@@ -71,10 +69,10 @@ export default function ThumbnailSelectStep({
           </button>
           <button
             type="button"
-            onClick={onGooglePhoto}
+            onClick={onPixabayPhoto}
             className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]"
           >
-            무료 사진 (Google)
+            무료 사진 (Pixabay)
           </button>
         </div>
 

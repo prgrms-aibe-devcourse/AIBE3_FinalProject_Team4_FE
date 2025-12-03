@@ -183,18 +183,38 @@ export default function RegisterStep1Page() {
 
     const token = sessionStorage.getItem('verification_token');
 
-    if (!isCodeVerified) return setFormError('이메일 인증을 완료해주세요.');
-    if (!idAvailable) return setFormError('ID 중복 확인을 완료해주세요.');
-    if (userIdError) return setFormError(userIdError);
-    if (!idAvailable) return setFormError('사용할 수 없는 ID입니다.');
-    if (pwError) return setFormError(pwError);
-    if (pwCheckError) return setFormError(pwCheckError);
-
+    if (!isCodeVerified) {
+      setFormError('이메일 인증을 완료해주세요.');
+      return;
+    }
+    if (!validateUserId(userId)) {
+      setFormError('TexTok ID를 올바르게 입력해주세요.');
+      return;
+    }
+    if (!idAvailable) {
+      setFormError('ID 중복 확인을 완료해주세요.');
+      return;
+    }
+    if (!pw.trim()) {
+      setFormError('비밀번호를 입력해주세요.');
+      return;
+    }
+    if (pw.length < 4 || pw.length > 30) {
+      setFormError('비밀번호는 4~30자여야 합니다.');
+      return;
+    }
+    if (!pwCheck.trim()) {
+      setFormError('비밀번호 확인을 입력해주세요.');
+      return;
+    }
+    if (pw !== pwCheck) {
+      setFormError('비밀번호가 일치하지 않습니다.');
+      return;
+    }
     sessionStorage.setItem(
       'register_step1',
       JSON.stringify({ email, userId, pw, verificationToken: token }),
     );
-
     router.push('/auth/register/step2');
   };
 

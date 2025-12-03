@@ -8,8 +8,10 @@ import {
   unlikeBlog,
 } from '@/src/api/blogDetail';
 import { fetchLinkedShorlogs, unlinkShorlog } from '@/src/api/blogShorlogLink';
+import { fetchBlogView } from '@/src/api/viewApi';
 import { BlogDetailHeader } from '@/src/app/components/blogs/detail/BlogDetailHeader';
 import { BlogReactionBar } from '@/src/app/components/blogs/detail/BlogReactionBar';
+import { useRegisterView } from '@/src/hooks/useRegisterView';
 import { handleApiError } from '@/src/lib/handleApiError';
 import { showGlobalToast } from '@/src/lib/toastStore';
 import type {
@@ -17,6 +19,7 @@ import type {
   BlogShorlogLinkResponse,
   LinkedShorlogSummary,
 } from '@/src/types/blog';
+import { useMutation } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -180,6 +183,20 @@ export default function BlogDetailClient({
       handleApiError(e, '숏로그 연결 해제');
     }
   };
+
+  // 최근 본 게시물 등록
+  const viewMutation = useMutation({
+    mutationFn: () => fetchBlogView(blog.id),
+  });
+
+  useRegisterView({
+    contentKey: `blog:${blog.id}`,
+    cooldownMs: 10 * 60 * 1000, // (선택사항) 10분 쿨다운
+    dwellMs: 9000,
+    scrollThreshold: 0.5,
+    noScrollRatio: 1.2,
+    onRegister: () => viewMutation.mutate(),
+  });
 
   return (
     <>

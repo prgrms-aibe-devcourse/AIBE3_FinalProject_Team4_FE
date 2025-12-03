@@ -2,7 +2,7 @@
 import { useAiChatStreamMutation } from '@/src/api/useAiChatStream';
 import { ModelOption } from '@/src/types/ai';
 import { useEffect, useRef, useState } from 'react';
-import Tooltip from '../../common/Tooltip';
+import Tooltip from '../Tooltip';
 import AiChatBody from './AiChatBody';
 import AiChatHeader from './AiChatHeader';
 

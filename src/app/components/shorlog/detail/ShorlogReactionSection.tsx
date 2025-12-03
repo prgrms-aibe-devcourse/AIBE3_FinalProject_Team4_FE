@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
 import { MessageCircle, Send } from 'lucide-react';
-import LikeButton from '../../common/LikeButton';
+import { useState } from 'react';
+
+import { requireAuth } from '../../../../lib/auth';
 import BookmarkButton from '../../common/BookmarkButton';
+import LikeButton from '../../common/LikeButton';
 import ShareModal from './ShareModal';
 
 interface Props {
@@ -23,22 +25,29 @@ export default function ShorlogReactionSection({
   authorId,
   likeCount,
   commentCount,
-  bookmarkCount: initialBookmarkCount,
+  bookmarkCount,
   title,
   description,
   imageUrl,
   author
 }: Props) {
-  const [currentBookmarkCount, setCurrentBookmarkCount] = useState(initialBookmarkCount);
+  const [currentBookmarkCount, setCurrentBookmarkCount] = useState(bookmarkCount);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
-  const handleBookmarkChange = (isBookmarked: boolean, bookmarkCount?: number) => {
-    if (bookmarkCount !== undefined) {
-      setCurrentBookmarkCount(bookmarkCount);
+  /** 북마크 변경 (BookmarkButton 전용 + fallback 처리) */
+  const handleBookmarkChange = (isBookmarked: boolean, newCount?: number) => {
+    if (newCount !== undefined) {
+      setCurrentBookmarkCount(newCount);
+    } else {
+      // fallback (old 방식: 로컬 증가)
+      setCurrentBookmarkCount((prev) => prev + (isBookmarked ? 1 : -1));
     }
   };
 
+  /** 공유 버튼 클릭 */
   const handleShare = () => {
+    if (!requireAuth('공유')) return;
+
     setIsShareModalOpen(true);
   };
 
@@ -46,6 +55,8 @@ export default function ShorlogReactionSection({
     <>
       <div className="flex items-center justify-between text-[13px] text-slate-700">
         <div className="flex items-center gap-4">
+
+          {/* ❤️ 좋아요 */}
           <LikeButton
             shorlogId={shorlogId}
             authorId={authorId}
@@ -54,23 +65,26 @@ export default function ShorlogReactionSection({
             showCount={true}
           />
 
+          {/* 💬 댓글 */}
           <div className="flex items-center gap-1.5 text-slate-700">
             <MessageCircle className="h-5 w-5" />
             <span className="text-[13px] font-medium">{commentCount}</span>
           </div>
 
-        <div className="flex items-center gap-1.5 text-slate-700">
-          <BookmarkButton
-            shorlogId={shorlogId}
-            authorId={authorId}
-            initialBookmarked={false}
-            onBookmarkChange={handleBookmarkChange}
-            variant="small"
-          />
-          <span className="text-[13px] font-medium">{currentBookmarkCount}</span>
-        </div>
+          {/* 🔖 북마크 */}
+          <div className="flex items-center gap-1.5 text-slate-700">
+            <BookmarkButton
+              shorlogId={shorlogId}
+              authorId={authorId}
+              initialBookmarked={false}
+              onBookmarkChange={handleBookmarkChange}
+              variant="small"
+            />
+            <span className="text-[13px] font-medium">{currentBookmarkCount}</span>
+          </div>
         </div>
 
+        {/* 📤 공유 */}
         <button
           type="button"
           onClick={handleShare}
@@ -81,6 +95,7 @@ export default function ShorlogReactionSection({
         </button>
       </div>
 
+      {/* 공유 모달 */}
       <ShareModal
         shorlogId={shorlogId}
         title={title}

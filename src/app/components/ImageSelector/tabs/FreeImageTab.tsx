@@ -1,24 +1,27 @@
 'use client';
 
-import { getGoogleImages, getUnsplashImages } from '@/src/api/blogImageApi';
+import { getPixabayImages, getUnsplashImages } from '@/src/api/blogImageApi';
 import { SearchField } from '@/src/app/components/common/SearchField';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import AiGeneration from '../../ai/generate/AiGeneration';
 
 interface UnsplashImagePickerProps {
+  blogContent?: string;
   searchKeyword: string;
   onSearchKeywordChange: (keyword: string) => void;
   selectedImage: string | null;
   originalImage: string | null;
   onSelect: (url: string) => void;
-  apiEndpoint?: 'unsplash' | 'google';
+  apiEndpoint?: 'unsplash' | 'pixabay';
 }
 
 const PAGE_SIZE = 20;
 const MAX_IMAGES = 300;
 
-export default function UnsplashImagePicker({
+export default function FreeImagePicker({
+  blogContent,
   searchKeyword,
   onSearchKeywordChange,
   selectedImage,
@@ -45,8 +48,8 @@ export default function UnsplashImagePicker({
             number: 0,
           };
         }
-        const res = await (apiEndpoint === 'google'
-          ? getGoogleImages(searchKeyword, pageParam, PAGE_SIZE)
+        const res = await (apiEndpoint === 'pixabay'
+          ? getPixabayImages(searchKeyword, pageParam, PAGE_SIZE)
           : getUnsplashImages(searchKeyword, pageParam, PAGE_SIZE));
         if (!res.ok) throw new Error('이미지 검색에 실패했습니다.');
         const json = await res.json();
@@ -136,7 +139,7 @@ export default function UnsplashImagePicker({
 
   return (
     <div>
-      <div className="mb-4">
+      <div className="mb-4 flex items-center gap-2">
         <SearchField
           id="image-search"
           value={keyword}
@@ -147,10 +150,19 @@ export default function UnsplashImagePicker({
           onSearch={onSearch}
           placeholder="이미지 검색어를 입력하세요"
         />
+        <AiGeneration
+          mode="keyword"
+          contentType="blog"
+          content={blogContent}
+          onApply={(value) => {
+            setKeyword(value);
+            onSearchKeywordChange(value);
+          }}
+        />
       </div>
 
       {isError && (
-        <div className="mb-3 text-sm text-red-500">
+        <div className="mb-3 text-xs text-red-500">
           {(error as Error)?.message || '오류가 발생했습니다.'}
         </div>
       )}
@@ -182,7 +194,7 @@ export default function UnsplashImagePicker({
                   >
                     <img
                       src={img.url}
-                      alt={apiEndpoint === 'google' ? 'google' : 'unsplash'}
+                      alt={apiEndpoint === 'pixabay' ? 'pixabay' : 'unsplash'}
                       {...(img.width && img.height ? { width: img.width, height: img.height } : {})}
                       style={aspectRatio ? { aspectRatio: aspectRatio.toString() } : undefined}
                       onError={() => {
@@ -216,7 +228,7 @@ export default function UnsplashImagePicker({
             <div ref={sentinelRef} />
 
             {!isFetchingNextPage && searchKeyword && images.length > 0 && !shouldFetchMore && (
-              <div className="pt-8 pb-4 text-center text-sm text-gray-400">
+              <div className="pt-8 pb-4 text-center text-xs text-gray-400">
                 {images.length >= MAX_IMAGES
                   ? `최대 ${MAX_IMAGES}개까지 표시됩니다`
                   : '마지막 페이지입니다'}
@@ -224,13 +236,13 @@ export default function UnsplashImagePicker({
             )}
 
             {!searchKeyword && (
-              <div className="py-8 text-center text-sm text-gray-500">
-                검색어를 입력하고 검색을 눌러 이미지를 찾아보세요
+              <div className="py-8 text-center text-xs text-gray-500">
+                검색어를 입력하고 엔터를 눌러 이미지를 찾아보세요
               </div>
             )}
 
             {searchKeyword && images.length === 0 && (
-              <div className="py-8 text-center text-sm text-gray-500">검색 결과가 없습니다</div>
+              <div className="py-8 text-center text-xs text-gray-500">검색 결과가 없습니다</div>
             )}
           </>
         )}

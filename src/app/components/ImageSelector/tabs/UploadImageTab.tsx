@@ -104,7 +104,7 @@ export default function UploadTab({
           onDragOver={handleDragOver}
         >
           <UploadCloud className="w-10 h-10 mb-2 text-slate-600" />
-          <p className="text-sm text-slate-600">이미지를 끌어오거나 클릭하여 업로드하세요</p>
+          <p className="text-xs text-slate-600">이미지를 끌어오거나 클릭하여 업로드하세요</p>
         </div>
       ) : (
         // 파일이 있을 때: 파일 정보 표시

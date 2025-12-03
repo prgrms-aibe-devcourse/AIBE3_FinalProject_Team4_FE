@@ -1,17 +1,17 @@
 'use client';
 
 import React, { useState } from 'react';
-import { MAX_FILES } from '../../create/types';
-import WizardHeader from '../../create/steps/WizardHeader';
-import ThumbnailSelectStep from '../../create/steps/ThumbnailSelectStep';
-import ImageEditStep from '../../create/steps/ImageEditStep';
+import { useFreeImageModal } from '../../create/hooks/useFreeImageModal';
+import { useHashtag } from '../../create/hooks/useHashtag';
 import ContentComposeStep from '../../create/steps/ContentComposeStep';
 import FreeImageSelectModal from '../../create/steps/FreeImageSelectModal';
+import ImageEditStep from '../../create/steps/ImageEditStep';
 import ShorlogConnectBlogModal from '../../create/steps/ShorlogConnectBlogModal';
-import { useShorlogEdit } from '../hooks/useShorlogEdit';
-import { useHashtag } from '../../create/hooks/useHashtag';
-import { useFreeImageModal } from '../../create/hooks/useFreeImageModal';
+import ThumbnailSelectStep from '../../create/steps/ThumbnailSelectStep';
+import WizardHeader from '../../create/steps/WizardHeader';
+import { MAX_FILES } from '../../create/types';
 import type { ShorlogDetail } from '../../detail/types';
+import { useShorlogEdit } from '../hooks/useShorlogEdit';
 
 interface ShorlogEditWizardProps {
   shorlogId: string;
@@ -69,10 +69,10 @@ export default function ShorlogEditWizard({ shorlogId, initialData }: ShorlogEdi
     );
   };
 
-  // Google 이미지 선택
-  const handleGoogleImagesSelect = async (selectedUrls: string[]) => {
+  // Pixabay 이미지 선택
+  const handlePixabayImagesSelect = async (selectedUrls: string[]) => {
     shorlogEdit.setError(null);
-    await freeImage.handleGoogleImagesSelect(
+    await freeImage.handlePixabayImagesSelect(
       selectedUrls,
       shorlogEdit.images,
       shorlogEdit.setImages,
@@ -85,7 +85,7 @@ export default function ShorlogEditWizard({ shorlogId, initialData }: ShorlogEdi
   // 블로그 연결 선택
   const handleSelectBlog = async (blogId: number) => {
     await shorlogEdit.handleConnectBlog(blogId);
-    const blog = shorlogEdit.recentBlogs.find(b => b.id === blogId);
+    const blog = shorlogEdit.recentBlogs.find((b) => b.id === blogId);
     if (blog) {
       setLinkedBlogTitle(blog.title);
     }
@@ -104,7 +104,7 @@ export default function ShorlogEditWizard({ shorlogId, initialData }: ShorlogEdi
             onAddFiles={shorlogEdit.addFiles}
             onNext={handleNextFromStep1}
             onUnsplashPhoto={freeImage.handleUnsplashPhoto}
-            onGooglePhoto={freeImage.handleGooglePhoto}
+            onPixabayPhoto={freeImage.handlePixabayPhoto}
           />
         )}
 
@@ -156,11 +156,11 @@ export default function ShorlogEditWizard({ shorlogId, initialData }: ShorlogEdi
           />
         )}
 
-        {freeImage.showGoogleModal && (
+        {freeImage.showPixabayModal && (
           <FreeImageSelectModal
-            apiType="google"
-            onSelect={handleGoogleImagesSelect}
-            onClose={() => freeImage.setShowGoogleModal(false)}
+            apiType="pixabay"
+            onSelect={handlePixabayImagesSelect}
+            onClose={() => freeImage.setShowPixabayModal(false)}
             maxSelect={MAX_FILES - shorlogEdit.images.length}
           />
         )}
@@ -187,4 +187,3 @@ export default function ShorlogEditWizard({ shorlogId, initialData }: ShorlogEdi
     </div>
   );
 }
-
