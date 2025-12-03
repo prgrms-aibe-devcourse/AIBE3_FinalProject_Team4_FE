@@ -58,7 +58,7 @@ export function BlogMetaForm({
             contentType="blog"
             content={content}
             onApply={onTitleChange}
-            revealOnHover
+            revealOnHover={false}
           />
         </div>
       </div>
