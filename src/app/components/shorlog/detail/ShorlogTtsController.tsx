@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useRequireAuth } from '@/src/hooks/userRequireAuth';
 import { showGlobalToast } from '@/src/lib/toastStore';
-import { isAuthenticated } from '@/src/lib/auth';
+import { useEffect, useState } from 'react';
 
 interface Props {
   progress: number; // 0 ~ 1
@@ -15,7 +15,7 @@ interface Props {
  */
 export default function ShorlogTtsController({ progress, setProgress }: Props) {
   const [isPlaying, setIsPlaying] = useState(false);
-
+  const requireAuth = useRequireAuth();
   // 재생 중일 때 진행률 증가
   useEffect(() => {
     if (!isPlaying) return;
@@ -35,7 +35,7 @@ export default function ShorlogTtsController({ progress, setProgress }: Props) {
 
   const handleTogglePlay = () => {
     // 로그인 체크
-    if (!isAuthenticated()) {
+    if (!requireAuth()) {
       showGlobalToast('로그인이 필요한 기능입니다.', 'warning');
       return;
     }
@@ -55,7 +55,7 @@ export default function ShorlogTtsController({ progress, setProgress }: Props) {
   // 10초 전/후 → 실제 오디오가 없으니 "전체의 10%" 기준으로 이동
   const skipBy = (delta: number) => {
     // 로그인 체크
-    if (!isAuthenticated()) {
+    if (!requireAuth()) {
       showGlobalToast('로그인이 필요한 기능입니다.', 'warning');
       return;
     }
@@ -64,7 +64,7 @@ export default function ShorlogTtsController({ progress, setProgress }: Props) {
 
   const handleDownload = () => {
     // 로그인 체크
-    if (!isAuthenticated()) {
+    if (!requireAuth()) {
       showGlobalToast('로그인이 필요한 기능입니다.', 'warning');
       return;
     }
@@ -158,4 +158,7 @@ export default function ShorlogTtsController({ progress, setProgress }: Props) {
       </div>
     </div>
   );
+}
+function isAuthenticated() {
+  throw new Error('Function not implemented.');
 }
