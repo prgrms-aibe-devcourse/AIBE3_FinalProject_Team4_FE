@@ -26,15 +26,16 @@ export default function BlogCommentItem({
   const [menuOpen, setMenuOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editText, setEditText] = useState(comment.content);
+
   const [replyMode, setReplyMode] = useState(false);
   const [replyText, setReplyText] = useState('');
 
+  const [openReplies, setOpenReplies] = useState(false); // 🔥 답글 접기/펼치기
   const requireAuth = useRequireAuth();
 
-  // 좋아요 토글
+  /** 좋아요 */
   const handleLike = async () => {
     if (!requireAuth('좋아요')) return;
-    // 내 댓글이면 좋아요 금지
     if (comment.isMine) {
       alert('내 댓글에는 좋아요를 누를 수 없습니다.');
       return;
@@ -47,21 +48,20 @@ export default function BlogCommentItem({
     }
   };
 
-  // 수정
+  /** 수정 */
   const handleEditSubmit = async () => {
     if (!editText.trim()) return alert('내용을 입력해주세요');
-
     await onEdit(comment.id, editText.trim());
     setEditMode(false);
   };
 
-  // 삭제
+  /** 삭제 */
   const handleDelete = async () => {
     if (!confirm('정말 삭제하시겠습니까?')) return;
     await onDelete(comment.id);
   };
 
-  // 답글 등록
+  /** 답글 작성 */
   const handleReplySubmit = async () => {
     if (!requireAuth('댓글 작성')) return;
     if (!replyText.trim()) return alert('내용을 입력해주세요.');
@@ -69,6 +69,7 @@ export default function BlogCommentItem({
     await onReply(comment.id, replyText.trim());
     setReplyText('');
     setReplyMode(false);
+    setOpenReplies(true); // 🔥 답글 작성 뒤 자동으로 펼치기
   };
 
   return (
@@ -81,7 +82,7 @@ export default function BlogCommentItem({
           className="h-10 w-10 rounded-full object-cover"
         />
 
-        <div className="flex-1">
+        <div className="flex-1 relative">
           {/* 닉네임 + 시간 + 메뉴 */}
           <div className="flex items-center justify-between">
             <div>
@@ -101,7 +102,7 @@ export default function BlogCommentItem({
 
           {/* 메뉴 */}
           {menuOpen && (
-            <div className="absolute z-10 mt-2 w-24 rounded-md border bg-white shadow">
+            <div className="absolute right-0 z-10 mt-2 w-24 rounded-md border bg-white shadow">
               <button
                 onClick={() => {
                   setEditMode(true);
@@ -150,6 +151,7 @@ export default function BlogCommentItem({
               <span>{comment.likeCount}</span>
             </button>
 
+            {/* depth 0 댓글에만 답글 */}
             {depth === 0 && (
               <button
                 onClick={() => setReplyMode((prev) => !prev)}
@@ -175,20 +177,31 @@ export default function BlogCommentItem({
             </div>
           )}
 
-          {/* 대댓글(depth 1) */}
+          {/* 🔥 대댓글 접기/펼치기 기능 */}
           {comment.children.length > 0 && (
-            <div className="mt-4 ml-6 border-l pl-4 space-y-4">
-              {comment.children.map((child) => (
-                <BlogCommentItem
-                  key={child.id}
-                  comment={child}
-                  onReply={onReply}
-                  onLike={onLike}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  depth={depth + 1}
-                />
-              ))}
+            <div className="mt-3">
+              <button
+                onClick={() => setOpenReplies((prev) => !prev)}
+                className="text-xs text-slate-500 hover:text-slate-700"
+              >
+                {openReplies ? '답글 숨기기' : `답글 ${comment.children.length}개 보기`}
+              </button>
+
+              {openReplies && (
+                <div className="mt-3 ml-6 border-l pl-4 space-y-4">
+                  {comment.children.map((child) => (
+                    <BlogCommentItem
+                      key={child.id}
+                      comment={child}
+                      onReply={onReply}
+                      onLike={onLike}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                      depth={depth + 1}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

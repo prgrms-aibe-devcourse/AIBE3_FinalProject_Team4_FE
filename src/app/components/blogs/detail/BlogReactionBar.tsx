@@ -103,7 +103,7 @@ export function BlogReactionBar({
 
       {/* 댓글 토글 */}
       <div className="border-t bg-white px-5 py-5 sm:px-8">
-        <BlogCommentSection blogId={blog.id} />
+        <BlogCommentSection blogId={blog.id} initialCommentCount={blog.commentCount} />
       </div>
     </div>
   );

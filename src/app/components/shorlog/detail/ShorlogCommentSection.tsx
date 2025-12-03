@@ -25,11 +25,29 @@ export default function ShorlogCommentSection({ shorlogId, initialCommentCount }
 
   const requireAuth = useRequireAuth();
 
+  /** 최신순 정렬 함수 */
+  const sortCommentsLatest = (list: any[]): any[] => {
+    return [...list]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .map((c) => ({
+        ...c,
+        children: c.children
+          ? [...c.children].sort(
+              (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+            )
+          : [],
+      }));
+  };
+
   /** 댓글 목록 불러오기 */
   const fetchComments = async () => {
     setLoading(true);
     try {
-      const data = await getComments(shorlogId);
+      let data = await getComments(shorlogId);
+
+      // 🔥 최신순 정렬 적용
+      data = sortCommentsLatest(data);
+
       setComments(data);
     } catch (err) {
       console.error(err);
@@ -41,6 +59,18 @@ export default function ShorlogCommentSection({ shorlogId, initialCommentCount }
   useEffect(() => {
     fetchComments();
   }, [shorlogId]);
+
+  /** 트리 전체 댓글 수 계산 (대댓글 포함) */
+  const countAllComments = (list: any[]): number => {
+    let count = 0;
+
+    for (const c of list) {
+      count += 1;
+      if (c.children?.length) count += countAllComments(c.children);
+    }
+
+    return count;
+  };
 
   /** 댓글 입력창 포커스 */
   const handleCommentFocus = async () => {
@@ -91,52 +121,43 @@ export default function ShorlogCommentSection({ shorlogId, initialCommentCount }
 
     const nextLiked = !target.isLiked;
 
-    // UI 낙관적 업데이트
+    // UI 선반영
     updateCommentLikeState(commentId, nextLiked);
 
     try {
-      if (nextLiked) {
-        await likeComment(commentId);
-      } else {
-        await unlikeComment(commentId);
-      }
+      nextLiked ? await likeComment(commentId) : await unlikeComment(commentId);
     } catch (err: any) {
-      // 실패 → 롤백
       updateCommentLikeState(commentId, !nextLiked);
       showGlobalToast(err.message || '좋아요 처리 중 오류가 발생했습니다.', 'error');
     }
   };
 
-  /** 댓글 찾기 (최상위 + 대댓글) */
+  /** 댓글 찾기 */
   const findComment = (commentId: number) => {
     for (const comment of comments) {
       if (comment.id === commentId) return comment;
-      if (comment.children) {
-        const child = comment.children.find((c: any) => c.id === commentId);
-        if (child) return child;
-      }
+      const child = comment.children?.find((c: any) => c.id === commentId);
+      if (child) return child;
     }
     return null;
   };
 
-  /** 특정 댓글만 UI 갱신 (대댓글 포함) */
+  /** 좋아요 UI 업데이트 */
   const updateCommentLikeState = (id: number, isLiked: boolean) => {
     setComments((prev) =>
-      prev.map((comment) => {
-        // 최상위 댓글인 경우
-        if (comment.id === id) {
-          return {
-            ...comment,
-            isLiked,
-            likeCount: isLiked ? comment.likeCount + 1 : comment.likeCount - 1,
-          };
-        }
+      sortCommentsLatest(
+        prev.map((comment) => {
+          if (comment.id === id) {
+            return {
+              ...comment,
+              isLiked,
+              likeCount: isLiked ? comment.likeCount + 1 : comment.likeCount - 1,
+            };
+          }
 
-        // 대댓글인 경우
-        if (comment.children) {
           return {
             ...comment,
-            children: comment.children.map((child: any) =>
+            children: comment.children?.map((child: any) =>
               child.id === id
                 ? {
                     ...child,
@@ -146,10 +167,8 @@ export default function ShorlogCommentSection({ shorlogId, initialCommentCount }
                 : child,
             ),
           };
-        }
-
-        return comment;
-      }),
+        }),
+      ),
     );
   };
 
@@ -179,13 +198,13 @@ export default function ShorlogCommentSection({ shorlogId, initialCommentCount }
     }
   };
 
-  const totalCount = comments.length || initialCommentCount || 0;
+  const totalCount = countAllComments(comments) || initialCommentCount || 0;
 
   return (
     <div>
       <p className="mb-2 text-xs font-medium text-slate-500">댓글 {totalCount}개</p>
 
-      {/* 댓글 입력창 */}
+      {/* 입력창 */}
       <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2">
         <input
           type="text"
@@ -194,7 +213,6 @@ export default function ShorlogCommentSection({ shorlogId, initialCommentCount }
           onFocus={handleCommentFocus}
           placeholder="댓글 달기..."
           className="flex-1 border-none bg-transparent text-xs outline-none placeholder:text-slate-400"
-          aria-label="댓글 입력"
         />
         <button
           type="button"
