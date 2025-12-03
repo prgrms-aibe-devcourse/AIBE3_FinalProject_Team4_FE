@@ -9,8 +9,12 @@ import ShorlogAuthorHeader from './ShorlogAuthorHeader';
 import ShorlogCommentSection from './ShorlogCommentSection';
 import ShorlogImageSlider from './ShorlogImageSlider';
 import ShorlogReactionSection from './ShorlogReactionSection';
+import { LinkedBlogListModal } from './LinkedBlogModal';
+import { fetchLinkedBlogIds } from '@/src/api/blogShorlogLink';
+import { fetchBlogDetail } from '@/src/api/blogDetail';
 import ShorlogTtsController from './ShorlogTtsController';
 import type { ShorlogDetail } from './types';
+import type { LinkedBlogDetail } from '@/src/types/blog';
 
 interface Props {
   detail: ShorlogDetail;
@@ -174,6 +178,9 @@ export default function ShorlogDetailPageClient({
   hideNavArrows = false,
 }: Props) {
   const [ttsProgress, setTtsProgress] = useState(0);
+  const [linkedBlogs, setLinkedBlogs] = useState<LinkedBlogDetail[]>([]);
+  const [linkedBlogCount, setLinkedBlogCount] = useState(0);
+  const [showLinkedBlogsModal, setShowLinkedBlogsModal] = useState(false);
   const firstLineForAlt = detail.content.split('\n')[0]?.slice(0, 40) ?? '';
 
   const formatDate = (dateStr: string) => {
@@ -189,6 +196,44 @@ export default function ShorlogDetailPageClient({
 
   const isModified = detail.modifiedAt && detail.modifiedAt !== detail.createdAt;
 
+  // 연결된 블로그 정보 로드
+  const loadLinkedBlogs = async () => {
+    try {
+      const blogIds = await fetchLinkedBlogIds(detail.id);
+      setLinkedBlogCount(blogIds.length);
+
+      // 연결된 블로그가 있으면 상세 정보도 미리 로드
+      if (blogIds.length > 0) {
+        const blogDetails = await Promise.all(
+          blogIds.map(async (id) => {
+            const blog = await fetchBlogDetail(id);
+            return {
+              id: blog.id,
+              title: blog.title,
+              contentPre: blog.content?.slice(0, 100) + '...' || '',
+              author: blog.nickname,
+              modifiedAt: blog.updatedAt,
+              hashtagNames: blog.hashtagNames || []
+            };
+          })
+        );
+        setLinkedBlogs(blogDetails);
+      } else {
+        setLinkedBlogs([]);
+      }
+    } catch (error) {
+      console.error('연결된 블로그 정보 로드 실패:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadLinkedBlogs();
+  }, [detail.id]);
+
+  const handleOpenLinkedBlogs = async () => {
+    // 연결된 블로그가 있으면 항상 모달 열기 (1개든 여러 개든)
+    setShowLinkedBlogsModal(true);
+  };
   // 최근 본 게시물 등록
   const viewMutation = useMutation({
     mutationFn: () => fetchShorlogView(detail.id),
@@ -219,6 +264,7 @@ export default function ShorlogDetailPageClient({
               isOwner={isOwner}
               shorlogId={detail.id}
               userId={detail.userId}
+              onBlogConnectionUpdate={loadLinkedBlogs}
             />
           </div>
 
@@ -263,14 +309,15 @@ export default function ShorlogDetailPageClient({
                 author={detail.nickname}
               />
 
-              {detail.linkedBlogId && (
+              {linkedBlogCount > 0 && (
                 <div className="mt-3">
-                  <a
-                    href={`/blog/${detail.linkedBlogId}`}
-                    className="inline-flex items-center rounded-full bg-[#2979FF] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#1863db] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                  <button
+                    type="button"
+                    onClick={handleOpenLinkedBlogs}
+                    className="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-medium text-sky-700 hover:bg-sky-100 transition"
                   >
-                    블로그 바로가기
-                  </a>
+                    ⚡ 블로그 {linkedBlogCount}개 보기
+                  </button>
                 </div>
               )}
             </section>
@@ -292,6 +339,23 @@ export default function ShorlogDetailPageClient({
           </div>
         </aside>
       </div>
+
+      {/* 연결된 블로그 목록 모달 */}
+      <LinkedBlogListModal
+        open={showLinkedBlogsModal}
+        loading={false}
+        items={linkedBlogs}
+        shorlogId={detail.id}
+        isOwner={isOwner}
+        onClose={() => setShowLinkedBlogsModal(false)}
+        onUnlinked={() => {
+          loadLinkedBlogs();
+          // 연결된 블로그가 0개가 되면 모달 닫기
+          if (linkedBlogs.length <= 1) {
+            setShowLinkedBlogsModal(false);
+          }
+        }}
+      />
     </div>
   );
 }

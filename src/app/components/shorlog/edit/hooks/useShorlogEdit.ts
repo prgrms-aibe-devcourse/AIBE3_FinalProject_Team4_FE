@@ -6,10 +6,10 @@ import {
   MAX_FILES,
   UploadImageResponse,
   AspectRatio,
-  ShorlogRelatedBlogSummary,
+
 } from '../../create/types';
 import { uploadImagesBatch } from '../api';
-import { updateShorlog, connectBlogToShorlog, disconnectBlogFromShorlog } from '../api';
+import { updateShorlog } from '../api';
 import { showGlobalToast } from '@/src/lib/toastStore';
 import type { ShorlogDetail } from '../../detail/types';
 
@@ -32,11 +32,7 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  // 블로그 연결 관련
-  const [showBlogConnectModal, setShowBlogConnectModal] = useState(false);
-  const [linkedBlogId, setLinkedBlogId] = useState<number | null>(initialData.linkedBlogId);
-  const [recentBlogs, setRecentBlogs] = useState<ShorlogRelatedBlogSummary[]>([]);
-  const [isLoadingBlogs, setIsLoadingBlogs] = useState(false);
+
 
   const currentStepTitle = useMemo(() => {
     if (step === 1) return '섬네일 선택';
@@ -53,29 +49,7 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
 
   const safeSelectedIndex = Math.min(selectedIndex, Math.max(images.length - 1, 0));
 
-  // 최근 블로그 목록 조회
-  const fetchRecentBlogs = async () => {
-    setIsLoadingBlogs(true);
-    try {
-      const response = await fetch('/api/v1/blogs/my/recent-blogs', {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
 
-      if (!response.ok) {
-        throw new Error('최근 블로그 목록 조회 실패');
-      }
-
-      const data = await response.json();
-      setRecentBlogs(data.data || []);
-    } catch (e) {
-      console.error('최근 블로그 목록 조회 실패:', e);
-      setRecentBlogs([]);
-    } finally {
-      setIsLoadingBlogs(false);
-    }
-  };
 
   const addFiles = useCallback(
     (files: File[]) => {
@@ -174,7 +148,7 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
         content: trimmed,
         imageIds: allImageIds,
         hashtags,
-        linkedBlogId: linkedBlogId,
+
       });
 
       showGlobalToast('숏로그가 성공적으로 수정되었습니다!', 'success');
@@ -209,38 +183,7 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
     setSelectedIndex(toIndex);
   };
 
-  // 블로그 연결
-  const handleConnectBlog = async (blogId: number) => {
-    try {
-      await connectBlogToShorlog(shorlogId, blogId);
-      setLinkedBlogId(blogId);
-      setShowBlogConnectModal(false);
-      showGlobalToast('블로그가 연결되었습니다!', 'success');
-    } catch (e) {
-      console.error(e);
-      setError('블로그 연결 중 오류가 발생했습니다.');
-    }
-  };
 
-  // 블로그 연결 해제
-  const handleDisconnectBlog = async () => {
-    if (!confirm('블로그 연결을 해제하시겠습니까?')) return;
-
-    try {
-      await disconnectBlogFromShorlog(shorlogId);
-      setLinkedBlogId(null);
-      showGlobalToast('블로그 연결이 해제되었습니다.', 'success');
-    } catch (e) {
-      console.error(e);
-      setError('블로그 연결 해제 중 오류가 발생했습니다.');
-    }
-  };
-
-  // 블로그 추가 연결 모달 열기
-  const handleOpenBlogConnectModal = async () => {
-    await fetchRecentBlogs();
-    setShowBlogConnectModal(true);
-  };
 
   return {
     images,
@@ -263,14 +206,7 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
     changeAspectRatio,
     deleteImage,
     reorderImages,
-    linkedBlogId,
-    showBlogConnectModal,
-    setShowBlogConnectModal,
-    recentBlogs,
-    isLoadingBlogs,
-    handleConnectBlog,
-    handleDisconnectBlog,
-    handleOpenBlogConnectModal,
+
   };
 }
 
