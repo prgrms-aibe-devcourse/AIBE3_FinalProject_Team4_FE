@@ -3,14 +3,14 @@ import { LocalImage, MAX_FILES, Step } from '../types';
 
 export function useFreeImageModal() {
   const [showUnsplashModal, setShowUnsplashModal] = useState(false);
-  const [showGoogleModal, setShowGoogleModal] = useState(false);
+  const [showPixabayModal, setShowPixabayModal] = useState(false);
 
   const handleUnsplashPhoto = () => {
     setShowUnsplashModal(true);
   };
 
-  const handleGooglePhoto = () => {
-    setShowGoogleModal(true);
+  const handlePixabayPhoto = () => {
+    setShowPixabayModal(true);
   };
 
   const handleUnsplashImagesSelect = async (
@@ -36,7 +36,7 @@ export function useFreeImageModal() {
           aspectRatio: 'ORIGINAL' as const,
           originalFilename: url.split('/').pop() || 'unsplash_image',
         };
-      })
+      }),
     );
 
     if (newImages.length > 0) {
@@ -49,7 +49,7 @@ export function useFreeImageModal() {
     }
   };
 
-  const handleGoogleImagesSelect = async (
+  const handlePixabayImagesSelect = async (
     selectedUrls: string[],
     images: LocalImage[],
     setImages: React.Dispatch<React.SetStateAction<LocalImage[]>>,
@@ -70,9 +70,9 @@ export function useFreeImageModal() {
           previewUrl: url,
           remoteUrl: url,
           aspectRatio: 'ORIGINAL' as const,
-          originalFilename: url.split('/').pop() || 'google_image',
+          originalFilename: url.split('/').pop() || 'pixabay_image',
         };
-      })
+      }),
     );
 
     if (newImages.length > 0) {
@@ -88,12 +88,11 @@ export function useFreeImageModal() {
   return {
     showUnsplashModal,
     setShowUnsplashModal,
-    showGoogleModal,
-    setShowGoogleModal,
+    showPixabayModal,
+    setShowPixabayModal,
     handleUnsplashPhoto,
-    handleGooglePhoto,
+    handlePixabayPhoto,
     handleUnsplashImagesSelect,
-    handleGoogleImagesSelect,
+    handlePixabayImagesSelect,
   };
 }
-

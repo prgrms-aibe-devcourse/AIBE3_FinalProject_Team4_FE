@@ -1,7 +1,8 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
 
-interface ApiRequestOptions extends RequestInit {
+interface ApiRequestOptions extends Omit<RequestInit, 'body'> {
   params?: Record<string, string>;
+  body?: any; // 객체든 string이든 FormData든 다 받음
 }
 
 const apiClient = async (endpoint: string, options: ApiRequestOptions = {}) => {
@@ -22,8 +23,12 @@ const apiClient = async (endpoint: string, options: ApiRequestOptions = {}) => {
     ...fetchOptions,
   };
 
-  // JSON 요청인 경우 Content-Type 헤더 추가
+  // body가 있고 FormData가 아니면 JSON 처리
   if (fetchOptions.body && !(fetchOptions.body instanceof FormData)) {
+    const body = fetchOptions.body;
+
+    config.body = typeof body === 'string' ? body : JSON.stringify(body);
+
     config.headers = {
       'Content-Type': 'application/json',
       ...fetchOptions.headers,
