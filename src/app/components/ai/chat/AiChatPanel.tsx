@@ -160,7 +160,7 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
     <>
       {/* 열기 버튼 */}
       {!isOpen && (
-        <div className="fixed bottom-6 right-6 z-35 group">
+        <div className="fixed bottom-6 right-6 z-30 group">
           <ChatBotButton onClick={() => setIsOpen(true)} ariaLabel="AI 채팅 열기" />
           <Tooltip
             text="안녕하세요. TexTok 블로그 작성 도우미입니다."
@@ -196,7 +196,7 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
             h-[min(600px,100dvh-3rem)]
             bg-white rounded-t-[20px] rounded-b-[40px] border border-gray-200
             shadow-[0_4px_12px_0_rgba(0,0,0,0.06),0_1.5px_4px_0_rgba(0,0,0,0.03)]
-            z-35 flex flex-col
+            z-30 flex flex-col
           "
         >
           <AiChatHeader mode={mode} onToggleMode={toggleMode} onClose={() => setIsOpen(false)} />
