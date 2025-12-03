@@ -48,12 +48,12 @@ export default function ThreadList({
 }: Props) {
   return (
     <div className="rounded-lg bg-white shadow-lg shadow-slate-200/60 ring-1 ring-slate-400">
-      <div className="border-b border-slate-200 p-4">
+      <div className="border-b border-slate-300 p-4">
         <label className="sr-only" htmlFor="thread-search">
           대화 검색
         </label>
 
-        <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 ring-1 ring-slate-300 focus-within:ring-2 focus-within:ring-[#2979FF]/35">
+        <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 ring-1 ring-slate-400 focus-within:ring-2 focus-within:ring-[#2979FF]/35">
           <span aria-hidden className="text-slate-400">
             ⌕
           </span>
@@ -104,7 +104,7 @@ export default function ThreadList({
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-slate-200 ring-1 ring-slate-300">
+                          <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-slate-200 ring-1 ring-slate-400">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={t.user.avatarUrl ?? '/images/avatars/fallback.png'}

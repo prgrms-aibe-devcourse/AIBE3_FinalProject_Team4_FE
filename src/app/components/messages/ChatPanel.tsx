@@ -92,11 +92,17 @@ function ThemRow({
 }) {
   return (
     <div className={compactTop ? 'mt-1' : 'mt-4'}>
-      <div className="flex items-end gap-2">
+      {/* 🔥 top 정렬로 변경: 아바타 top == 버블 top */}
+      <div className="flex items-start gap-2">
         <Avatar src={avatarUrl} alt={`${name} 프로필`} hidden={avatarHidden} />
-        <Bubble m={m} mine={false} />
+
+        {/* 버블이 카드/텍스트 모두에서 라인업 유지되도록 wrapper로 고정 */}
+        <div className="min-w-0 max-w-[70%]">
+          <Bubble m={m} mine={false} />
+        </div>
       </div>
 
+      {/* 시간은 그대로: 아바타 폭만큼 들여쓰기 */}
       <div className="mt-1" style={{ paddingLeft: AVATAR + AVATAR_GAP }}>
         <p
           className={['text-[11px] text-slate-500', compactTop ? 'opacity-60' : 'opacity-100'].join(
@@ -181,7 +187,7 @@ export default function ChatPanel({
 
   return (
     <div className="flex h-[calc(100vh-220px)] flex-col overflow-hidden rounded-lg bg-white shadow-lg shadow-slate-200/60 ring-1 ring-slate-400">
-      <div className="flex items-center justify-between gap-3 border-b border-slate-200 p-4">
+      <div className="flex items-center justify-between gap-3 border-b border-slate-300 p-4">
         <div className="flex min-w-0 items-center gap-3">
           <div className="h-10 w-10 overflow-hidden rounded-full bg-slate-200 ring-1 ring-slate-300">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -232,8 +238,8 @@ export default function ChatPanel({
         </div>
       </div>
 
-      <div className="border-t border-slate-200 p-4">
-        <div className="flex items-end gap-3 rounded-xl bg-white px-3 py-3 ring-1 ring-slate-300 focus-within:ring-2 focus-within:ring-[#2979FF]/35">
+      <div className="border-t border-slate-300 p-4">
+        <div className="flex items-end gap-3 rounded-md bg-white px-3 py-3 ring-1 ring-slate-300 focus-within:ring-2 focus-within:ring-[#2979FF]/35">
           <label className="sr-only" htmlFor="composer">
             메시지 입력
           </label>
@@ -242,20 +248,20 @@ export default function ChatPanel({
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="메시지를 입력하세요… (Enter 전송 / Shift+Enter 줄바꿈)"
+            placeholder="메시지를 입력하세요"
             className="max-h-28 min-h-[44px] w-full resize-none bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
           />
           <button
             type="button"
             onClick={submit}
             disabled={text.trim().length === 0}
-            className="rounded-lg bg-[#2979FF] px-4 py-2 text-sm font-semibold text-white shadow-md shadow-[#2979FF]/20 transition hover:translate-y-[-1px] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]/40"
+            className="shrink-0 min-w-[44px] rounded-md bg-[#2979FF] px-4 py-2 text-sm font-semibold text-white shadow-md shadow-[#2979FF]/20 transition hover:translate-y-[-1px] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]/40"
             aria-label="메시지 보내기"
           >
             전송
           </button>
         </div>
-        <p className="mt-2 text-[11px] text-slate-500">Enter 전송 · Shift+Enter 줄바꿈</p>
+        <p className="mt-2 text-[11px] text-slate-400">Enter 전송 · Shift+Enter 줄바꿈</p>
       </div>
     </div>
   );

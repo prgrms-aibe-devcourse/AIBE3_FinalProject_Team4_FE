@@ -58,45 +58,49 @@ export default function MessagesShell({ initialThreads }: Props) {
   };
 
   return (
-    <main className="min-h-screen px-8 py-10">
-      {/* 더 선명한(덜 흐릿한) 배경 */}
+    <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-10">
+      {/* 배경 */}
       <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-slate-50 to-white" />
 
-      <div className="mb-6 flex items-end justify-between gap-4">
-        <div>
-          <p className="text-[12px] font-semibold tracking-[0.18em] text-[#2979FF]">MESSAGES</p>
-          <h1 className="mt-1 text-3xl font-bold text-slate-900">메시지</h1>
-          <p className="mt-2 text-sm text-slate-600">
-            대화 속에서 숏로그/블로그를 공유하고, 바로 이어서 읽어보세요.
-          </p>
+      {/* ✅ 프로필 페이지처럼 "최대 폭 + 가운데 정렬" */}
+      <div className="mx-auto w-full max-w-7xl">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-[12px] font-semibold tracking-[0.18em] text-[#2979FF]">MESSAGES</p>
+            <h1 className="mt-1 text-3xl font-bold text-slate-900">메시지</h1>
+            <p className="mt-2 text-sm text-slate-600">
+              대화 속에서 숏로그/블로그를 공유하고, 바로 이어서 읽어보세요.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className="rounded-full bg-[#2979FF] px-4 py-2 text-sm font-semibold text-white shadow-md shadow-[#2979FF]/20 transition hover:translate-y-[-1px] hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]/40"
+            aria-label="새 메시지 시작"
+          >
+            + 새 메시지
+          </button>
         </div>
 
-        <button
-          type="button"
-          className="rounded-full bg-[#2979FF] px-4 py-2 text-sm font-semibold text-white shadow-md shadow-[#2979FF]/20 transition hover:translate-y-[-1px] hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]/40"
-          aria-label="새 메시지 시작"
-        >
-          + 새 메시지
-        </button>
+        {/* ✅ grid 대신 "고정폭 + 유연폭" : 큰 화면에서도 패널이 무한 확장 안 함 */}
+        <section className="flex flex-col gap-6 lg:flex-row">
+          <aside className="w-full lg:w-[380px] lg:shrink-0">
+            <ThreadList
+              threads={filteredThreads}
+              activeId={activeId}
+              query={query}
+              onQueryChange={setQuery}
+              tab={tab}
+              onTabChange={setTab}
+              onSelect={onSelectThread}
+            />
+          </aside>
+
+          <div className="min-w-0 flex-1">
+            <ChatPanel thread={activeThread} onSend={onSend} />
+          </div>
+        </section>
       </div>
-
-      <section className="grid grid-cols-12 gap-6">
-        <aside className="col-span-12 lg:col-span-4">
-          <ThreadList
-            threads={filteredThreads}
-            activeId={activeId}
-            query={query}
-            onQueryChange={setQuery}
-            tab={tab}
-            onTabChange={setTab}
-            onSelect={onSelectThread}
-          />
-        </aside>
-
-        <div className="col-span-12 lg:col-span-8">
-          <ChatPanel thread={activeThread} onSend={onSend} />
-        </div>
-      </section>
     </main>
   );
 }
