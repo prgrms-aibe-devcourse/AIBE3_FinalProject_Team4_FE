@@ -1,5 +1,6 @@
 'use client';
 
+import { useFollow } from '@/src/hooks/useFollow';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCurrentUser } from '@/src/hooks/useCurrentUser';
@@ -60,7 +61,7 @@ export default function CreatorCard({ creator }: { creator: Creator }) {
         cursor-pointer
       "
     >
-      {/* 🔥 썸네일 전체 */}
+      {/* Thumbnail */}
       <div className="aspect-[3/4] relative w-full">
         <img
           src={creator.popularThumbnailUrl || creator.profileImgUrl || '/tmpProfile.png'}
@@ -68,12 +69,10 @@ export default function CreatorCard({ creator }: { creator: Creator }) {
           className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105 opacity-90"
         />
 
-        {/* 그라데이션 */}
         <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-black/30 to-transparent" />
 
-        {/* 🔥 오버레이 UI */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center w-full px-4">
-          {/* 프로필 이미지 */}
+          {/* Profile Image */}
           <div className="mx-auto h-14 w-14 rounded-full overflow-hidden border-white shadow">
             <img
               src={creator.profileImgUrl || '/tmpProfile.png'}
@@ -82,7 +81,7 @@ export default function CreatorCard({ creator }: { creator: Creator }) {
             />
           </div>
 
-          {/* 닉네임 */}
+          {/* Nickname */}
           <p className="mt-2 text-white font-semibold text-xl">{creator.nickname}</p>
 
           {/* 팔로우 버튼 - 본인이 아닌 경우에만 표시 */}

@@ -14,13 +14,6 @@ export async function fetchLinkedShorlogs(blogId: number) {
   });
 }
 
-export async function linkShorlog(blogId: number, shorlogId: number) {
-  return apiClient(`/api/v1/blogs/${blogId}/link-shorlog`, {
-    method: 'POST',
-    body: JSON.stringify({ shorlogId }),
-  });
-}
-
 export async function unlinkShorlog(blogId: number, shorlogId: number) {
   return apiClient(`/api/v1/blogs/${blogId}/link-shorlog/${shorlogId}`, {
     method: 'DELETE',

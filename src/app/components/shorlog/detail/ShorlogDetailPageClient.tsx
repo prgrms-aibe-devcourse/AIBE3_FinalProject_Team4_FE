@@ -1,15 +1,15 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import ShorlogImageSlider from './ShorlogImageSlider';
+import { useEffect, useState } from 'react';
 import ShorlogAuthorHeader from './ShorlogAuthorHeader';
-import ShorlogTtsController from './ShorlogTtsController';
 import ShorlogCommentSection from './ShorlogCommentSection';
+import ShorlogImageSlider from './ShorlogImageSlider';
 import ShorlogReactionSection from './ShorlogReactionSection';
 import { LinkedBlogListModal } from './LinkedBlogModal';
 import { fetchLinkedBlogIds } from '@/src/api/blogShorlogLink';
 import { fetchBlogDetail } from '@/src/api/blogDetail';
+import ShorlogTtsController from './ShorlogTtsController';
 import type { ShorlogDetail } from './types';
 import type { LinkedBlogDetail } from '@/src/types/blog';
 
@@ -320,7 +320,6 @@ export default function ShorlogDetailPageClient({ detail, isOwner = false, hideN
             <section aria-label="댓글" className="mt-4 border-t border-slate-100 pt-3">
               <ShorlogCommentSection
                 shorlogId={detail.id}
-                initialCommentCount={detail.commentCount}
               />
             </section>
           </div>
