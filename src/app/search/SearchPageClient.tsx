@@ -1,4 +1,3 @@
-// app/search/page.tsx
 'use client';
 
 import SearchTabs from '@/src/app/components/search/SearchTabs';

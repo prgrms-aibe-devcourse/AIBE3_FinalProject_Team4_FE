@@ -19,6 +19,7 @@ const sortMap: Record<string, { key: string; label: string }[] | null> = {
   blog: [
     { key: 'latest', label: '최신' },
     { key: 'popular', label: '인기' },
+    { key: 'view', label: '조회수' },
   ],
   user: null, // 사용자 탭은 정렬 없음
 };

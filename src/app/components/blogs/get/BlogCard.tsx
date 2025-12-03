@@ -3,19 +3,18 @@ import { formatRelativeTime } from '@/src/utils/time';
 import dayjs from 'dayjs';
 import { Bookmark, Eye, Heart, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
-import { ReactNode } from 'react';
 import Link from 'next/link';
+import { ReactNode } from 'react';
 
 type BlogCardProps = {
   blog: BlogSummary;
 };
 
 export function BlogCard({ blog }: BlogCardProps) {
-   const hasThumbnail = !!blog.thumbnailUrl;
+  const hasThumbnail = !!blog.thumbnailUrl;
   const hasProfile = !!blog.profileImageUrl;
-   const liked = blog.likedByMe;
-   const bookmarked = blog.bookmarkedByMe;
-
+  const liked = blog.likedByMe;
+  const bookmarked = blog.bookmarkedByMe;
   return (
     <Link href={`/blogs/${blog.id}`} className="block group">
       <article className="group cursor-pointer rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100 transition hover:-translate-y-0.5 hover:shadow-md">
