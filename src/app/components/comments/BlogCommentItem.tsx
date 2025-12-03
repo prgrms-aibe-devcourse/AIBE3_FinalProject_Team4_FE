@@ -63,7 +63,9 @@ export default function BlogCommentItem({
 
   // 답글 등록
   const handleReplySubmit = async () => {
-    if (!replyText.trim()) return;
+    if (!requireAuth('댓글 작성')) return;
+    if (!replyText.trim()) return alert('내용을 입력해주세요.');
+
     await onReply(comment.id, replyText.trim());
     setReplyText('');
     setReplyMode(false);

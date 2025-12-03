@@ -54,6 +54,13 @@ export default function BlogCommentSection({ blogId }: Props) {
     }
   };
 
+  /** 댓글 입력창 포커스 */
+  const handleCommentFocus = async () => {
+    if (!requireAuth('댓글 작성')) {
+      (document.activeElement as HTMLElement)?.blur();
+    }
+  };
+
   /** 대댓글 작성 */
   const handleReply = async (parentId: number, replyText: string) => {
     if (!requireAuth('답글 작성')) return;
@@ -174,6 +181,7 @@ export default function BlogCommentSection({ blogId }: Props) {
           placeholder="댓글을 입력하세요..."
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
+          onFocus={handleCommentFocus}
         />
         <button
           onClick={handleCommentSubmit}
