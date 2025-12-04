@@ -3,7 +3,7 @@
 import { getPixabayImages, getUnsplashImages } from '@/src/api/blogImageApi';
 import { SearchField } from '@/src/app/components/common/SearchField';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { Check } from 'lucide-react';
+import { AlertCircle, Check, Info, SearchSlash } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import AiGeneration from '../../ai/generate/AiGeneration';
 
@@ -11,9 +11,8 @@ interface FreeImageTabProps {
   blogContent?: string;
   searchKeyword: string;
   onSearchKeywordChange: (keyword: string) => void;
-  selectedImage: string | null;
   originalImage: string | null;
-  onSelect: (url: string) => void;
+  onSelect: (url: string | null) => void;
   apiEndpoint?: 'unsplash' | 'pixabay';
 }
 
@@ -24,7 +23,6 @@ export default function FreeImageTab({
   blogContent,
   searchKeyword,
   onSearchKeywordChange,
-  selectedImage,
   originalImage,
   onSelect,
   apiEndpoint = 'unsplash',
@@ -51,7 +49,7 @@ export default function FreeImageTab({
         const res = await (apiEndpoint === 'pixabay'
           ? getPixabayImages(searchKeyword, pageParam, PAGE_SIZE)
           : getUnsplashImages(searchKeyword, pageParam, PAGE_SIZE));
-        if (!res.ok) throw new Error('이미지 검색에 실패했습니다.');
+        if (!res.ok) throw new Error('이미지 불러오기에 실패했습니다');
         const json = await res.json();
         return {
           content: json?.data?.content || [],
@@ -145,11 +143,11 @@ export default function FreeImageTab({
           value={keyword}
           onChange={(value) => {
             setKeyword(value);
-            if (value === '') onSearch();
           }}
           onSearch={onSearch}
           placeholder="이미지 검색어를 입력하세요"
         />
+        {/* AI 키워드 생성기 */}
         <AiGeneration
           mode="keyword"
           contentType="blog"
@@ -162,8 +160,9 @@ export default function FreeImageTab({
       </div>
 
       {isError && (
-        <div className="mb-3 text-xs text-red-500">
-          {(error as Error)?.message || '오류가 발생했습니다.'}
+        <div className="py-8 text-center text-xs text-rose-500 flex items-center justify-center gap-1">
+          <AlertCircle className="w-4 h-4 mr-1" />
+          {(error as Error)?.message || '오류가 발생했습니다'}
         </div>
       )}
 
@@ -175,7 +174,7 @@ export default function FreeImageTab({
               const randomHeight = heights[i % heights.length];
               return (
                 <div key={i} className="relative mb-3 break-inside-avoid">
-                  <div className={`w-full ${randomHeight} bg-gray-200 rounded-lg animate-pulse`} />
+                  <div className={`w-full ${randomHeight} bg-slate-200 rounded-lg animate-pulse`} />
                 </div>
               );
             })}
@@ -203,6 +202,8 @@ export default function FreeImageTab({
                       onClick={() => {
                         if (!isSelected) {
                           onSelect(img.url);
+                        } else {
+                          onSelect(null);
                         }
                       }}
                       className={`w-full rounded-lg cursor-pointer hover:opacity-80 transition-all ${
@@ -221,14 +222,15 @@ export default function FreeImageTab({
 
             {isFetchingNextPage && (
               <div className="flex justify-center py-8">
-                <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+                <div className="w-7 h-7 border-4 border-slate-300 border-t-blue-500 rounded-full animate-spin" />
               </div>
             )}
 
             <div ref={sentinelRef} />
 
             {!isFetchingNextPage && searchKeyword && images.length > 0 && !shouldFetchMore && (
-              <div className="pt-8 pb-4 text-center text-xs text-gray-400">
+              <div className="pt-8 pb-4 text-center text-xs text-slate-400 flex items-center justify-center gap-1">
+                <Info className="w-4 h-4 mr-1" />
                 {images.length >= MAX_IMAGES
                   ? `최대 ${MAX_IMAGES}개까지 표시됩니다`
                   : '마지막 페이지입니다'}
@@ -236,13 +238,16 @@ export default function FreeImageTab({
             )}
 
             {!searchKeyword && (
-              <div className="py-8 text-center text-xs text-gray-500">
+              <div className="py-8 text-center text-xs text-slate-500">
                 검색어를 입력하고 엔터를 눌러 이미지를 찾아보세요
               </div>
             )}
 
             {searchKeyword && images.length === 0 && (
-              <div className="py-8 text-center text-xs text-gray-500">검색 결과가 없습니다</div>
+              <div className="py-8 text-center text-xs text-slate-500 flex items-center justify-center gap-1">
+                <SearchSlash className="w-4 h-4 mr-1" />
+                검색 결과가 없습니다
+              </div>
             )}
           </>
         )}

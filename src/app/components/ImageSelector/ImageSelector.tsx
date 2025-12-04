@@ -316,13 +316,13 @@ export default function ImageSelector({
               blogContent={blogContent}
               searchKeyword={unsplashSearchKeyword}
               onSearchKeywordChange={setUnsplashSearchKeyword}
-              selectedImage={selectedImage}
               originalImage={originalImage}
-              onSelect={(url: string) => {
-                setSelectedImage(url);
-                setCroppingImage(url);
-                setOriginalImage(url);
+              onSelect={(url: string | null) => {
                 setImageSourceType('url');
+                setSelectedImage(url);
+                setOriginalImage(url);
+                setCroppingImage(url);
+                setLastAspect(null);
               }}
             />
           )}
@@ -332,14 +332,15 @@ export default function ImageSelector({
               blogContent={blogContent}
               searchKeyword={pixabaySearchKeyword}
               onSearchKeywordChange={setPixabaySearchKeyword}
-              selectedImage={selectedImage}
               originalImage={originalImage}
-              onSelect={(url: string) => {
-                setSelectedImage(url);
-                setCroppingImage(url);
-                setOriginalImage(url);
+              onSelect={(url: string | null) => {
                 setImageSourceType('url');
+                setSelectedImage(url);
+                setOriginalImage(url);
+                setCroppingImage(url);
+                setLastAspect(null);
               }}
+              apiEndpoint="pixabay"
             />
           )}
         </div>
