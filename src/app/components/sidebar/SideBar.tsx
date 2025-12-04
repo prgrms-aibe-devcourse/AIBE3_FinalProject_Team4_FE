@@ -3,12 +3,12 @@
 import { useAuth } from '@/src/providers/AuthProvider';
 import { useLoginModal } from '@/src/providers/LoginModalProvider';
 import { Search } from 'lucide-react';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import MorePanel from './panel/MorePanel';
 import SearchPanel from './panel/SearchPanel';
 import { guestMenu, loggedInMenu } from './SideBarMenu';
-
 type OpenPanel = 'none' | 'more' | 'search';
 
 export default function Sidebar() {
@@ -40,6 +40,10 @@ export default function Sidebar() {
   const closePanelFn = () => {
     setOpenPanel('none');
     setIsCollapsed(false); // 패널 닫으면 원래 크기
+  };
+
+  const goHome = () => {
+    router.push('/');
   };
 
   useEffect(() => {
@@ -106,19 +110,37 @@ export default function Sidebar() {
       `}
     >
       {/* ================= HEADER ================= */}
-      <div className="p-5 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <div className="w-10 h-10 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
-            📝
-          </div>
-
-          <div
-            className={`
-              transition-all overflow-hidden
-              ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}
-            `}
-          >
-            <span className="font-bold text-xl whitespace-nowrap">TEXTOK</span>
+      <div className="px-4 pt-5 pb-3 flex items-center">
+        {/* 1) 책 아이콘 버튼 (항상 보임) TODO: 누르면 사이드바 열기 */}
+        <button
+          type="button"
+          onClick={goHome}
+          className="flex items-center justify-center w-10 h-10 rounded-xl  text-slate-900 transition"
+        >
+          <Image
+            src="/icons/book.png"
+            alt="텍스톡 아이콘"
+            width={60}
+            height={40}
+            className="object-contain"
+          />
+        </button>
+        {/* 2) 펼쳤을 때만 보이는 가로형 로고 */}
+        <div
+          className={`
+        overflow-hidden transition-all duration-300
+        ${isCollapsed ? 'w-0 opacity-0 ml-0' : 'opacity-100 ml-3'}
+      `}
+        >
+          {/* 가로형 로고 이미지  */}
+          <div className="relative h-14">
+            <Image
+              src="/icons/logo2-3.png"
+              alt="textok 로고"
+              width={68}
+              height={20}
+              className="object-contain"
+            />
           </div>
         </div>
       </div>
@@ -135,10 +157,10 @@ export default function Sidebar() {
               relative flex items-center cursor-pointer overflow-hidden
               transition-all duration-300 ease-in-out
               ${
-              isCollapsed
-                ? 'w-10 h-10 rounded-full justify-center'
-                : 'w-full h-10 rounded-full bg-gray-100 pl-12 pr-3 border border-gray-200'
-            }
+                isCollapsed
+                  ? 'w-10 h-10 rounded-full justify-center'
+                  : 'w-full h-10 rounded-full bg-gray-100 pl-12 pr-3 border border-gray-200'
+              }
             `}
           >
             <div
@@ -244,9 +266,12 @@ export default function Sidebar() {
                     router.push(`/profile/${loginUser.id}`);
                     return;
                   }
-                  
+
                   // 숏피드 버튼 클릭 시 강제 새로고침 (숏피드/프로필 페이지에서)
-                  if (item.href === '/shorlog/feed' && (pathname.startsWith('/shorlog') || pathname.startsWith('/profile'))) {
+                  if (
+                    item.href === '/shorlog/feed' &&
+                    (pathname.startsWith('/shorlog') || pathname.startsWith('/profile'))
+                  ) {
                     window.location.href = '/shorlog/feed';
                     return;
                   }
