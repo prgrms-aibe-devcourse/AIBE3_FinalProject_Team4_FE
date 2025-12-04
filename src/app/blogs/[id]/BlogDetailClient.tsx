@@ -26,6 +26,7 @@ import remarkGfm from 'remark-gfm';
 import { ShareModal } from '../../components/blogs/detail/BlogShareModal';
 import { LinkedShorlogListModal } from '../../components/blogs/detail/LinkedShorlogModal';
 import BlogConnectShorlogModal from '../../components/blogs/link/BlogConnectShorlogModal';
+import { MarkdownViewer } from '../../components/blogs/write/MarkdownViewer';
 
 type Props = {
   initialData: BlogDetailDto;
@@ -231,7 +232,7 @@ export default function BlogDetailClient({
         {/* 본문 */}
         <section className="px-5 py-8 sm:px-8">
           <div className="prose prose-slate max-w-none leading-relaxed">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{blog.content}</ReactMarkdown>
+            <MarkdownViewer markdown={blog.content} />
           </div>
 
           {/* 태그 */}

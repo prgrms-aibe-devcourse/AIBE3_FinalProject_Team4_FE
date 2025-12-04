@@ -1,8 +1,8 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useCurrentUser } from '@/src/hooks/useCurrentUser';
 import { useLoginModal } from '@/src/providers/LoginModalProvider';
+import { useRouter } from 'next/navigation';
 import './MainPage.css';
 
 export default function MainPage() {
@@ -35,7 +35,6 @@ export default function MainPage() {
             <span className="badge-dot"></span>
             <span>TEXTOK</span>
           </div>
-
           <h1 className="hero-title">텍톡(TexTok)</h1>
           <h2 className="hero-title" style={{ fontSize: '2.5rem', marginTop: '-1rem' }}>
             사람들의 생각과 이야기, 그리고 연결
@@ -44,9 +43,7 @@ export default function MainPage() {
           <p className="hero-subtitle">
             ✨ 짧은 생각을 깊게, 💭 깊은 생각을 다시 가볍게 풀어낼 수 있는
           </p>
-          <p className="hero-description">
-            🔄 양방향 텍스트 경험을 제공하는 서비스
-          </p>
+          <p className="hero-description">🔄 양방향 텍스트 경험을 제공하는 서비스</p>
 
           <div className="hero-stats">
             <div className="stat-item">
@@ -96,11 +93,7 @@ export default function MainPage() {
 
         {/* 오른쪽: 이미지 영역 */}
         <section className="illustration">
-          <img
-            src="/icons/main_page.jpg"
-            alt="Writing and Communication"
-            className="hero-image"
-          />
+          <img src="/icons/main_page.jpg" alt="Writing and Communication" className="hero-image" />
         </section>
       </main>
     </div>

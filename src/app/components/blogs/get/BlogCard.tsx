@@ -5,6 +5,7 @@ import { Bookmark, Eye, Heart, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ReactNode } from 'react';
+import removeMarkdown from 'remove-markdown';
 
 type BlogCardProps = {
   blog: BlogSummary;
@@ -56,7 +57,10 @@ export function BlogCard({ blog }: BlogCardProps) {
               <h2 className="line-clamp-1 text-sm font-semibold text-slate-900 sm:text-base">
                 {blog.title}
               </h2>
-              <p className="line-clamp-2 text-xs text-slate-500 sm:text-sm">{blog.contentPre}</p>
+              <p className="line-clamp-2 text-xs text-slate-500 sm:text-sm">
+                {' '}
+                {buildPreview(blog.contentPre )}
+              </p>
             </div>
 
             {/* 태그 + 통계 */}
@@ -154,4 +158,12 @@ export function Stat({ icon, label, value }: StatProps) {
       <span className="leading-none">{value}</span>
     </div>
   );
+}
+
+function buildPreview(raw: string | undefined, maxLength: number = 120) {
+  if (!raw) return '';
+  const plain = removeMarkdown(raw).replace(/\s+/g, ' ').trim();
+
+  if (plain.length <= maxLength) return plain;
+  return plain.slice(0, maxLength) + '…';
 }

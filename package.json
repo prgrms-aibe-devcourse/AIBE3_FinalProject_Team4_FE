@@ -25,6 +25,7 @@
     "react-intersection-observer": "^10.0.0",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
+    "remove-markdown": "^0.6.2",
     "styled-jsx": "^5.1.7",
     "zustand": "^5.0.8"
   },
