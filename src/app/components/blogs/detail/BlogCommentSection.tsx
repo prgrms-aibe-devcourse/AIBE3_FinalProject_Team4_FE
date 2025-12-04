@@ -9,104 +9,157 @@ import {
   unlikeBlogComment,
 } from '@/src/api/BlogComments';
 import BlogCommentList from '@/src/app/components/comments/BlogCommentList';
-import { requireAuth } from '@/src/lib/auth';
+import { useRequireAuth } from '@/src/hooks/userRequireAuth';
 import { useEffect, useState } from 'react';
 
 interface Props {
   blogId: number;
+  initialCommentCount: number;
 }
 
-export default function BlogCommentSection({ blogId }: Props) {
+export default function BlogCommentSection({ blogId, initialCommentCount }: Props) {
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [totalCount, setTotalCount] = useState(initialCommentCount);
+  const [loading, setLoading] = useState(true);
 
-  /** 댓글 불러오기 */
-  const fetchComments = async () => {
-    setLoading(true);
-    try {
-      const data = await getBlogComments(blogId);
-      setComments(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+  const requireAuth = useRequireAuth();
+
+  /** =============================
+   *  공통: 최신순 정렬 함수
+   * ============================= */
+  const sortCommentsLatest = (list: any[]): any[] => {
+    const sorted = [...list]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .map((c) => ({
+        ...c,
+        children: c.children
+          ? [...c.children].sort(
+              (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+            )
+          : [],
+      }));
+
+    return sorted;
   };
 
+  /** 트리 전체 댓글 수 계산 */
+  const countAllComments = (list: any[]): number => {
+    let count = 0;
+    for (const c of list) {
+      count++;
+      if (c.children?.length) count += countAllComments(c.children);
+    }
+    return count;
+  };
+
+  /** =============================
+   *  최초 댓글 불러오기 (한 번만)
+   * ============================= */
   useEffect(() => {
-    fetchComments();
+    const fetch = async () => {
+      try {
+        let data = await getBlogComments(blogId);
+        data = sortCommentsLatest(data);
+
+        setComments(data);
+        setTotalCount(countAllComments(data));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetch();
   }, [blogId]);
 
-  /** 최상위 댓글 작성 */
+  /** =============================
+   *  최상위 댓글 작성 (Optimistic)
+   * ============================= */
   const handleCommentSubmit = async () => {
-    if (!(await requireAuth('댓글 작성'))) return;
+    if (!requireAuth('댓글 작성')) return;
     if (!commentText.trim()) return alert('댓글을 입력해주세요.');
 
+    const content = commentText.trim();
+    setCommentText('');
+
     try {
-      await createBlogComment(blogId, commentText.trim(), undefined);
-      setCommentText('');
-      await fetchComments();
+      const newComment = await createBlogComment(blogId, content, undefined);
+
+      setComments((prev) => sortCommentsLatest([newComment, ...prev]));
+      setTotalCount((prev) => prev + 1);
     } catch (err: any) {
       alert(err.message);
     }
   };
 
-  /** 대댓글 작성 */
+  const handleCommentFocus = () => {
+    if (!requireAuth('댓글 작성')) {
+      (document.activeElement as HTMLElement)?.blur();
+    }
+  };
+
+  /** =============================
+   *  대댓글 작성 (Optimistic)
+   * ============================= */
   const handleReply = async (parentId: number, replyText: string) => {
-    if (!(await requireAuth('답글 작성'))) return;
+    if (!requireAuth('답글 작성')) return;
     if (!replyText.trim()) return alert('내용을 입력해주세요.');
 
     try {
-      await createBlogComment(blogId, replyText.trim(), parentId);
-      await fetchComments();
+      const newReply = await createBlogComment(blogId, replyText.trim(), parentId);
+
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === parentId
+            ? {
+                ...c,
+                children: sortCommentsLatest([...(c.children ?? []), newReply]),
+              }
+            : c,
+        ),
+      );
+
+      setTotalCount((prev) => prev + 1);
     } catch (err: any) {
       alert(err.message);
     }
   };
 
-  /** 좋아요 / 취소 */
+  /** =============================
+   *  좋아요 토글 (Optimistic)
+   * ============================= */
   const handleLike = async (commentId: number) => {
-    if (!(await requireAuth('좋아요'))) return;
+    if (!requireAuth('좋아요')) return;
 
     const target = findComment(commentId);
     if (!target) return;
 
-    const nextLiked = !target.isLiked;
+    const optimisticNext = !target.isLiked;
 
-    // UI 낙관적 업데이트
-    updateCommentLikeState(commentId, nextLiked);
+    updateCommentLikeState(commentId, optimisticNext);
 
     try {
-      if (nextLiked) {
-        await likeBlogComment(commentId);
-      } else {
-        await unlikeBlogComment(commentId);
-      }
+      optimisticNext ? await likeBlogComment(commentId) : await unlikeBlogComment(commentId);
     } catch (err: any) {
-      // 실패 → 롤백
-      updateCommentLikeState(commentId, !nextLiked);
-      alert(err.message || '좋아요 처리 중 오류가 발생했습니다.');
+      updateCommentLikeState(commentId, !optimisticNext);
+      alert(err.message);
     }
   };
 
-  /** 댓글 찾기 (최상위 + 대댓글) */
-  const findComment = (commentId: number) => {
-    for (const comment of comments) {
-      if (comment.id === commentId) return comment;
-      if (comment.children) {
-        const child = comment.children.find((c: any) => c.id === commentId);
-        if (child) return child;
-      }
+  const findComment = (id: number): any | null => {
+    for (const c of comments) {
+      if (c.id === id) return c;
+      const child = c.children?.find((cc: any) => cc.id === id);
+      if (child) return child;
     }
     return null;
   };
 
-  /** 특정 댓글만 UI 갱신 (대댓글 포함) */
   const updateCommentLikeState = (id: number, isLiked: boolean) => {
     setComments((prev) =>
       prev.map((comment) => {
-        // 최상위 댓글인 경우
         if (comment.id === id) {
           return {
             ...comment,
@@ -115,7 +168,6 @@ export default function BlogCommentSection({ blogId }: Props) {
           };
         }
 
-        // 대댓글인 경우
         if (comment.children) {
           return {
             ...comment,
@@ -126,47 +178,77 @@ export default function BlogCommentSection({ blogId }: Props) {
                     isLiked,
                     likeCount: isLiked ? child.likeCount + 1 : child.likeCount - 1,
                   }
-                : child
+                : child,
             ),
           };
         }
 
         return comment;
-      })
+      }),
     );
   };
 
-  /** 댓글 수정 */
+  /** =============================
+   *  댓글 수정 (Optimistic)
+   * ============================= */
   const handleEdit = async (commentId: number, newContent: string) => {
-    if (!(await requireAuth('댓글 수정'))) return;
+    if (!requireAuth('댓글 수정')) return;
 
     try {
-      await editBlogComment(commentId, newContent);
-      await fetchComments();
+      const updated = await editBlogComment(commentId, newContent);
+
+      setComments((prev) =>
+        sortCommentsLatest(
+          prev.map((comment) => {
+            if (comment.id === commentId) return updated;
+            return {
+              ...comment,
+              children: comment.children?.map((child: any) =>
+                child.id === commentId ? updated : child,
+              ),
+            };
+          }),
+        ),
+      );
     } catch (err: any) {
       alert(err.message);
     }
   };
 
-  /** 댓글 삭제 */
+  /** =============================
+   *  댓글 삭제 (Optimistic)
+   * ============================= */
   const handleDelete = async (commentId: number) => {
-    if (!(await requireAuth('댓글 삭제'))) return;
+    if (!requireAuth('댓글 삭제')) return;
 
     try {
       await deleteBlogComment(commentId);
-      await fetchComments();
+
+      setComments((prev) =>
+        sortCommentsLatest(
+          prev
+            .map((comment) => ({
+              ...comment,
+              children: comment.children?.filter((c: any) => c.id !== commentId) ?? [],
+            }))
+            .filter((comment) => comment.id !== commentId),
+        ),
+      );
+
+      setTotalCount((prev) => prev - 1);
     } catch (err: any) {
       alert(err.message);
     }
   };
 
+  /** =============================
+   *  렌더
+   * ============================= */
   return (
     <div className="mt-6">
-      <p className="mb-2 text-sm font-semibold text-slate-700">
-        댓글 {comments.length}개
-      </p>
+      <p className="mb-2 text-sm font-semibold text-slate-700">댓글 {totalCount}개</p>
 
-      {/* 댓글 입력창 */}
+      {/* 입력창 */}
       <div className="flex items-center gap-2 rounded-lg border bg-slate-50 px-3 py-2">
         <input
           type="text"
@@ -174,6 +256,7 @@ export default function BlogCommentSection({ blogId }: Props) {
           placeholder="댓글을 입력하세요..."
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
+          onFocus={handleCommentFocus}
         />
         <button
           onClick={handleCommentSubmit}

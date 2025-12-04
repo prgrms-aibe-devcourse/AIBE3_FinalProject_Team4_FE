@@ -23,7 +23,7 @@ export default function ShorlogTtsController({ shorlogId, content, progress, set
     error,
     togglePlay,
     skip,
-    download
+    download,
   } = useTts({ shorlogId, content });
 
   // useTts의 진행률을 부모 컴포넌트와 동기화
@@ -64,11 +64,7 @@ export default function ShorlogTtsController({ shorlogId, content, progress, set
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-[13px]">
           <span className="font-semibold text-slate-700">🔊 TTS</span>
-          {tokens && (
-            <span className="text-slate-500">
-              {tokens.token}/100
-            </span>
-          )}
+          {tokens && <span className="text-slate-500">{tokens.token}/100</span>}
           {/* 모드 표시 */}
           {mode === 'ai' && (
             <span className="px-2 py-1 text-[10px] font-medium bg-blue-100 text-blue-700 rounded">
@@ -97,9 +93,7 @@ export default function ShorlogTtsController({ shorlogId, content, progress, set
 
       {/* 에러/경고 메시지 (컴팩트) */}
       {error && (
-        <div className="mt-2 text-[11px] text-red-600 bg-red-50 px-2 py-1 rounded">
-          {error}
-        </div>
+        <div className="mt-2 text-[11px] text-red-600 bg-red-50 px-2 py-1 rounded">{error}</div>
       )}
       {tokens && tokens.token <= 0 && mode === 'web' && (
         <div className="mt-2 text-[11px] text-amber-700 bg-amber-50 px-2 py-1 rounded">
