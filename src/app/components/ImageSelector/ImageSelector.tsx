@@ -1,8 +1,10 @@
 'use client';
 
 import { uploadBlogImage } from '@/src/api/blogImageApi';
+import Toast from '@/src/app/components/ImageSelector/Toast';
 import { handleApiError } from '@/src/lib/handleApiError';
 import type { BlogFileDto, BlogImage, BlogMediaUploadResponse, RsData } from '@/src/types/blog';
+import { Crop } from 'lucide-react';
 import { SetStateAction, useState } from 'react';
 import Cropper from './Cropper';
 import BlogImageTab from './tabs/BlogImageTab';
@@ -134,33 +136,19 @@ export default function ImageSelector({
   return (
     <>
       {/* 토스트 메시지 */}
-      {toast && (
-        <div className="fixed top-4 right-4 z-50 animate-fade-in-down">
-          <div
-            className={`px-6 py-3 rounded-lg shadow-lg text-white ${
-              toast.type === 'success'
-                ? 'bg-green-500'
-                : toast.type === 'warning'
-                  ? 'bg-yellow-500'
-                  : 'bg-red-500'
-            }`}
-          >
-            {toast.message}
-          </div>
-        </div>
-      )}
+      {toast && <Toast message={toast.message} type={toast.type} />}
 
       {/* 크롭 모달 */}
       {isCropping && croppingImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4"
           onClick={() => {
             setIsCropping(false);
             setCroppingImage(null);
           }}
         >
           <div
-            className="w-full max-w-4xl rounded-2xl bg-white p-6 shadow-xl"
+            className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <Cropper
@@ -197,7 +185,7 @@ export default function ImageSelector({
                 </div>
               ) : (
                 <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-slate-100 text-[10px] text-slate-400">
-                  섬네일 없음
+                  썸네일 없음
                 </div>
               )}
             </div>
@@ -207,31 +195,44 @@ export default function ImageSelector({
               <div>
                 <h3 className="text-sm font-semibold text-slate-900">썸네일 이미지 선택하기</h3>
                 <p className="mt-1 text-xs text-slate-500">
-                  제목과 내용 입력 후, 아래 탭에서 이미지를 선택하거나 업로드하고 적용하기 버튼을
+                  제목과 내용 입력 후, 아래 탭에서 이미지를 선택하거나 업로드하고 등록하기 버튼을
                   누르세요.
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
-                {selectedImage && (
-                  <>
-                    <button
-                      onClick={() => {
-                        setCroppingImage(originalImage);
-                        setIsCropping(true);
-                      }}
-                      className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 transition hover:bg-slate-50"
-                    >
-                      자르기
-                    </button>
-                    <button
-                      onClick={handleSubmit}
-                      className="rounded-lg bg-[#2979FF] px-4 py-1.5 text-xs text-white shadow-sm transition hover:opacity-90"
-                    >
-                      적용하기
-                    </button>
-                  </>
-                )}
+                <button
+                  onClick={() => {
+                    setCroppingImage(originalImage);
+                    setIsCropping(true);
+                  }}
+                  disabled={!selectedImage}
+                  className={`
+                    rounded-xl border px-3 py-1.5 text-xs transition flex items-center gap-1
+                    ${
+                      selectedImage
+                        ? 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                        : 'border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed opacity-60'
+                    }
+                  `}
+                >
+                  <Crop className="w-4 h-4 mr-1" />
+                  자르기
+                </button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={!selectedImage}
+                  className={`
+                    rounded-xl px-3 py-1.5 text-xs text-white shadow-sm transition
+                    ${
+                      selectedImage
+                        ? 'bg-[#2979FF] hover:opacity-90'
+                        : 'bg-slate-300 cursor-not-allowed opacity-60'
+                    }
+                      `}
+                >
+                  썸네일 등록하기
+                </button>
               </div>
             </div>
           </div>
@@ -252,7 +253,7 @@ export default function ImageSelector({
                 type="button"
                 onClick={() => setSelectedTab(tab.key)}
                 className={[
-                  'flex-1 rounded-full px-3 py-1.5 font-medium transition',
+                  'flex-1 rounded-full px-3 py-1.5 font-medium transition truncate',
                   isActive
                     ? 'bg-white text-slate-700 shadow-sm'
                     : 'text-slate-500 hover:text-slate-700',
@@ -278,6 +279,7 @@ export default function ImageSelector({
               setUploadedFile={setUploadedFile}
               setUploadedFileUrl={setUploadedFileUrl}
               setImageSourceType={setImageSourceType}
+              showToast={showToast}
             />
           )}
 
