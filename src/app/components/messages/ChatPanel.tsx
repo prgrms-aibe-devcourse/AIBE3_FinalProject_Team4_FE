@@ -5,17 +5,46 @@ import * as React from 'react';
 
 const AVATAR = 32;
 const AVATAR_GAP = 8;
-
-const BOTTOM_THRESHOLD = 24; // px
+const BOTTOM_THRESHOLD = 24;
 
 function isNearBottom(el: HTMLDivElement) {
   const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
   return distance <= BOTTOM_THRESHOLD;
 }
-
 function scrollToBottom(el: HTMLDivElement) {
-  // scrollTo보다 이게 더 “확실”하게 먹는 케이스가 많음
   el.scrollTop = el.scrollHeight;
+}
+
+// ---- time/date utils
+function toDate(input?: string | null) {
+  if (!input) return null;
+  const t = Date.parse(input);
+  if (Number.isNaN(t)) return null;
+  return new Date(t);
+}
+function pad2(n: number) {
+  return String(n).padStart(2, '0');
+}
+function ymdKey(d: Date) {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+function isToday(d: Date) {
+  const now = new Date();
+  return (
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate()
+  );
+}
+function fmtDate(d: Date) {
+  return `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}`;
+}
+function fmtTime(d: Date) {
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+function minuteKey(d: Date) {
+  // 분 단위 그룹 키
+  return `${ymdKey(d)} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
 function Avatar({ src, alt, hidden }: { src: string; alt: string; hidden: boolean }) {
@@ -23,7 +52,7 @@ function Avatar({ src, alt, hidden }: { src: string; alt: string; hidden: boolea
     <div className="h-8 w-8 shrink-0">
       <div
         className={[
-          'h-8 w-8 overflow-hidden rounded-full bg-slate-200 ring-1 ring-slate-300',
+          'h-8 w-8 overflow-hidden rounded-full bg-slate-200 ring-1 ring-slate-200',
           hidden ? 'opacity-0' : 'opacity-100',
         ].join(' ')}
         aria-hidden={hidden}
@@ -31,6 +60,16 @@ function Avatar({ src, alt, hidden }: { src: string; alt: string; hidden: boolea
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={src} alt={alt} className="h-full w-full object-cover" />
       </div>
+    </div>
+  );
+}
+
+function DateDivider({ label }: { label: string }) {
+  return (
+    <div className="my-5 flex items-center justify-center">
+      <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-500 ring-1 ring-slate-200/70">
+        {label}
+      </span>
     </div>
   );
 }
@@ -44,16 +83,19 @@ function SharedCard({ m }: { m: ChatMessage }) {
   return (
     <a
       href={s.href}
-      className="group block max-w-[520px] rounded-lg bg-white shadow-md shadow-slate-200/50 ring-1 ring-slate-300 transition hover:translate-y-[-1px] hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]/40"
+      className={[
+        'group block max-w-[520px] overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70',
+        'transition hover:-translate-y-[1px] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]/35',
+      ].join(' ')}
       aria-label={`${badge} 콘텐츠 열기: ${s.title}`}
     >
       <div className="flex gap-4 p-4">
-        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100 ring-1 ring-slate-200">
+        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200/70">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={s.thumbnailUrl ?? '/images/mock/placeholder.jpg'}
             alt={`${s.title} 썸네일`}
-            className="h-full w-full object-cover transition group-hover:scale-[1.02]"
+            className="h-full w-full object-cover transition group-hover:scale-[1.03]"
           />
         </div>
 
@@ -65,7 +107,7 @@ function SharedCard({ m }: { m: ChatMessage }) {
             <span className="text-[11px] text-slate-500">자세히 보기 →</span>
           </div>
           <p className="mt-1 truncate text-sm font-semibold text-slate-900">{s.title}</p>
-          <p className="mt-1 line-clamp-2 text-[13px] text-slate-700">{s.summary}</p>
+          <p className="mt-1 line-clamp-2 text-[13px] text-slate-600">{s.summary}</p>
         </div>
       </div>
     </a>
@@ -78,14 +120,37 @@ function Bubble({ m, mine }: { m: ChatMessage; mine: boolean }) {
   return (
     <div
       className={[
-        'rounded-lg px-4 py-3 text-sm ring-1',
+        'rounded-2xl px-4 py-2 text-sm leading-relaxed',
         mine
-          ? 'bg-[#2979FF] text-white ring-[#2979FF]/30 shadow-sm shadow-[#2979FF]/20'
-          : 'bg-white text-slate-900 ring-slate-300 shadow-sm shadow-slate-200/40',
+          ? 'bg-[#2979FF] text-white shadow-sm shadow-[#2979FF]/20'
+          : 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/70',
       ].join(' ')}
     >
       {m.text}
     </div>
+  );
+}
+
+function TimeSlot({
+  label,
+  show,
+  align,
+}: {
+  label: string;
+  show: boolean;
+  align: 'left' | 'right';
+}) {
+  return (
+    <span
+      className={[
+        'w-[42\\px] shrink-0 whitespace-nowrap pb-1 text-[11px] leading-none text-slate-400',
+        align === 'left' ? 'text-right' : 'text-left',
+        show ? 'opacity-100' : 'opacity-0',
+      ].join(' ')}
+      aria-hidden={!show}
+    >
+      {label}
+    </span>
   );
 }
 
@@ -95,49 +160,59 @@ function ThemRow({
   name,
   avatarHidden,
   compactTop,
+  timeLabel,
+  showTime,
 }: {
   m: ChatMessage;
   avatarUrl: string;
   name: string;
   avatarHidden: boolean;
   compactTop: boolean;
+  timeLabel: string;
+  showTime: boolean;
 }) {
   return (
-    <div className={compactTop ? 'mt-1' : 'mt-4'}>
+    <div className={compactTop ? '' : 'pt-1'}>
       <div className="flex items-start gap-2">
         <Avatar src={avatarUrl} alt={`${name} 프로필`} hidden={avatarHidden} />
-        <div className="min-w-0 max-w-[70%]">
-          <Bubble m={m} mine={false} />
-        </div>
-      </div>
 
-      <div className="mt-1" style={{ paddingLeft: AVATAR + AVATAR_GAP }}>
-        <p
-          className={['text-[11px] text-slate-500', compactTop ? 'opacity-60' : 'opacity-100'].join(
-            ' ',
-          )}
-        >
-          {m.at}
-        </p>
+        <div className="flex min-w-0 items-end gap-2">
+          <div className="min-w-0 max-w-[520px]">
+            <Bubble m={m} mine={false} />
+          </div>
+
+          {/* ✅ 항상 자리 확보 */}
+          <TimeSlot label={timeLabel} show={showTime} align="right" />
+        </div>
       </div>
     </div>
   );
 }
 
-function MeRow({ m, compactTop }: { m: ChatMessage; compactTop: boolean }) {
+function MeRow({
+  m,
+  compactTop,
+  timeLabel,
+  showTime,
+}: {
+  m: ChatMessage;
+  compactTop: boolean;
+  timeLabel: string;
+  showTime: boolean;
+}) {
   return (
-    <div className={compactTop ? 'mt-1' : 'mt-4'}>
+    <div className={compactTop ? '' : 'pt-1'}>
       <div className="flex justify-end">
-        <Bubble m={m} mine />
-      </div>
-      <div className="mt-1 flex justify-end">
-        <p
-          className={['text-[11px] text-slate-500', compactTop ? 'opacity-60' : 'opacity-100'].join(
-            ' ',
-          )}
-        >
-          {m.at}
-        </p>
+        {/* ✅ 버블 폭만으로 정렬되게 만들고, 시간은 absolute로 분리 */}
+        <div className="relative max-w-[520px]">
+          {showTime ? (
+            <span className="absolute -left-9 bottom-1 whitespace-nowrap text-[11px] text-slate-400">
+              {timeLabel}
+            </span>
+          ) : null}
+
+          <Bubble m={m} mine />
+        </div>
       </div>
     </div>
   );
@@ -158,28 +233,19 @@ export default function ChatPanel({
   const [text, setText] = React.useState('');
   const scrollerRef = React.useRef<HTMLDivElement | null>(null);
 
-  // IME(한글 조합) Enter 처리
   const [isComposing, setIsComposing] = React.useState(false);
-
-  // 사용자 스크롤 상태 추적: 사용자가 맨 아래 근처일 때만 자동으로 따라 내려감
   const wasNearBottomRef = React.useRef(true);
-
-  // 최초 페인트/스레드 전환 시 강제 바닥
   const isFirstPaintRef = React.useRef(true);
 
   React.useEffect(() => {
     const el = scrollerRef.current;
     if (!el) return;
 
-    const onScroll = () => {
-      wasNearBottomRef.current = isNearBottom(el);
-    };
-
+    const onScroll = () => (wasNearBottomRef.current = isNearBottom(el));
     el.addEventListener('scroll', onScroll, { passive: true });
     return () => el.removeEventListener('scroll', onScroll);
   }, []);
 
-  // ✅ 스레드가 바뀌거나 새로 들어오면: 무조건 즉시(bottom) + 여러 프레임 보정
   React.useLayoutEffect(() => {
     const el = scrollerRef.current;
     if (!el || !thread) return;
@@ -196,13 +262,11 @@ export default function ChatPanel({
     };
 
     requestAnimationFrame(tick);
-
     return () => {
       canceled = true;
     };
   }, [thread?.id]);
 
-  // ✅ 새 메시지 증가 시: 사용자가 아래 보고 있을 때만 따라 내려가기 (주르륵 방지)
   React.useLayoutEffect(() => {
     const el = scrollerRef.current;
     if (!el || !thread) return;
@@ -212,9 +276,7 @@ export default function ChatPanel({
       return;
     }
 
-    if (wasNearBottomRef.current) {
-      scrollToBottom(el);
-    }
+    if (wasNearBottomRef.current) scrollToBottom(el);
   }, [thread?.messages?.length]);
 
   const submit = () => {
@@ -235,7 +297,7 @@ export default function ChatPanel({
 
   if (!thread) {
     return (
-      <div className="flex h-[calc(100vh-220px)] items-center justify-center rounded-lg bg-white shadow-lg shadow-slate-200/60 ring-1 ring-slate-400">
+      <div className="flex h-full items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70">
         <div className="text-center">
           <p className="text-sm font-semibold text-slate-900">대화를 선택해 주세요</p>
           <p className="mt-1 text-xs text-slate-500">
@@ -248,11 +310,14 @@ export default function ChatPanel({
 
   const avatarUrl = thread.user.avatarUrl || '/tmpProfile.png';
 
+  // ---- 핵심: 날짜/시간 표시 정책 적용 렌더링
+  const messages = thread.messages ?? [];
+
   return (
-    <div className="flex h-[calc(100vh-220px)] flex-col overflow-hidden rounded-lg bg-white shadow-lg shadow-slate-200/60 ring-1 ring-slate-400">
-      <div className="flex items-center justify-between gap-3 border-b border-slate-300 p-4">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70">
+      <div className="flex items-center justify-between gap-3 border-b border-slate-200/70 p-4">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="h-10 w-10 overflow-hidden rounded-full bg-slate-200 ring-1 ring-slate-300">
+          <div className="h-10 w-10 overflow-hidden rounded-full bg-slate-200 ring-1 ring-slate-200/70">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={avatarUrl}
@@ -262,12 +327,13 @@ export default function ChatPanel({
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-900">{thread.user.name}</p>
+            <p className="mt-0.5 text-[12px] text-slate-500">대화 중</p>
           </div>
         </div>
 
         <button
           type="button"
-          className="rounded-full px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-300 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]/40"
+          className="rounded-full px-3 py-2 text-sm text-slate-700 border border-slate-200 hover:bg-slate-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]/35"
           aria-label="대화 옵션"
         >
           ···
@@ -276,33 +342,63 @@ export default function ChatPanel({
 
       <div
         ref={scrollerRef}
-        className="flex-1 overflow-auto bg-slate-50 px-4 py-5 [overflow-anchor:none]"
+        className="flex-1 overflow-auto bg-gradient-to-b from-slate-50 to-white px-4 py-5 [overflow-anchor:none]"
       >
-        <div className="space-y-0">
-          {thread.messages.map((m, idx) => {
-            const prev = thread.messages[idx - 1];
-            const grouped = isSameSender(prev, m);
-            const compactTop = grouped;
+        <div className="flex flex-col gap-1">
+          {messages.map((m, idx) => {
+            const prev = messages[idx - 1];
+            const next = messages[idx + 1];
 
-            if (m.sender === 'them') {
-              return (
-                <ThemRow
-                  key={m.id}
-                  m={m}
-                  avatarUrl={avatarUrl}
-                  name={thread.user.name}
-                  avatarHidden={grouped}
-                  compactTop={compactTop}
-                />
-              );
-            }
-            return <MeRow key={m.id} m={m} compactTop={compactTop} />;
+            const d = toDate(m.at);
+            const dPrev = toDate(prev?.at);
+            const dNext = toDate(next?.at);
+
+            // 날짜 divider: "오늘이 아닌 날짜"에서, 날짜가 바뀌는 지점에 표시
+            const showDateDivider = !!d && !isToday(d) && (!dPrev || ymdKey(dPrev) !== ymdKey(d));
+
+            // 시간 표시: 오늘이면 HH:MM
+            // 같은 "분(minuteKey) + 같은 sender"로 다음 메시지가 이어지면 지금은 숨기고,
+            // 그룹 마지막에만 시간을 찍는다.
+            const timeLabel = d ? fmtTime(d) : (m.at ?? '');
+            const curMinuteKey = d ? minuteKey(d) : null;
+            const nextMinuteKey = dNext ? minuteKey(dNext) : null;
+
+            const sameMinuteNext =
+              !!curMinuteKey &&
+              !!nextMinuteKey &&
+              curMinuteKey === nextMinuteKey &&
+              next?.sender === m.sender;
+
+            const showTime = !!d && isToday(d) ? !sameMinuteNext : false;
+
+            const groupedBySender = isSameSender(prev, m);
+            const compactTop = groupedBySender;
+
+            return (
+              <React.Fragment key={m.id}>
+                {showDateDivider ? <DateDivider label={fmtDate(d!)} /> : null}
+
+                {m.sender === 'them' ? (
+                  <ThemRow
+                    m={m}
+                    avatarUrl={avatarUrl}
+                    name={thread.user.name}
+                    avatarHidden={groupedBySender}
+                    compactTop={compactTop}
+                    timeLabel={timeLabel}
+                    showTime={showTime}
+                  />
+                ) : (
+                  <MeRow m={m} compactTop={compactTop} timeLabel={timeLabel} showTime={showTime} />
+                )}
+              </React.Fragment>
+            );
           })}
         </div>
       </div>
 
-      <div className="border-t border-slate-300 p-4">
-        <div className="flex items-end gap-3 rounded-md bg-white px-3 py-3 ring-1 ring-slate-300 focus-within:ring-2 focus-within:ring-[#2979FF]/35">
+      <div className="border-t border-slate-200/70 p-4">
+        <div className="flex items-end gap-3 rounded-2xl bg-white px-3 py-3 ring-1 ring-slate-200/70 focus-within:ring-2 focus-within:ring-[#2979FF]/30">
           <label className="sr-only" htmlFor="composer">
             메시지 입력
           </label>
@@ -320,7 +416,12 @@ export default function ChatPanel({
             type="button"
             onClick={submit}
             disabled={text.trim().length === 0}
-            className="shrink-0 min-w-[44px] rounded-md bg-[#2979FF] px-4 py-2 text-sm font-semibold text-white shadow-md shadow-[#2979FF]/20 transition hover:translate-y-[-1px] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]/40"
+            className={[
+              'shrink-0 inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold',
+              'bg-[#2979FF] text-white shadow-sm shadow-[#2979FF]/20 transition',
+              'hover:-translate-y-[1px] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]/35',
+            ].join(' ')}
             aria-label="메시지 보내기"
           >
             전송
