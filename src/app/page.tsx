@@ -97,7 +97,7 @@ export default function MainPage() {
         {/* 오른쪽: 이미지 영역 */}
         <section className="illustration">
           <img
-            src="https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&h=800&fit=crop&q=80"
+            src="/icons/main_page.jpg"
             alt="Writing and Communication"
             className="hero-image"
           />
