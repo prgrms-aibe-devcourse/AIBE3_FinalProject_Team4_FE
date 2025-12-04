@@ -29,3 +29,25 @@ export async function getRecentNotifications() {
   const data = await res.json();
   return data.data;
 }
+
+export async function deleteNotification(id: number): Promise<void> {
+  const res = await fetch(`${BASE}/api/v1/notifications/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+
+  if (!res.ok) {
+    throw new Error('알림 삭제 실패');
+  }
+}
+
+export async function deleteAllNotifications(): Promise<void> {
+  const res = await fetch(`${BASE}/api/v1/notifications`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+
+  if (!res.ok) {
+    throw new Error('전체 알림 삭제 실패');
+  }
+}

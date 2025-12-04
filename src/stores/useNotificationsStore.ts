@@ -18,7 +18,9 @@ interface NotificationStore {
   unreadCount: number;
 
   addNotification: (n: NotificationItem) => void;
-  setNotifications: (list: NotificationItem[]) => void;
+  setNotifications: (
+    list: NotificationItem[] | ((prev: NotificationItem[]) => NotificationItem[]),
+  ) => void;
   markAllAsRead: () => void;
 
   setUnreadCount: (count: number) => void;
@@ -35,12 +37,13 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
       unreadCount: state.unreadCount + (n.isRead ? 0 : 1),
     })),
 
-  /** 알림 목록 전체 세팅 */
+  /** 알림 목록 전체 세팅 (함수형 업데이트 지원) */
   setNotifications: (list) =>
-    set(() => {
-      const unread = list.filter((n) => !n.isRead).length;
+    set((state) => {
+      const newList = typeof list === 'function' ? list(state.notifications) : list;
+      const unread = newList.filter((n) => !n.isRead).length;
       return {
-        notifications: list,
+        notifications: newList,
         unreadCount: unread,
       };
     }),

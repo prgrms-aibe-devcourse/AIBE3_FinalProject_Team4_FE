@@ -1,8 +1,13 @@
 'use client';
 
-import { getRecentNotifications, markAllAsRead } from '@/src/api/notifications';
+import {
+  deleteAllNotifications,
+  deleteNotification,
+  getRecentNotifications,
+  markAllAsRead,
+} from '@/src/api/notifications';
 import { useNotificationStore } from '@/src/stores/useNotificationsStore';
-import { X } from 'lucide-react';
+import { Trash2, X } from 'lucide-react';
 import { useEffect } from 'react';
 import NotificationItem from '../components/notifications/NotificationItem';
 
@@ -19,13 +24,44 @@ export default function NotificationsPage() {
     })();
   }, [setNotifications, setUnreadCount]);
 
-  const handleRemove = (id: number) => {
-    setNotifications(notifications.filter((n) => n.id !== id));
+  const handleRemove = async (id: number) => {
+    try {
+      await deleteNotification(id);
+      setNotifications((prev) => prev.filter((n) => n.id !== id)); // 수정: 함수형 업데이트
+    } catch (error) {
+      console.error('알림 삭제 실패:', error);
+    }
+  };
+
+  const handleRemoveAll = async () => {
+    if (!confirm('모든 알림을 삭제하시겠습니까?')) return;
+
+    try {
+      await deleteAllNotifications();
+      setNotifications([]);
+    } catch (error) {
+      console.error('전체 알림 삭제 실패:', error);
+    }
   };
 
   return (
     <div className="p-5">
-      <h1 className="text-lg font-semibold mb-3">알림</h1>
+      <div className="flex items-center justify-between mb-3">
+        <h1 className="text-lg font-semibold">알림</h1>
+        {notifications.length > 0 && (
+          <button
+            onClick={handleRemoveAll}
+            className="
+              flex items-center gap-1.5 
+              text-sm text-gray-600 hover:text-red-600
+              transition-colors
+            "
+          >
+            <Trash2 size={16} />
+            전체 삭제
+          </button>
+        )}
+      </div>
 
       {notifications.length === 0 ? (
         <p className="text-gray-500 text-sm">알림이 없습니다.</p>
@@ -37,8 +73,8 @@ export default function NotificationsPage() {
                 className="
           relative bg-white shadow-sm rounded-lg 
           px-4 py-3 
-          max-w-xl   /* 카드 최대 너비 제한 */
-          mx-auto    /* 가운데 정렬 */
+          max-w-xl
+          mx-auto
         "
               >
                 <div className="pr-6">
@@ -53,6 +89,7 @@ export default function NotificationsPage() {
             opacity-50 hover:opacity-100
             transition
           "
+                  aria-label="알림 삭제"
                 >
                   <X size={14} />
                 </button>
