@@ -121,7 +121,7 @@ export default function Sidebar() {
             <Image
               src="/icons/book.png"
               alt="텍스톡 아이콘"
-              width={58}
+              width={48}
               height={39}
               className="object-contain"
             />
@@ -148,39 +148,54 @@ export default function Sidebar() {
 
       {/* =============== SEARCH + PANEL WRAPPER =============== */}
       <div ref={searchWrapperRef}>
-        <div className="pl-2 pr-2 py-1 flex justify-start">
+        <div className="px-5 pt-2 pb-1">
           <div
             onClick={() => {
               if (isSearchOpen) closePanelFn();
               else openPanelFn('search');
             }}
             className={`
-              relative flex items-center cursor-pointer overflow-hidden
-              transition-all duration-300 ease-in-out
-              ${
-                isCollapsed
-                  ? 'w-10 h-10 rounded-full justify-center'
-                  : 'w-full h-10 rounded-full bg-gray-100 pl-12 pr-3 border border-gray-200'
-              }
-            `}
+        relative flex items-center cursor-pointer overflow-hidden
+        transition-all duration-200
+        mx-auto
+        ${
+          isCollapsed
+            ? 'h-10 w-10 justify-center rounded-full'
+            : 'h-10 w-full rounded-full pl-10 pr-3 border'
+        }
+        ${
+          isSearchOpen
+            ? 'bg-sky-50 border-sky-200 text-[#2979FF]'
+            : isCollapsed
+              ? ' text-slate-600 hover:bg-slate-100'
+              : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-white'
+        }
+      `}
           >
+            {/* 아이콘 */}
             <div
-              className="absolute left-3 top-1/2 -translate-y-1/2
-                         flex items-center justify-center w-7 h-7 pointer-events-none"
+              className={`
+          flex items-center justify-center
+          ${
+            isCollapsed
+              ? 'h-6 w-6 text-slate-600'
+              : 'pointer-events-none absolute left-3 top-1/2 h-6 w-6 -translate-y-1/2 text-slate-400'
+          }
+        `}
             >
-              <Search size={22} />
+              <Search size={18} />
             </div>
 
             <input
               type="text"
               readOnly
               value={sidebarKeyword}
-              placeholder="Search"
+              placeholder="검색어를 입력하세요"
               className={`
-                bg-transparent text-sm outline-none
-                transition-all duration-300
-                ${isCollapsed ? 'w-0 opacity-0' : 'w-full opacity-100'}
-              `}
+          bg-transparent text-sm outline-none text-slate-800 placeholder:text-slate-400
+          transition-all duration-200
+          ${isCollapsed ? 'w-0 opacity-0' : 'w-full opacity-100'}
+        `}
             />
           </div>
         </div>
@@ -213,18 +228,24 @@ export default function Sidebar() {
                   }}
                   className={`
                     flex items-center gap-3 px-4 py-2 rounded-lg transition-all
-                    ${isMoreOpen ? 'text-blue-600 font-medium' : 'text-gray-800 hover:bg-gray-100'}
+                    ${isMoreOpen ? 'text-blue-600 font-medium' : 'text-gray-500 hover:bg-gray-100'}
                   `}
                 >
-                  <div className="flex items-center justify-center w-7 h-7 flex-shrink-0">
-                    <item.icon size={24} />
+                  <div
+                    className={`
+    flex items-center justify-center flex-shrink-0
+    rounded-xl
+    ${isActive ? 'bg-sky-50 text-[#2979FF]' : 'text-slate-500'}
+  `}
+                  >
+                    <item.icon size={20} />
                   </div>
 
                   <span
                     className={`
-                      whitespace-nowrap transition-all duration-300
-                      ${isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'}
-                    `}
+    whitespace-nowrap transition-all duration-300
+    ${isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'}
+  `}
                   >
                     {item.label}
                   </span>
@@ -281,10 +302,15 @@ export default function Sidebar() {
                 }}
                 className={`
               w-full text-left flex items-center gap-3 px-4 py-2 rounded-lg transition-all
-              ${isActive ? 'text-blue-600 font-medium' : 'text-gray-800 hover:bg-gray-100'}
+              ${isActive ? 'text-blue-600 font-medium' : 'text-gray-600 hover:bg-gray-100'}
             `}
               >
-                <div className="flex items-center justify-center w-7 h-7 flex-shrink-0">
+                <div
+                  className={`
+      flex items-center justify-center flex-shrink-0
+      ${isCollapsed ? 'w-6 h-6' : 'w-7 h-7'}
+    `}
+                >
                   {isProfile && isLogin ? (
                     <img
                       src={loginUser?.profileImgUrl || '/tmpProfile.png'}
@@ -293,19 +319,19 @@ export default function Sidebar() {
                     />
                   ) : (
                     <>
-                      <item.icon size={24} />
-                      {item.alert && (
+                      <item.icon size={20} />
+                      {item.alert && !isCollapsed && (
                         <span className="absolute -top-1.5 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                       )}
                     </>
                   )}
                 </div>
-
+                {/* 라벨 */}
                 <span
                   className={`
-                whitespace-nowrap transition-all
-                ${isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'}
-              `}
+      ml-3 whitespace-nowrap transition-all
+      ${isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'}
+    `}
                 >
                   {item.label}
                 </span>
@@ -315,10 +341,10 @@ export default function Sidebar() {
               {isCollapsed && (
                 <span
                   className="
-                absolute left-20 top-1/2 -translate-y-1/2
-                px-2 py-1 bg-gray-900 text-white text-xs rounded
-                opacity-0 group-hover:opacity-100 transition pointer-events-none
-              "
+      absolute left-20 top-1/2 -translate-y-1/2
+      px-2 py-1 bg-gray-900 text-white text-xs rounded
+      opacity-0 group-hover:opacity-100 transition pointer-events-none
+    "
                 >
                   {item.label}
                 </span>
