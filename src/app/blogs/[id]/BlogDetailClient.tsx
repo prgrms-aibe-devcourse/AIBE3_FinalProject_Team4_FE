@@ -21,8 +21,7 @@ import type {
 } from '@/src/types/blog';
 import { useMutation } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import BlogCommentSection from '../../components/blogs/detail/BlogCommentSection';
 import { ShareModal } from '../../components/blogs/detail/BlogShareModal';
 import { LinkedShorlogListModal } from '../../components/blogs/detail/LinkedShorlogModal';
 import BlogConnectShorlogModal from '../../components/blogs/link/BlogConnectShorlogModal';
@@ -219,7 +218,7 @@ export default function BlogDetailClient({
         onClose={() => setLinkedOpen(false)}
         onUnlink={handleUnlinkShorlog}
       />
-      <article className="rounded-3xl bg-white/90 shadow-xl ring-1 ring-slate-100 backdrop-blur-sm">
+      <article className="rounded-3xl overflow-hidden bg-white/90 shadow-xl ring-1 ring-slate-100 backdrop-blur-sm">
         {/* 상단 헤더 */}
         <BlogDetailHeader
           blog={{ ...blog, viewCount }}
@@ -263,6 +262,10 @@ export default function BlogDetailClient({
           onOpenLinkedShorlogs={handleOpenLinkedShorlogs}
           onShare={() => setShareOpen(true)}
         />
+        {/* 댓글 토글 */}
+        <div className="border-t border-slate-100 bg-slate-50 px-5 py-5 sm:px-8">
+          <BlogCommentSection blogId={blog.id} initialCommentCount={blog.commentCount} />
+        </div>
       </article>
       <BlogConnectShorlogModal
         isOpen={connectModalOpen}
