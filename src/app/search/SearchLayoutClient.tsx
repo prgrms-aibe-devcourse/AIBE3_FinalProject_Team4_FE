@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import type { ReactNode } from 'react';
 
 // 탭 목록
 const tabs = [
@@ -19,11 +20,11 @@ const sortMap: Record<string, { key: string; label: string }[] | null> = {
   blog: [
     { key: 'latest', label: '최신' },
     { key: 'popular', label: '인기' },
+    { key: 'view', label: '조회수' },
   ],
   user: null, // 사용자 탭은 정렬 없음
 };
-
-export default function SearchLayout({ children }: { children: React.ReactNode }) {
+export default function SearchLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const params = useSearchParams();
   const pathname = usePathname();
@@ -31,68 +32,88 @@ export default function SearchLayout({ children }: { children: React.ReactNode }
   const keyword = params.get('keyword') || '';
   const activeTab = pathname.split('/').pop() || 'shorlog';
 
-  // 현재 탭 기준 정렬 옵션 목록
   const availableSorts = sortMap[activeTab];
-
-  // sort param은 없을 수도 있으므로 기본값 처리
   const currentSort = params.get('sort') || (availableSorts ? availableSorts[0].key : '');
 
-  // 탭 이동
   const moveTab = (tab: string) => {
-    router.push(`/search/${tab}?keyword=${encodeURIComponent(keyword)}`);
+    router.push(`/search/${tab}?keyword=${encodeURIComponent(keyword)}&sort=${currentSort}`);
   };
 
-  // 정렬 변경
   const changeSort = (sort: string) => {
     router.push(`/search/${activeTab}?keyword=${encodeURIComponent(keyword)}&sort=${sort}`);
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-4">
-      {/* === 탭 + 정렬 === */}
-      <div className="flex items-end justify-between border-b border-slate-200">
-        {/* 왼쪽 탭 */}
-        <div className="flex gap-0 text-lg">
-          {tabs.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => moveTab(t.key)}
-              className={`
-                px-8 pb-2 border-b-2
-                ${
-                  activeTab === t.key
-                    ? 'border-slate-900 font-semibold'
-                    : 'border-transparent text-slate-500'
-                }
-              `}
-            >
-              {t.label}
-            </button>
-          ))}
+    <main className="ml-20 px-4 sm:px-8 py-4 sm:py-6">
+      {/* 사이드바 고려한 메인 컨테이너 */}
+      <div className="mx-auto ">
+        <div className="mb-8">
+          {/* 상단 큰 제목 */}
+          <header className="text-xl sm:text-2xl font-bold text-slate-900">검색 결과</header>
+          {keyword && (
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-sky-100 px-4 py-2">
+              <span className="text-base sm:text-lg text-slate-900">“{keyword}”</span>
+              <span className="text-xs text-slate-500">에 대한 검색 결과</span>
+              {/* 필요시 추후 개수 표시 넣을 자리 */}
+              {/* {totalCount != null && (
+              <span className="text-[11px] text-slate-500">약 {totalCount}개</span>
+            )} */}
+            </div>
+          )}
+          <div className="mb-4"></div>
+          <p className="mt-1 text-[11px] sm:text-xs text-slate-500">
+            숏로그 · 블로그 · 사용자 결과를 스크롤하며 빠르게 살펴보세요.
+          </p>
         </div>
 
-        {/* 오른쪽 정렬 — user 탭은 없음 */}
-        {availableSorts && (
-          <div className="inline-flex items-center rounded-md bg-slate-100 p-0.5 text-[13px]">
-            {availableSorts.map((s) => (
+        {/* === 탭 + 정렬 영역 === */}
+        <div className="flex items-end justify-between border-b border-slate-200">
+          {/* 왼쪽 탭 */}
+          <div className="flex gap-0 text-sm sm:text-base">
+            {tabs.map((t) => (
               <button
-                key={s.key}
-                onClick={() => changeSort(s.key)}
+                key={t.key}
+                onClick={() => moveTab(t.key)}
                 className={`
-                  px-3 py-1.5 rounded-md
-                  ${currentSort === s.key ? 'bg-white shadow text-slate-900' : 'text-slate-500'}
-                `}
+                px-4 sm:px-6 pb-2 border-b-2 transition-colors
+                ${
+                  activeTab === t.key
+                    ? 'border-slate-900 font-semibold text-slate-900'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                }
+              `}
               >
-                {s.label}
+                {t.label}
               </button>
             ))}
           </div>
-        )}
-      </div>
 
-      {/* === 컨텐츠 === */}
-      <div className="mt-6">{children}</div>
-    </div>
+          {/* 오른쪽 정렬 (user 탭 제외) */}
+          {availableSorts && (
+            <div className="inline-flex items-center rounded-md bg-slate-100 p-0.5 text-[11px] sm:text-[13px]">
+              {availableSorts.map((s) => (
+                <button
+                  key={s.key}
+                  onClick={() => changeSort(s.key)}
+                  className={`
+                    px-2.5 sm:px-3 py-1.5 rounded-md transition
+                    ${
+                      currentSort === s.key
+                        ? 'bg-white shadow text-slate-900'
+                        : 'text-slate-500 hover:text-slate-700'
+                    }
+                  `}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* === 탭별 컨텐츠 === */}
+        <div className="mt-6">{children}</div>
+      </div>
+    </main>
   );
 }
-

@@ -7,6 +7,7 @@ import type { BlogDetailDto } from '@/src/types/blog';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import BlogDetailClient from './BlogDetailClient';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 export default function BlogDetailPage() {
   const params = useParams();
@@ -59,9 +60,13 @@ export default function BlogDetailPage() {
       cancelled = true;
     };
   }, [blogId]);
-  //TODO: 로딩스피너 도입
-  if (loading) return <p className="p-8">로딩 중...</p>;
-  if (!blog) return <p className="p-8">존재하지 않는 게시글입니다.</p>;
+if (loading)
+  return (
+    <div className="p-8">
+      <LoadingSpinner />
+    </div>
+  );
+if (!blog) return <div className="p-8">존재하지 않는 게시글입니다.</div>;
 
   const handleDelete = async () => {
     if (!confirm('정말 삭제하시겠습니까?')) return;

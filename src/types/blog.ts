@@ -151,3 +151,33 @@ export type BlogShorlogLinkResponse = {
   haveLink: boolean;
   linkedCount: number;
 };
+
+export type MyBlogSummary = {
+  id: number;
+  title: string;
+  hashtagNames: string[];
+  modifiedAt: string;
+};
+
+export type ShorlogBlogLinkResponse = {
+  shorlogId: number;
+  blogId: number;
+  haveLink: boolean;
+  linkedCount: number;
+};
+
+export type LinkedBlogSummary = {
+  blogId: number;
+  title: string;
+  modifiedAt: string;
+};
+
+export type LinkedBlogDetail = {
+  id: number;
+  title: string;
+  contentPre: string;
+  author: string;
+  modifiedAt: string;
+  hashtagNames: string[];
+};
+

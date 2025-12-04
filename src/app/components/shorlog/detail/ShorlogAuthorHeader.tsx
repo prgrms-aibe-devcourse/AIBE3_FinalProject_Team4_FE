@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+
 import { deleteShorlog } from '@/src/app/components/shorlog/edit/api';
 import { showGlobalToast } from '@/src/lib/toastStore';
 import FollowButton from '../../common/FollowButton';
+import ShorlogBlogLinkModal from '../link/ShorlogBlogLinkModal';
+
 
 interface Props {
   username: string;
@@ -13,6 +15,7 @@ interface Props {
   isOwner?: boolean;
   shorlogId?: number;
   userId?: number;
+  onBlogConnectionUpdate?: () => void | Promise<void>;
 }
 
 export default function ShorlogAuthorHeader({
@@ -22,10 +25,11 @@ export default function ShorlogAuthorHeader({
   isOwner = false,
   shorlogId,
   userId,
+  onBlogConnectionUpdate,
 }: Props) {
-  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showBlogLinkModal, setShowBlogLinkModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -45,7 +49,11 @@ export default function ShorlogAuthorHeader({
       return;
     }
 
-    // TODO: 블로그 연결 기능 구현
+    if (action === '블로그 연결') {
+      setShowBlogLinkModal(true);
+      return;
+    }
+
     showGlobalToast(`${action} 기능은 추후 제공될 예정입니다.`, 'warning');
   };
 
@@ -56,11 +64,11 @@ export default function ShorlogAuthorHeader({
     try {
       await deleteShorlog(shorlogId.toString());
       showGlobalToast('숏로그가 삭제되었습니다.', 'success');
-      router.push(`/profile/${userId}`);
+      // 모달을 확실히 닫기 위해 window.location.href 사용
+      window.location.href = `/profile/${userId}`;
     } catch (error) {
       console.error('삭제 오류:', error);
       showGlobalToast(error instanceof Error ? error.message : '숏로그 삭제 중 오류가 발생했습니다.', 'error');
-    } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);
     }
@@ -88,13 +96,13 @@ export default function ShorlogAuthorHeader({
         <div className="h-9 w-9 overflow-hidden rounded-full bg-slate-200 md:h-10 md:w-10">
           <img
             src={profileImgUrl || '/tmpProfile.png'}
-            alt={`${username} 프로필 이미지`}
+            alt={`${nickname} 프로필 이미지`}
             className="h-full w-full object-cover"
           />
         </div>
         <div className="flex flex-col">
-          <span className="text-[15px] font-semibold text-slate-900">@{username}</span>
-          <span className="text-[13px] text-slate-500">{nickname}</span>
+          <span className="text-[15px] font-semibold text-slate-900">{nickname}</span>
+          <span className="text-[13px] text-slate-500">@{username}</span>
         </div>
       </div>
 
@@ -115,9 +123,9 @@ export default function ShorlogAuthorHeader({
             </button>
 
             {menuOpen && (
-              <div className="absolute right-0 z-20 mt-1 w-40 rounded-xl border border-slate-100 bg-white py-1 text-xs text-slate-700 shadow-lg" role="menu">
+              <div className="absolute right-0 z-20 mt-1 w-32 rounded-xl border border-slate-100 bg-white py-1 text-xs text-slate-700 shadow-lg" role="menu">
                 <button type="button" onClick={() => handleMenuAction('블로그 연결')} className="flex w-full items-center justify-between px-3 py-1.5 hover:bg-slate-50">
-                  블로그 연결하기
+                  블로그와 연결
                 </button>
                 <button type="button" onClick={() => handleMenuAction('수정')} className="flex w-full items-center justify-between px-3 py-1.5 hover:bg-slate-50">
                   수정
@@ -164,6 +172,19 @@ export default function ShorlogAuthorHeader({
             </div>
           </div>
         </div>
+      )}
+
+      {/* 블로그 연결 관리 모달 */}
+      {shorlogId && (
+        <ShorlogBlogLinkModal
+          isOpen={showBlogLinkModal}
+          shorlogId={shorlogId}
+          onClose={() => setShowBlogLinkModal(false)}
+          onLinked={() => {
+            showGlobalToast('블로그와 연결되었어요!', 'success');
+            onBlogConnectionUpdate?.();
+          }}
+        />
       )}
     </div>
   );

@@ -1,4 +1,3 @@
-// app/search/components/SortFilter.tsx
 'use client';
 
 import { useRouter } from 'next/navigation';

@@ -21,7 +21,7 @@ export function ToastContainer() {
             toast.type === 'success'
               ? 'bg-green-500'
               : toast.type === 'warning'
-                ? 'bg-sky-400'
+                ? 'bg-orange-400'
                 : 'bg-red-500'
           }`}
         >
