@@ -7,6 +7,7 @@ import { useState } from 'react';
 type LinkedShorlogListModalProps = {
   open: boolean;
   loading: boolean;
+  canUnlink?: boolean;
   items: LinkedShorlogSummary[];
   onClose: () => void;
   onUnlink: (shorlogId: number) => Promise<void> | void;
@@ -15,6 +16,7 @@ export function LinkedShorlogListModal({
   open,
   loading,
   items,
+  canUnlink,
   onClose,
   onUnlink,
 }: LinkedShorlogListModalProps) {
@@ -23,6 +25,7 @@ export function LinkedShorlogListModal({
   if (!open) return null;
 
   const handleUnlinkClick = async (shorlogId: number) => {
+    if (!canUnlink) return;
     if (!onUnlink) return;
     if (unlinkingId !== null) return;
 
@@ -74,38 +77,42 @@ export function LinkedShorlogListModal({
                     {new Date(item.modifiedAt).toLocaleString('ko-KR')}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleUnlinkClick(item.shorlogId);
-                  }}
-                  disabled={unlinkingId === item.shorlogId}
-                  aria-label="연결 해제"
-                  className={[
-                    'shrink-0 inline-flex items-center justify-center h-7 w-7 rounded-full border border-slate-200 bg-white',
-                    'text-slate-400 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 transition-all duration-150',
-                    unlinkingId === item.shorlogId ? 'cursor-default opacity-60' : 'cursor-pointer',
-                  ].join(' ')}
-                >
-                  {unlinkingId === item.shorlogId ? (
-                    <span className="animate-pulse text-[10px]">···</span>
-                  ) : (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-3.5 w-3.5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 011.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 
+                {canUnlink && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleUnlinkClick(item.shorlogId);
+                    }}
+                    disabled={unlinkingId === item.shorlogId}
+                    aria-label="연결 해제"
+                    className={[
+                      'shrink-0 inline-flex items-center justify-center h-7 w-7 rounded-full border border-slate-200 bg-white',
+                      'text-slate-400 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 transition-all duration-150',
+                      unlinkingId === item.shorlogId
+                        ? 'cursor-default opacity-60'
+                        : 'cursor-pointer',
+                    ].join(' ')}
+                  >
+                    {unlinkingId === item.shorlogId ? (
+                      <span className="animate-pulse text-[10px]">···</span>
+                    ) : (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-3.5 w-3.5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 011.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 
                         1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  )}
-                </button>
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                )}
               </div>
             ))}
         </div>

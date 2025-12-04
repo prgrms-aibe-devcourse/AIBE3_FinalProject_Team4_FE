@@ -214,6 +214,7 @@ export default function BlogDetailClient({
       <LinkedShorlogListModal
         open={linkedOpen}
         loading={linkedLoading}
+        canUnlink={isOwner}
         items={linkedItems}
         onClose={() => setLinkedOpen(false)}
         onUnlink={handleUnlinkShorlog}

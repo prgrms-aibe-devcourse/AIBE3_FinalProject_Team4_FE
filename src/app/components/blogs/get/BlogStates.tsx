@@ -1,5 +1,4 @@
 'use client';
-import { BlogToolbar } from "./BlogToolbar";
 type BlogErrorStateProps = {
   onRetry: () => void;
 };
@@ -34,7 +33,7 @@ export function BlogEmptyState() {
       </p>
       <a
         href="/blogs/new"
-        className="mt-4 inline-flex items-center rounded-full bg-sky-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-sky-50"
+        className="mt-4 inline-flex items-center rounded-full bg-[#2979FF] px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-sky-50"
       >
         새 블로그 쓰기
       </a>
