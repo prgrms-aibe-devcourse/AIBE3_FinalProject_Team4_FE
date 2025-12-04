@@ -110,44 +110,45 @@ export default function Sidebar() {
       `}
     >
       {/* ================= HEADER ================= */}
-      <div className="px-4 pt-5 pb-3 flex items-center">
-        {/* 1) 책 아이콘 버튼 (항상 보임) TODO: 누르면 사이드바 열기 */}
-        <button
-          type="button"
-          onClick={goHome}
-          className="flex items-center justify-center w-10 h-10 rounded-xl  text-slate-900 transition"
-        >
-          <Image
-            src="/icons/book.png"
-            alt="텍스톡 아이콘"
-            width={60}
-            height={40}
-            className="object-contain"
-          />
-        </button>
-        {/* 2) 펼쳤을 때만 보이는 가로형 로고 */}
-        <div
-          className={`
-        overflow-hidden transition-all duration-300
-        ${isCollapsed ? 'w-0 opacity-0 ml-0' : 'opacity-100 ml-3'}
-      `}
-        >
-          {/* 가로형 로고 이미지  */}
-          <div className="relative h-14">
+      <div className="pl-1 pr-2 pt-5 pb-4 flex items-center justify-center">
+        {/* 1) 접혔을 때만 보이는 책 아이콘 버튼 */}
+        {isCollapsed && (
+          <button
+            type="button"
+            onClick={goHome}
+            className="flex items-center justify-center rounded-xl text-slate-900 transition"
+          >
             <Image
-              src="/icons/logo2-3.png"
-              alt="textok 로고"
-              width={68}
-              height={20}
+              src="/icons/book.png"
+              alt="텍스톡 아이콘"
+              width={58}
+              height={39}
               className="object-contain"
             />
-          </div>
-        </div>
+          </button>
+        )}
+
+        {/* 2) 펼쳤을 때만 보이는 가로형 로고 */}
+        {!isCollapsed && (
+          <button
+            type="button"
+            onClick={goHome}
+            className="flex items-center justify-center transition py-2"
+          >
+            <Image
+              src="/icons/logo.png"
+              alt="textok 로고"
+              width={145}
+              height={44}
+              className="object-contain"
+            />
+          </button>
+        )}
       </div>
 
       {/* =============== SEARCH + PANEL WRAPPER =============== */}
       <div ref={searchWrapperRef}>
-        <div className="px-4 py-1 flex justify-start">
+        <div className="pl-2 pr-2 py-1 flex justify-start">
           <div
             onClick={() => {
               if (isSearchOpen) closePanelFn();
