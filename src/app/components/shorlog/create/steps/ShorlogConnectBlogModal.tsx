@@ -1,11 +1,16 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShorlogRelatedBlogSummary } from '../types';
 import { formatRelativeTime } from '@/src/utils/time';
+import { fetchMyRecentBlogs, linkShorlogToBlog } from '@/src/api/blogShorlogLink';
+import { showGlobalToast } from '@/src/lib/toastStore';
+import { handleApiError } from '@/src/lib/handleApiError';
+import type { MyBlogSummary } from '@/src/types/blog';
 
 interface ShorlogConnectBlogModalProps {
   isOpen: boolean;
+  shorlogId: number;
   recentBlogs: ShorlogRelatedBlogSummary[];
   onSelectBlog: (blogId: ShorlogRelatedBlogSummary['id']) => void;
   onCreateNewBlog: () => void;
@@ -15,12 +20,55 @@ interface ShorlogConnectBlogModalProps {
 
 export default function ShorlogConnectBlogModal({
                                                   isOpen,
+                                                  shorlogId,
                                                   recentBlogs,
                                                   onSelectBlog,
                                                   onCreateNewBlog,
                                                   onSkip,
                                                   isEditMode = false,
                                                 }: ShorlogConnectBlogModalProps) {
+  const [myRecentBlogs, setMyRecentBlogs] = useState<MyBlogSummary[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [linking, setLinking] = useState(false);
+  const [selectedBlogId, setSelectedBlogId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const loadRecentBlogs = async () => {
+      try {
+        setLoading(true);
+        const blogs = await fetchMyRecentBlogs(7);
+        setMyRecentBlogs(blogs);
+      } catch (error) {
+        handleApiError(error, '최근 블로그 조회');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRecentBlogs();
+  }, [isOpen]);
+
+  const handleBlogSelect = async (blogId: number) => {
+    if (linking) return;
+
+    try {
+      setLinking(true);
+      setSelectedBlogId(blogId);
+
+      await linkShorlogToBlog(shorlogId, blogId);
+      showGlobalToast('숏로그와 블로그가 연결되었어요!', 'success');
+
+      onSelectBlog(blogId);
+    } catch (error) {
+      handleApiError(error, '블로그 연결');
+    } finally {
+      setLinking(false);
+      setSelectedBlogId(null);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -67,55 +115,74 @@ export default function ShorlogConnectBlogModal({
 
           {/* 최근 블로그 리스트 */}
           <div className="mb-5 max-h-60 space-y-3 overflow-y-auto pr-1">
-            {recentBlogs.map((blog, index) => (
-              <button
-                key={blog.id}
-                type="button"
-                onClick={() => onSelectBlog(blog.id)}
-                className="group w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-left text-slate-800 shadow-sm transition-all duration-200 hover:border-[#2979FF] hover:bg-[#f3f6ff] hover:shadow-md hover:scale-[1.01]"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-xs text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
-                    {index + 1}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="line-clamp-2 text-[15px] font-medium leading-snug text-slate-900 group-hover:text-slate-800">
-                      {blog.title}
-                    </p>
-                    {blog.hashtagNames.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-1.5">
-                        {blog.hashtagNames.slice(0, 3).map((tag) => (
-                          <span
-                            key={tag}
-                            className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"
-                          >
-                            <span className="mr-1">#</span>
-                            {tag}
-                          </span>
-                        ))}
-                        {blog.hashtagNames.length > 3 && (
-                          <span className="inline-flex items-center rounded-full bg-slate-200 px-2.5 py-1 text-xs text-slate-500">
-                            +{blog.hashtagNames.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    <div className="mt-3 flex items-center justify-between">
-                      <div className="flex items-center gap-1 text-xs text-slate-400">
-                        <span>🕐</span>
-                        <span>{formatRelativeTime(blog.modifiedAt)}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-slate-400 group-hover:text-blue-500 transition-colors">
-                        <span>연결하기</span>
-                        <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+            {loading && (
+              <p className="py-6 text-center text-xs text-slate-400">
+                최근 블로그를 불러오는 중입니다...
+              </p>
+            )}
+
+            {!loading && myRecentBlogs.map((blog, index) => {
+              const isSelected = selectedBlogId === blog.id;
+              return (
+                <button
+                  key={blog.id}
+                  type="button"
+                  disabled={linking}
+                  onClick={() => handleBlogSelect(blog.id)}
+                  className={[
+                    'group w-full rounded-2xl border px-5 py-4 text-left text-slate-800 shadow-sm transition-all duration-200',
+                    'bg-white hover:scale-[1.01] hover:bg-[#f3f6ff] hover:shadow-md disabled:opacity-60',
+                    isSelected
+                      ? 'border-[#2979FF] ring-2 ring-[#2979FF]/40'
+                      : 'border-slate-200 hover:border-[#2979FF]',
+                  ].join(' ')}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-xs text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+                      {index + 1}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="line-clamp-2 text-[15px] font-medium leading-snug text-slate-900 group-hover:text-slate-800">
+                        {blog.title}
+                      </p>
+
+
+
+                      {blog.hashtagNames && blog.hashtagNames.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {blog.hashtagNames.slice(0, 3).map((tag, tagIndex) => (
+                            <span
+                              key={`${blog.id}-tag-${tagIndex}`}
+                              className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"
+                            >
+                              <span className="mr-1">#</span>
+                              {tag}
+                            </span>
+                          ))}
+                          {blog.hashtagNames.length > 3 && (
+                            <span className="inline-flex items-center rounded-full bg-slate-200 px-2.5 py-1 text-xs text-slate-500">
+                              +{blog.hashtagNames.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="mt-3 flex items-center justify-between">
+                        <div className="flex items-center gap-1 text-xs text-slate-400">
+                          <span>{formatRelativeTime(blog.modifiedAt)}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-slate-400 group-hover:text-blue-500 transition-colors">
+                          <span>연결하기</span>
+                          <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
 
-            {recentBlogs.length === 0 && (
+            {!loading && myRecentBlogs.length === 0 && (
               <div className="relative rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-6 text-center">
                 <div className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-slate-100 px-3 py-1">
                   <span className="text-xs text-slate-500">📝</span>

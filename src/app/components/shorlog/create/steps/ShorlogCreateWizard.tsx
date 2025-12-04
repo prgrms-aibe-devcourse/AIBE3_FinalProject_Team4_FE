@@ -345,6 +345,7 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
         {/* 숏로그 생성 완료 후 블로그 연결 모달 */}
         <ShorlogConnectBlogModal
           isOpen={shorlogCreate.showBlogConnectModal}
+          shorlogId={Number(shorlogCreate.createdShorlogId)}
           recentBlogs={shorlogCreate.recentBlogs}
           onSelectBlog={shorlogCreate.handleSelectBlog}
           onCreateNewBlog={shorlogCreate.handleCreateNewBlog}
