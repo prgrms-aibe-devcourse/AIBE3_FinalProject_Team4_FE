@@ -110,7 +110,7 @@ export default function Sidebar() {
       `}
     >
       {/* ================= HEADER ================= */}
-      <div className="pl-1 pr-2 pt-5 pb-4 flex items-center justify-center">
+      <div className="pl-1 pr-1 pt-5 pb-2 flex items-center justify-center">
         {/* 1) 접혔을 때만 보이는 책 아이콘 버튼 */}
         {isCollapsed && (
           <button
