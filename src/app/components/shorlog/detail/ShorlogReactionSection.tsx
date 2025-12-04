@@ -3,7 +3,7 @@
 import { MessageCircle, Send } from 'lucide-react';
 import { useState } from 'react';
 
-import { requireAuth } from '../../../../lib/auth';
+import { useRequireAuth } from '@/src/hooks/userRequireAuth';
 import BookmarkButton from '../../common/BookmarkButton';
 import LikeButton from '../../common/LikeButton';
 import ShareModal from './ShareModal';
@@ -29,12 +29,15 @@ export default function ShorlogReactionSection({
   title,
   description,
   imageUrl,
-  author
+  author,
 }: Props) {
   const [currentBookmarkCount, setCurrentBookmarkCount] = useState(bookmarkCount);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
-  /** 북마크 변경 (BookmarkButton 전용 + fallback 처리) */
+  /** 로그인 여부 체크 Hook */
+  const requireAuth = useRequireAuth();
+
+  /** 북마크 변경 핸들러 */
   const handleBookmarkChange = (isBookmarked: boolean, newCount?: number) => {
     if (newCount !== undefined) {
       setCurrentBookmarkCount(newCount);
@@ -55,8 +58,7 @@ export default function ShorlogReactionSection({
     <>
       <div className="flex items-center justify-between text-[13px] text-slate-700">
         <div className="flex items-center gap-4">
-
-          {/* ❤️ 좋아요 */}
+          {/* 좋아요 */}
           <LikeButton
             shorlogId={shorlogId}
             authorId={authorId}
@@ -65,13 +67,13 @@ export default function ShorlogReactionSection({
             showCount={true}
           />
 
-          {/* 💬 댓글 */}
+          {/* 댓글 */}
           <div className="flex items-center gap-1.5 text-slate-700">
             <MessageCircle className="h-5 w-5" />
             <span className="text-[13px] font-medium">{commentCount}</span>
           </div>
 
-          {/* 🔖 북마크 */}
+          {/* 북마크 */}
           <div className="flex items-center gap-1.5 text-slate-700">
             <BookmarkButton
               shorlogId={shorlogId}
@@ -84,7 +86,7 @@ export default function ShorlogReactionSection({
           </div>
         </div>
 
-        {/* 📤 공유 */}
+        {/* 공유 */}
         <button
           type="button"
           onClick={handleShare}

@@ -1,90 +1,108 @@
 'use client';
 
-import { Heart, MessageCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useCurrentUser } from '@/src/hooks/useCurrentUser';
+import { useLoginModal } from '@/src/providers/LoginModalProvider';
+import './MainPage.css';
 
-export default function CatGalleryPage() {
-  const catPosts = [
-    {
-      id: 1,
-      image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&h=400&fit=crop',
-      username: 'karpas762',
-      likes: 123,
-      comments: 8,
-      caption: '우리 집 고양이가 자는 상태 은 애 같아요ㅋㅋ',
-    },
-    {
-      id: 2,
-      image: 'https://images.unsplash.com/photo-1573865526739-10c1dd7e9ba0?w=400&h=400&fit=crop',
-      username: 'karpas762',
-      likes: 123,
-      comments: 8,
-      caption: '우리 집 고양이가 오늘 싫냐 우 애 같아요ㅋㅋ',
-    },
-    {
-      id: 3,
-      image: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=400&h=400&fit=crop',
-      username: 'karpas762',
-      likes: 123,
-      comments: 8,
-      caption: '세계 3시에 강아지 머리 토이 하이나다는',
-    },
-  ];
+export default function MainPage() {
+  const router = useRouter();
+  const { data: currentUser, isLoading } = useCurrentUser();
+  const { open: openLoginModal } = useLoginModal();
+
+  const handleLogin = () => {
+    openLoginModal();
+  };
+
+  const handleShorlogClick = () => {
+    router.push('/shorlog/feed');
+  };
+
+  const handleBlogClick = () => {
+    router.push('/blogs');
+  };
+
+  const handleCreateClick = () => {
+    router.push('/create-content');
+  };
 
   return (
-    <div className="h-screen bg-white">
-      {/* 메인 콘텐츠 - 스크롤 가능 */}
-      <div className="flex-1 overflow-y-auto">
-        {/* 헤더 */}
-        <div className="bg-white border-b border-gray-200 p-6 sticky top-0 z-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">쇼로그</h1>
+    <div className="page">
+      <main className="main">
+        {/* 왼쪽: 텍스트 영역 */}
+        <section className="hero">
+          <div className="hero-badge">
+            <span className="badge-dot"></span>
+            <span>TEXTOK</span>
+          </div>
+
+          <h1 className="hero-title">텍톡(TexTok)</h1>
+          <h2 className="hero-title" style={{ fontSize: '2.5rem', marginTop: '-1rem' }}>
+            사람들의 생각과 이야기, 그리고 연결
+          </h2>
+
+          <p className="hero-subtitle">
+            ✨ 짧은 생각을 깊게, 💭 깊은 생각을 다시 가볍게 풀어낼 수 있는
+          </p>
+          <p className="hero-description">
+            🔄 양방향 텍스트 경험을 제공하는 서비스
+          </p>
+
+          <div className="hero-stats">
+            <div className="stat-item">
+              <div className="stat-number">1,000+</div>
+              <div className="stat-label">활성 사용자</div>
+            </div>
+            <div className="stat-divider"></div>
+            <div className="stat-item">
+              <div className="stat-number">5,000+</div>
+              <div className="stat-label">작성된 글</div>
+            </div>
+            <div className="stat-divider"></div>
+            <div className="stat-item">
+              <div className="stat-number">10,000+</div>
+              <div className="stat-label">공유된 생각</div>
             </div>
           </div>
-        </div>
 
-        {/* 갤러리 그리드 */}
-        <div className="p-6">
-          <div className="grid grid-cols-3 gap-4">
-            {catPosts.map((post) => (
-              <div
-                key={post.id}
-                className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer"
-              >
-                {/* 이미지 */}
-                <div className="relative aspect-square bg-gray-100">
-                  <img src={post.image} alt="Cat" className="w-full h-full object-cover" />
-                  {/* 프로필 오버레이 */}
-                  <div className="absolute bottom-3 left-3 flex items-center gap-2">
-                    <div className="w-8 h-8 bg-white rounded-full border-2 border-white overflow-hidden">
-                      <img src={post.image} alt="Profile" className="w-full h-full object-cover" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 정보 */}
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-sm">{post.username}</span>
-                    <span className="text-xs text-gray-500">#고양이 #육아중독</span>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                    <div className="flex items-center gap-1">
-                      <Heart size={16} />
-                      <span>{post.likes}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <MessageCircle size={16} />
-                      <span>{post.comments}</span>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-700 line-clamp-2">{post.caption}</p>
-                </div>
-              </div>
-            ))}
+          <div className="hero-actions">
+            {isLoading ? (
+              <button className="btn" disabled>
+                <span>로딩중...</span>
+              </button>
+            ) : currentUser ? (
+              <>
+                <button className="btn btn-primary" onClick={handleShorlogClick}>
+                  <span>숏로그 보러가기</span>
+                  <span className="btn-arrow">→</span>
+                </button>
+                <button className="btn btn-secondary" onClick={handleBlogClick}>
+                  <span>블로그 보러가기</span>
+                  <span className="btn-arrow">→</span>
+                </button>
+                <button className="btn btn-warning" onClick={handleCreateClick}>
+                  <span>작성 하러가기</span>
+                  <span className="btn-arrow">→</span>
+                </button>
+              </>
+            ) : (
+              <button className="btn" onClick={handleLogin}>
+                <span>로그인 하러가기</span>
+                <span className="btn-arrow">→</span>
+              </button>
+            )}
           </div>
-        </div>
-      </div>
+        </section>
+
+        {/* 오른쪽: 이미지 영역 */}
+        <section className="illustration">
+          <img
+            src="/icons/main_page.jpg"
+            alt="Writing and Communication"
+            className="hero-image"
+          />
+        </section>
+      </main>
     </div>
   );
 }
