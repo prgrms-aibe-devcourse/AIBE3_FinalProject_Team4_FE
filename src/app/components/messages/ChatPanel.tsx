@@ -28,14 +28,6 @@ function pad2(n: number) {
 function ymdKey(d: Date) {
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 }
-function isToday(d: Date) {
-  const now = new Date();
-  return (
-    d.getFullYear() === now.getFullYear() &&
-    d.getMonth() === now.getMonth() &&
-    d.getDate() === now.getDate()
-  );
-}
 function fmtDate(d: Date) {
   return `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}`;
 }
@@ -226,9 +218,11 @@ function isSameSender(a?: ChatMessage, b?: ChatMessage) {
 export default function ChatPanel({
   thread,
   onSend,
+  onCloseThread,
 }: {
   thread?: MessageThread;
   onSend: (text: string) => void;
+  onCloseThread: () => void;
 }) {
   const [text, setText] = React.useState('');
   const scrollerRef = React.useRef<HTMLDivElement | null>(null);
@@ -236,6 +230,10 @@ export default function ChatPanel({
   const [isComposing, setIsComposing] = React.useState(false);
   const wasNearBottomRef = React.useRef(true);
   const isFirstPaintRef = React.useRef(true);
+
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const menuBtnRef = React.useRef<HTMLButtonElement | null>(null);
+  const menuRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
     const el = scrollerRef.current;
@@ -265,6 +263,33 @@ export default function ChatPanel({
     return () => {
       canceled = true;
     };
+  }, [thread?.id]);
+
+  React.useEffect(() => {
+    if (!menuOpen) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+
+    const onPointerDown = (e: PointerEvent) => {
+      const t = e.target as Node;
+      if (menuRef.current?.contains(t)) return;
+      if (menuBtnRef.current?.contains(t)) return;
+      setMenuOpen(false);
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('pointerdown', onPointerDown);
+
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('pointerdown', onPointerDown);
+    };
+  }, [menuOpen]);
+
+  React.useEffect(() => {
+    setMenuOpen(false);
   }, [thread?.id]);
 
   React.useLayoutEffect(() => {
@@ -315,29 +340,84 @@ export default function ChatPanel({
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70">
-      <div className="flex items-center justify-between gap-3 border-b border-slate-200/70 p-4">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="h-10 w-10 overflow-hidden rounded-full bg-slate-200 ring-1 ring-slate-200/70">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={avatarUrl}
-              alt={`${thread.user.name} 프로필`}
-              className="h-full w-full object-cover"
-            />
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-slate-900">{thread.user.name}</p>
-            <p className="mt-0.5 text-[12px] text-slate-500">대화 중</p>
+      <div className="relative flex items-center border-b border-slate-200/70 p-4">
+        {/* LEFT: back */}
+        <div className="flex flex-1 items-center justify-start">
+          <button
+            type="button"
+            onClick={onCloseThread}
+            className="grid h-10 w-10 place-items-center rounded-xl text-slate-600 hover:bg-slate-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]/35"
+            aria-label="대화 목록으로"
+            title="뒤로"
+          >
+            <span aria-hidden className="text-xl leading-none">
+              ＜
+            </span>
+          </button>
+        </div>
+
+        {/* CENTER: avatar + name (true center) */}
+        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="h-10 w-10 overflow-hidden rounded-full bg-slate-200 ring-1 ring-slate-200/70">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={avatarUrl}
+                alt={`${thread.user.name} 프로필`}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="max-w-[220px] truncate text-sm font-semibold text-slate-900">
+                {thread.user.name}
+              </p>
+              <p className="mt-0.5 text-[12px] text-slate-500">대화 중</p>
+            </div>
           </div>
         </div>
 
-        <button
-          type="button"
-          className="rounded-full px-3 py-2 text-sm text-slate-700 border border-slate-200 hover:bg-slate-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]/35"
-          aria-label="대화 옵션"
-        >
-          ···
-        </button>
+        {/* RIGHT: menu (kebab) */}
+        <div className="relative flex flex-1 items-center justify-end">
+          <button
+            ref={menuBtnRef}
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            className="inline-flex h-10 w-10 rounded-xl items-center justify-center text-slate-500 transition hover:text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]/35"
+            aria-label="대화 옵션"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            title="옵션"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+              <circle cx="12" cy="5" r="1.8" />
+              <circle cx="12" cy="12" r="1.8" />
+              <circle cx="12" cy="19" r="1.8" />
+            </svg>
+          </button>
+
+          {menuOpen ? (
+            <div
+              ref={menuRef}
+              role="menu"
+              className="absolute right-10 z-20 w-24 overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-200/70"
+            >
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onCloseThread(); // ✅ '나가기' = 채팅 닫기(선택 해제)
+                }}
+                className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]/35"
+              >
+                <span aria-hidden className="text-slate-400">
+                  ⎋
+                </span>
+                나가기
+              </button>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       <div

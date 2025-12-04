@@ -398,7 +398,11 @@ export default function MessagesShell() {
           </aside>
 
           <div className="min-w-0 min-h-0">
-            <ChatPanel thread={activeThread} onSend={onSend} />
+            <ChatPanel
+              thread={activeThread}
+              onSend={onSend}
+              onCloseThread={() => setActiveId('')}
+            />
             {detailLoading ? <p className="mt-2 text-[12px] text-slate-500">대화 로딩…</p> : null}
             {detailError ? <p className="mt-2 text-[12px] text-rose-600">대화 로딩 실패</p> : null}
           </div>
