@@ -137,7 +137,10 @@ export default function ThreadList({
           <ul className="space-y-1">
             {threads.map((t) => {
               const active = t.id === activeId;
-              const unread = (t.unreadCount ?? 0) > 0;
+
+              // ✅ active thread는 어떤 순간에도 unread를 0으로 고정 (깜빡임 방지)
+              const unreadCount = active ? 0 : (t.unreadCount ?? 0);
+              const unread = unreadCount > 0;
 
               return (
                 <li key={t.id}>
@@ -147,7 +150,6 @@ export default function ThreadList({
                     className={[
                       'group w-full rounded-2xl p-3 text-left transition',
                       'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]/35',
-                      // hover 때만 살짝 shadow
                       'hover:shadow-sm hover:shadow-slate-200/60',
                       active
                         ? 'bg-[#2979FF]/10 ring-1 ring-[#2979FF]/25'
@@ -193,9 +195,10 @@ export default function ThreadList({
                         <span className="text-[11px] text-slate-400">
                           {formatThreadMeta(t.lastAt)}
                         </span>
-                        {t.unreadCount > 0 ? (
+
+                        {unreadCount > 0 ? (
                           <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#2979FF] px-1.5 text-[11px] font-bold text-white shadow-sm">
-                            {t.unreadCount}
+                            {unreadCount}
                           </span>
                         ) : (
                           <span className="h-5" aria-hidden />

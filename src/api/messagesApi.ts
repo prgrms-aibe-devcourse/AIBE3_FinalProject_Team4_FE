@@ -23,6 +23,10 @@ export const messagesApi = {
       method: 'POST',
       params: { meId: String(meId), otherUserId: String(otherUserId) },
     }),
+
+  leaveThread: async (threadId: number) => {
+    await apiClient(`/message-threads/${threadId}/leave`, { method: 'POST' });
+  },
 };
 
 export async function postThreadRead(threadId: number, meId: number, lastMessageId?: number) {

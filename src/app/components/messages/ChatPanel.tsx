@@ -112,7 +112,7 @@ function Bubble({ m, mine }: { m: ChatMessage; mine: boolean }) {
   return (
     <div
       className={[
-        'rounded-2xl px-4 py-2 text-sm leading-relaxed',
+        'rounded-2xl px-4 py-2 text-sm leading-relaxed whitespace-pre-wrap break-words',
         mine
           ? 'bg-[#2979FF] text-white shadow-sm shadow-[#2979FF]/20'
           : 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/70',
@@ -219,10 +219,12 @@ export default function ChatPanel({
   thread,
   onSend,
   onCloseThread,
+  onLeave,
 }: {
   thread?: MessageThread;
   onSend: (text: string) => void;
   onCloseThread: () => void;
+  onLeave: (threadId: number) => Promise<void> | void;
 }) {
   const [text, setText] = React.useState('');
   const scrollerRef = React.useRef<HTMLDivElement | null>(null);
@@ -234,11 +236,17 @@ export default function ChatPanel({
   const [menuOpen, setMenuOpen] = React.useState(false);
   const menuBtnRef = React.useRef<HTMLButtonElement | null>(null);
   const menuRef = React.useRef<HTMLDivElement | null>(null);
+  const [confirmLeaveOpen, setConfirmLeaveOpen] = React.useState(false);
+  const [leaving, setLeaving] = React.useState(false);
+
+  React.useEffect(() => {
+    setMenuOpen(false);
+    setConfirmLeaveOpen(false);
+  }, [thread?.id]);
 
   React.useEffect(() => {
     const el = scrollerRef.current;
     if (!el) return;
-
     const onScroll = () => (wasNearBottomRef.current = isNearBottom(el));
     el.addEventListener('scroll', onScroll, { passive: true });
     return () => el.removeEventListener('scroll', onScroll);
@@ -288,10 +296,6 @@ export default function ChatPanel({
     };
   }, [menuOpen]);
 
-  React.useEffect(() => {
-    setMenuOpen(false);
-  }, [thread?.id]);
-
   React.useLayoutEffect(() => {
     const el = scrollerRef.current;
     if (!el || !thread) return;
@@ -305,9 +309,10 @@ export default function ChatPanel({
   }, [thread?.messages?.length]);
 
   const submit = () => {
-    const trimmed = text.trim();
-    if (!trimmed) return;
-    onSend(trimmed);
+    if (!text.replace(/\s/g, '').length) return;
+
+    // ✅ 내용은 그대로 보냄(개행 포함)
+    onSend(text);
     setText('');
   };
 
@@ -395,6 +400,48 @@ export default function ChatPanel({
             </svg>
           </button>
 
+          {confirmLeaveOpen ? (
+            <div
+              className="absolute right-4 top-14 z-50 w-[280px] overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-200/70"
+              role="dialog"
+              aria-label="채팅방 나가기 확인"
+            >
+              <div className="px-4 py-3">
+                <p className="text-sm font-semibold text-slate-900">채팅방을 나갈까요?</p>
+                <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
+                  상대방은 나간 사실을 알 수 없어요.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 border-t border-slate-200/70 px-3 py-3">
+                <button
+                  type="button"
+                  onClick={() => setConfirmLeaveOpen(false)}
+                  className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]/35"
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  disabled={leaving}
+                  onClick={async () => {
+                    if (!thread?.id) return;
+                    setLeaving(true);
+                    try {
+                      await onLeave(Number(thread.id));
+                      setConfirmLeaveOpen(false);
+                    } finally {
+                      setLeaving(false);
+                    }
+                  }}
+                  className="rounded-xl bg-rose-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-[1px] hover:shadow-md disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300"
+                >
+                  {leaving ? '나가는 중…' : '나가기'}
+                </button>
+              </div>
+            </div>
+          ) : null}
+
           {menuOpen ? (
             <div
               ref={menuRef}
@@ -406,7 +453,7 @@ export default function ChatPanel({
                 role="menuitem"
                 onClick={() => {
                   setMenuOpen(false);
-                  onCloseThread(); // ✅ '나가기' = 채팅 닫기(선택 해제)
+                  setConfirmLeaveOpen(true);
                 }}
                 className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]/35"
               >

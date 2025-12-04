@@ -13,6 +13,7 @@ import { useAuth } from '@/src/providers/AuthProvider';
 import type { ChatMessage, MessageThread } from '@/src/types/messages';
 import { mapDetailMessages } from '@/src/utils/messagesMapper';
 import type { StompSubscription } from '@stomp/stompjs';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import * as React from 'react';
 
@@ -78,11 +79,32 @@ async function markThreadRead(threadId: string, meId: number, lastMessageId?: nu
 }
 
 export default function MessagesShell() {
+  // ---------------------------------------------------------------------------
+  // 1) Auth / Router
+  // ---------------------------------------------------------------------------
   const { isLogin, loginUser } = useAuth();
   const myUserId = loginUser?.id ?? -1;
   const router = useRouter();
-  const [creating, setCreating] = React.useState(false);
+  const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const threadIdFromQuery = searchParams.get('threadId');
 
+  // ---------------------------------------------------------------------------
+  // 2) UI state
+  // ---------------------------------------------------------------------------
+  const [query, setQuery] = React.useState('');
+  const [tab, setTab] = React.useState<'all' | 'unread'>('all');
+  const [activeId, setActiveId] = React.useState<string>('');
+
+  // new thread modal
+  const [newOpen, setNewOpen] = React.useState(false);
+  const [newQ, setNewQ] = React.useState('');
+  const debouncedQ = useDebouncedValue(newQ, 250);
+  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+
+  // ---------------------------------------------------------------------------
+  // 3) Data queries (서버가 진실)
+  // ---------------------------------------------------------------------------
   const {
     data: threadsFromServer = [],
     isLoading: listLoading,
@@ -90,38 +112,12 @@ export default function MessagesShell() {
     refetch: refetchThreads,
   } = useMessageThreads();
 
-  const onSelectUser = React.useCallback(
-    async (u: FollowingUser) => {
-      if (creating) return;
-      if (myUserId <= 0) return; // 로그인 가드
-
-      setCreating(true);
-      try {
-        const created = await messagesApi.createThreadWithMe(myUserId, u.id);
-
-        setNewOpen(false); // 모달 닫기
-        router.push(`/messages/?threadId=${created.messageThreadId}`); // ✅ 해당 채팅 열기
-        refetchThreads(); // (선택) 목록 즉시 반영
-      } catch (e) {
-        console.warn('[create thread failed]', e);
-        // TODO 토스트 처리
-      } finally {
-        setCreating(false);
-      }
-    },
-    [creating, myUserId, router, refetchThreads],
-  );
-
-  const searchParams = useSearchParams();
-  const threadIdFromQuery = searchParams.get('threadId');
-
-  const [query, setQuery] = React.useState('');
-  const [tab, setTab] = React.useState<'all' | 'unread'>('all');
-  const [activeId, setActiveId] = React.useState<string>('');
-
-  const [newQ, setNewQ] = React.useState('');
-  const debouncedQ = useDebouncedValue(newQ, 250);
-  const [newOpen, setNewOpen] = React.useState(false);
+  const activeThreadIdNum = activeId ? Number(activeId) : undefined;
+  const {
+    data: detail,
+    isLoading: detailLoading,
+    isError: detailError,
+  } = useMessageThread(activeThreadIdNum);
 
   const {
     data: followingDtos = [],
@@ -133,90 +129,37 @@ export default function MessagesShell() {
     () =>
       followingDtos.map((u) => ({
         id: u.id,
-        name: u.nickname, // ✅ DTO 필드 맞춰서 수정
+        name: u.nickname,
         handle: u.handle ?? undefined,
         avatarUrl: u.profileImgUrl ?? undefined,
       })),
     [followingDtos],
   );
 
-  const [threadPatch, setThreadPatch] = React.useState<Record<string, Partial<MessageThread>>>({});
+  // ---------------------------------------------------------------------------
+  // 4) Real-time client state
+  //    - liveMessages: "현재 열려있는 방"에서만 즉시 append (UI 반응용)
+  //    - unreadCount는 절대 로컬로 +1 하지 않음 (서버 list만 믿기)
+  // ---------------------------------------------------------------------------
   const [liveMessages, setLiveMessages] = React.useState<Record<string, ChatMessage[]>>({});
 
+  // list invalidate를 너무 자주 안 때리려고 throttle
+  const dirtyRef = React.useRef<Set<string>>(new Set());
+  const flushTimerRef = React.useRef<number | null>(null);
+
+  const scheduleThreadsSync = React.useCallback(() => {
+    if (flushTimerRef.current) return;
+    flushTimerRef.current = window.setTimeout(() => {
+      flushTimerRef.current = null;
+      dirtyRef.current.clear();
+      queryClient.invalidateQueries({ queryKey: ['messageThreads'] });
+    }, 150);
+  }, [queryClient]);
+
+  // markRead throttle
   const lastReadSentRef = React.useRef<Record<string, number>>({});
   const readTimerRef = React.useRef<number | null>(null);
   const pendingReadRef = React.useRef<{ threadId: string; lastMessageId: number } | null>(null);
-
-  const clientRef = React.useRef<ReturnType<typeof createStompClient> | null>(null);
-  const inboxSubRef = React.useRef<StompSubscription | null>(null);
-
-  const threads: MessageThread[] = React.useMemo(() => {
-    const merged = threadsFromServer.map((t) => ({ ...t, ...(threadPatch[t.id] ?? {}) }));
-    return merged.slice().sort(compareLastAtDesc);
-  }, [threadsFromServer, threadPatch]);
-
-  // TODO: 추후 API로 교체
-  const followingMock: FollowingUser[] = React.useMemo(
-    () => [
-      { id: 101, name: '지민', handle: 'jimin', avatarUrl: '/tmpProfile.png' },
-      { id: 102, name: '민수', handle: 'minsu', avatarUrl: '/tmpProfile.png' },
-      { id: 103, name: '서연', handle: 'seoyeon', avatarUrl: '/tmpProfile.png' },
-      { id: 104, name: '현우', handle: 'hyunwoo', avatarUrl: '/tmpProfile.png' },
-    ],
-    [],
-  );
-
-  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
-
-  const onNewThread = React.useCallback((el: HTMLElement | null) => {
-    setAnchorEl(el);
-    setNewOpen(true);
-  }, []);
-
-  React.useEffect(() => {
-    if (!threadIdFromQuery) return;
-    const id = String(threadIdFromQuery);
-    setActiveId((prev) => (prev === id ? prev : id));
-
-    const exists = threadsFromServer.some((t) => t.id === id);
-    if (!exists) refetchThreads();
-  }, [threadIdFromQuery, threadsFromServer, refetchThreads]);
-
-  const activeThreadBase = React.useMemo(
-    () => threads.find((t) => t.id === activeId),
-    [threads, activeId],
-  );
-
-  const activeThreadIdNum = activeId ? Number(activeId) : undefined;
-  const {
-    data: detail,
-    isLoading: detailLoading,
-    isError: detailError,
-  } = useMessageThread(activeThreadIdNum);
-
-  const activeThread: MessageThread | undefined = React.useMemo(() => {
-    if (!activeThreadBase) return undefined;
-
-    const baseMessages = detail ? mapDetailMessages(detail, myUserId) : [];
-    const appended = liveMessages[activeThreadBase.id] ?? [];
-
-    const baseIds = new Set(baseMessages.map((m) => m.id));
-    const merged = [...baseMessages, ...appended.filter((m) => !baseIds.has(m.id))];
-
-    return { ...activeThreadBase, messages: merged };
-  }, [activeThreadBase, detail, myUserId, liveMessages]);
-
-  const filteredThreads = React.useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return threads
-      .filter((t) => (tab === 'unread' ? (t.unreadCount ?? 0) > 0 : true))
-      .filter((t) => {
-        if (!q) return true;
-        return (
-          t.user.name.toLowerCase().includes(q) || (t.lastMessage ?? '').toLowerCase().includes(q)
-        );
-      });
-  }, [threads, query, tab]);
 
   const scheduleMarkRead = React.useCallback(
     (threadId: string, lastMessageId: number) => {
@@ -237,60 +180,99 @@ export default function MessagesShell() {
         try {
           await markThreadRead(pending.threadId, myUserId, pending.lastMessageId);
           lastReadSentRef.current[pending.threadId] = pending.lastMessageId;
+
+          // 읽음 처리 후 리스트(unread)도 서버 기준으로 바로 맞추기
+          queryClient.invalidateQueries({ queryKey: ['messageThreads'] });
         } catch (e) {
           console.warn('[markRead failed]', e);
         }
       }, 250);
     },
-    [myUserId],
+    [myUserId, queryClient],
   );
 
-  const getServerThread = (threadId: string) => threadsFromServer.find((t) => t.id === threadId);
+  // ---------------------------------------------------------------------------
+  // 5) Derived data (정렬/필터만)
+  // ---------------------------------------------------------------------------
+  const threads: MessageThread[] = React.useMemo(() => {
+    return threadsFromServer.slice().sort(compareLastAtDesc);
+  }, [threadsFromServer]);
 
+  const filteredThreads = React.useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return threads
+      .filter((t) => (tab === 'unread' ? (t.unreadCount ?? 0) > 0 : true))
+      .filter((t) => {
+        if (!q) return true;
+        return (
+          t.user.name.toLowerCase().includes(q) || (t.lastMessage ?? '').toLowerCase().includes(q)
+        );
+      });
+  }, [threads, query, tab]);
+
+  const activeThreadBase = React.useMemo(
+    () => threads.find((t) => t.id === activeId),
+    [threads, activeId],
+  );
+
+  const activeThread: MessageThread | undefined = React.useMemo(() => {
+    if (!activeThreadBase) return undefined;
+
+    const baseMessages = detail ? mapDetailMessages(detail, myUserId) : [];
+    const appended = liveMessages[activeThreadBase.id] ?? [];
+
+    const baseIds = new Set(baseMessages.map((m) => m.id));
+    const merged = [...baseMessages, ...appended.filter((m) => !baseIds.has(m.id))];
+
+    return { ...activeThreadBase, messages: merged };
+  }, [activeThreadBase, detail, myUserId, liveMessages]);
+
+  // ---------------------------------------------------------------------------
+  // 6) URL -> activeId sync
+  // ---------------------------------------------------------------------------
+  React.useEffect(() => {
+    if (!threadIdFromQuery) return;
+    const id = String(threadIdFromQuery);
+    setActiveId((prev) => (prev === id ? prev : id));
+
+    const exists = threadsFromServer.some((t) => t.id === id);
+    if (!exists) refetchThreads();
+  }, [threadIdFromQuery, threadsFromServer, refetchThreads]);
+
+  // ---------------------------------------------------------------------------
+  // 7) Incoming WS message handler (정답)
+  // ---------------------------------------------------------------------------
   const handleIncoming = React.useCallback(
     (dto: MessagePushDto) => {
       const threadId = String(dto.messageThreadId);
-
-      const exists = threadsFromServer.some((t) => t.id === threadId);
-      if (!exists) refetchThreads();
-
       const chatMsg = pushToChatMessage(dto, myUserId);
 
-      setLiveMessages((prev) => {
-        const cur = prev[threadId] ?? [];
-        if (cur.some((m) => m.id === chatMsg.id)) return prev;
-        return { ...prev, [threadId]: [...cur, chatMsg] };
-      });
-
-      setThreadPatch((prev) => {
-        const serverUnread = getServerThread(threadId)?.unreadCount ?? 0;
-        const patchedUnread = prev[threadId]?.unreadCount as number | undefined;
-        const baseUnread = patchedUnread ?? serverUnread;
-
-        const shouldBump = threadId !== activeId && chatMsg.sender === 'them';
-        const nextUnread = shouldBump ? baseUnread + 1 : baseUnread;
-
-        return {
-          ...prev,
-          [threadId]: {
-            ...(prev[threadId] ?? {}),
-            lastMessage: chatMsg.text ?? '',
-            lastAt: chatMsg.at ?? '',
-            unreadCount: nextUnread,
-          },
-        };
-      });
-
+      // ✅ active 방이면: 채팅창 즉시 업데이트 + 읽음 처리
       if (threadId === activeId) {
-        setThreadPatch((prev) => ({
-          ...prev,
-          [threadId]: { ...(prev[threadId] ?? {}), unreadCount: 0 },
-        }));
+        setLiveMessages((prev) => {
+          const cur = prev[threadId] ?? [];
+          if (cur.some((m) => m.id === chatMsg.id)) return prev;
+          return { ...prev, [threadId]: [...cur, chatMsg] };
+        });
+
         scheduleMarkRead(threadId, dto.id);
       }
+
+      // ✅ unreadCount는 절대 로컬로 만지지 않는다.
+      //    서버 list가 계산한 unreadCount로 맞춘다.
+      dirtyRef.current.add(threadId);
+      scheduleThreadsSync();
+
+      // ✅ 자동으로 채팅창 들어가지 않음 (요구사항 4)
     },
-    [threadsFromServer, refetchThreads, myUserId, activeId, scheduleMarkRead],
+    [activeId, myUserId, scheduleMarkRead, scheduleThreadsSync],
   );
+
+  // ---------------------------------------------------------------------------
+  // 8) STOMP client connect
+  // ---------------------------------------------------------------------------
+  const clientRef = React.useRef<ReturnType<typeof createStompClient> | null>(null);
+  const inboxSubRef = React.useRef<StompSubscription | null>(null);
 
   React.useEffect(() => {
     if (!isLogin || myUserId === -1) return;
@@ -328,14 +310,12 @@ export default function MessagesShell() {
     };
   }, [isLogin, myUserId, handleIncoming]);
 
+  // ---------------------------------------------------------------------------
+  // 9) When user opens a thread: optimistic unread reset in UI는 하지 말고
+  //    markRead + 서버 list로 동기화하는 게 안전.
+  // ---------------------------------------------------------------------------
   React.useEffect(() => {
     if (!activeId) return;
-
-    setThreadPatch((prev) => ({
-      ...prev,
-      [activeId]: { ...(prev[activeId] ?? {}), unreadCount: 0 },
-    }));
-
     if (!detail) return;
 
     const last = detail.messages?.[detail.messages.length - 1];
@@ -345,31 +325,89 @@ export default function MessagesShell() {
     }
   }, [activeId, detail, scheduleMarkRead]);
 
+  // ---------------------------------------------------------------------------
+  // 10) Actions
+  // ---------------------------------------------------------------------------
+  const [creating, setCreating] = React.useState(false);
+
+  const onSelectUser = React.useCallback(
+    async (u: FollowingUser) => {
+      if (creating) return;
+      if (myUserId <= 0) return;
+
+      setCreating(true);
+      try {
+        const created = await messagesApi.createThreadWithMe(myUserId, u.id);
+        setNewOpen(false);
+        router.push(`/messages/?threadId=${created.messageThreadId}`);
+        queryClient.invalidateQueries({ queryKey: ['messageThreads'] });
+      } catch (e) {
+        console.warn('[create thread failed]', e);
+      } finally {
+        setCreating(false);
+      }
+    },
+    [creating, myUserId, router, queryClient],
+  );
+
+  const onNewThread = React.useCallback((el: HTMLElement | null) => {
+    setAnchorEl(el);
+    setNewOpen(true);
+  }, []);
+
+  const leaveActiveThread = React.useCallback(async () => {
+    const threadIdNum = activeId ? Number(activeId) : 0;
+    if (!threadIdNum) return;
+
+    try {
+      await messagesApi.leaveThread(threadIdNum);
+
+      // ✅ URL 제거 + 선택 해제 (요구사항 4 만족)
+      router.replace('/messages');
+      setActiveId('');
+
+      // ✅ liveMessages만 정리 (이전 메시지 섞이는 거 방지)
+      setLiveMessages((prev) => {
+        const copy = { ...prev };
+        delete copy[String(threadIdNum)];
+        return copy;
+      });
+
+      // ✅ 캐시 정리 + 서버 list로 동기화
+      queryClient.removeQueries({ queryKey: ['messageThread', threadIdNum] });
+      queryClient.invalidateQueries({ queryKey: ['messageThreads'] });
+    } catch (e) {
+      console.warn('[leave thread failed]', e);
+    }
+  }, [activeId, queryClient, router]);
+
   const onSend = React.useCallback(
     (content: string) => {
       const client = clientRef.current;
       if (!client || !client.connected) return;
       if (!activeId) return;
 
-      const trimmed = content.trim();
-      if (!trimmed) return;
+      if (!content.replace(/\s/g, '').length) return;
 
       client.publish({
         destination: '/pub/messages.send',
         body: JSON.stringify({
           meId: myUserId,
           messageThreadId: Number(activeId),
-          content: trimmed,
+          content,
         }),
       });
     },
     [activeId, myUserId],
   );
 
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
   return (
     <main className="min-h-dvh px-4 py-8 sm:px-6 lg:px-10">
-      {/* background like other pages */}
       <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-slate-50 via-white to-white" />
+
       <div className="mx-auto w-full max-w-7xl">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
@@ -402,12 +440,14 @@ export default function MessagesShell() {
               thread={activeThread}
               onSend={onSend}
               onCloseThread={() => setActiveId('')}
+              onLeave={leaveActiveThread}
             />
             {detailLoading ? <p className="mt-2 text-[12px] text-slate-500">대화 로딩…</p> : null}
             {detailError ? <p className="mt-2 text-[12px] text-rose-600">대화 로딩 실패</p> : null}
           </div>
         </section>
       </div>
+
       <NewThreadModal
         open={newOpen}
         onClose={() => setNewOpen(false)}
