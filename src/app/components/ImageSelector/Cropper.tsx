@@ -1,50 +1,57 @@
 'use client';
 
 import { Crop } from 'lucide-react';
+
 import { useCallback, useEffect, useState } from 'react';
 import Cropper, { Area } from 'react-easy-crop';
 
-export default function CropperModal({ imageUrl, initialAspect, onClose, onCrop }: any) {
-  const [aspect, setAspect] = useState<number | undefined>(undefined);
-  const [originalAspect, setOriginalAspect] = useState<number | undefined>(undefined);
-  const [selectedAspect, setSelectedAspect] = useState<string>(initialAspect || '원본');
+const cropOptions = ['원본', '1:1', '4:5', '16:9'];
+
+type AspectInfo = { key: string; ratio: number };
+let aspectMap: Record<string, AspectInfo> = {
+  원본: { key: 'original', ratio: 1 }, // ratio는 이미지 로드 후 변경
+  '1:1': { key: '1:1', ratio: 1 },
+  '4:5': { key: '4:5', ratio: 4 / 5 },
+  '16:9': { key: '16:9', ratio: 16 / 9 },
+};
+
+interface CropperModalProps {
+  imageUrl: string;
+  initialAspect?: string | null;
+  onCrop: (croppedUrl: string, aspect: string) => void;
+  onClose: () => void;
+}
+
+export default function CropperModal({
+  imageUrl,
+  initialAspect,
+  onCrop,
+  onClose,
+}: CropperModalProps) {
+  // 크롭 비율 관련 상태
+  const [aspect, setAspect] = useState<number | undefined>(undefined); // 현재 적용된 비율
+  const initialAspectLabel = initialAspect ?? '원본';
+  const [selectedAspect, setSelectedAspect] = useState<string>(initialAspectLabel); // 선택된 비율 옵션
+
+  // 크롭 영역 픽셀 정보
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   useEffect(() => {
     const img = new Image();
     img.onload = () => {
       const ratio = img.width / img.height;
-      setOriginalAspect(ratio);
+      aspectMap['원본'].ratio = ratio;
 
-      // initialAspect가 있으면 그것을 사용, 없으면 원본 비율
-      if (initialAspect && initialAspect !== '원본') {
-        const aspectMap: Record<string, number> = {
-          '1:1': 1,
-          '4:5': 4 / 5,
-          '16:9': 16 / 9,
-        };
-        setAspect(aspectMap[initialAspect] || ratio);
-      } else {
-        setAspect(ratio);
-      }
+      // initialAspect가 null/undefined면 '원본'을 기본값으로 사용
+      const aspectKey = initialAspect ?? '원본';
+      setAspect(aspectMap[aspectKey]?.ratio || ratio);
     };
     img.src = imageUrl;
   }, [imageUrl, initialAspect]);
 
-  const cropOptions = ['원본', '1:1', '4:5', '16:9'];
-
   const handleAspectChange = (value: string) => {
     setSelectedAspect(value);
-    if (value === '원본') {
-      setAspect(originalAspect);
-    } else {
-      const aspectMap: Record<string, number> = {
-        '1:1': 1,
-        '4:5': 4 / 5,
-        '16:9': 16 / 9,
-      };
-      setAspect(aspectMap[value]);
-    }
+    setAspect(aspectMap[value]?.ratio);
   };
 
   const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {

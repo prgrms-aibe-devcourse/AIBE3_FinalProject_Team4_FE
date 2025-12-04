@@ -4,11 +4,8 @@ import { ChangeEvent, useEffect, useState } from 'react';
 interface UploadTabProps {
   uploadedFile: File | null;
   uploadedFileUrl: string | null;
-  selectedImage: string | null;
   originalImage: string | null;
-  setSelectedImage: (url: string | null) => void;
-  setCroppingImage: (url: string | null) => void;
-  setOriginalImage: (url: string | null) => void;
+  onSelect: (url: string | null) => void;
   setUploadedFile: (file: File | null) => void;
   setUploadedFileUrl: (url: string | null) => void;
   setImageSourceType: (type: 'file' | 'url') => void;
@@ -18,11 +15,8 @@ interface UploadTabProps {
 export default function UploadTab({
   uploadedFile,
   uploadedFileUrl,
-  selectedImage,
   originalImage,
-  setSelectedImage,
-  setCroppingImage,
-  setOriginalImage,
+  onSelect,
   setUploadedFile,
   setUploadedFileUrl,
   setImageSourceType,
@@ -68,13 +62,6 @@ export default function UploadTab({
     return true;
   }
 
-  // 이미지 선택/해제 공통 처리 함수
-  const selectImage = (url: string | null) => {
-    setSelectedImage(url);
-    setCroppingImage(url);
-    setOriginalImage(url);
-  };
-
   // 파일 적용 처리
   const applyFile = (file: File) => {
     if (!validateImageFile(file)) return;
@@ -85,7 +72,7 @@ export default function UploadTab({
     setUploadedFile(file);
     setUploadedFileUrl(url);
 
-    selectImage(url);
+    onSelect(url);
   };
 
   const handleUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -130,13 +117,13 @@ export default function UploadTab({
 
     // 이미 선택된 파일이면 선택 해제
     if (isUploadedFileSelected()) {
-      selectImage(null);
+      onSelect(null);
       return;
     }
 
     // 선택되지 않은 파일을 클릭하면 선택
     setImageSourceType('file');
-    selectImage(uploadedFileUrl);
+    onSelect(uploadedFileUrl);
   };
 
   const handleRemoveFile = (e: React.MouseEvent) => {
@@ -151,7 +138,7 @@ export default function UploadTab({
 
     // 선택된 이미지였다면 미리보기도 제거
     if (wasSelected) {
-      selectImage(null);
+      onSelect(null);
     }
   };
 

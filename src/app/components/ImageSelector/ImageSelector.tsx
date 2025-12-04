@@ -30,17 +30,27 @@ export default function ImageSelector({
   onChangeThumbnail,
   ensureDraft,
 }: ImageSelectorProps) {
+  // UI 탭 상태
   const [selectedTab, setSelectedTab] = useState('upload');
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [originalImage, setOriginalImage] = useState<string | null>(null);
-  const [croppingImage, setCroppingImage] = useState<string | null>(null);
+  // 크롭 모달 활성화 여부
   const [isCropping, setIsCropping] = useState(false);
-  const [lastAspect, setLastAspect] = useState<string>('원본');
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
-  const [imageSourceType, setImageSourceType] = useState<'file' | 'url'>('file');
+
+  // 이미지 선택 및 편집 관련 상태
+  const [selectedImage, setSelectedImage] = useState<string | null>(null); // 현재 선택된 이미지 URL
+  const [originalImage, setOriginalImage] = useState<string | null>(null); // 원본 이미지 URL
+  const [croppingImage, setCroppingImage] = useState<string | null>(null); // 크롭 중인 이미지 URL
+  const [lastAspect, setLastAspect] = useState<string | null>(null); // 마지막으로 사용한 크롭 비율
+
+  // 업로드 파일 관련 상태
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null); // 업로드된 파일 객체
+  const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null); // 업로드된 파일의 미리보기 URL
+  const [imageSourceType, setImageSourceType] = useState<'file' | 'url'>('file'); // 이미지 소스 타입
+
+  // 무료 이미지 검색 키워드 상태
   const [unsplashSearchKeyword, setUnsplashSearchKeyword] = useState('');
   const [pixabaySearchKeyword, setPixabaySearchKeyword] = useState('');
+
+  // 토스트
   const [toast, setToast] = useState<{
     message: string;
     type: 'success' | 'error' | 'warning';
@@ -70,13 +80,15 @@ export default function ImageSelector({
 
     formData.append('type', 'THUMBNAIL');
 
+    // lastAspect가 null이면 '원본'을 기본값으로 사용
     const aspectRatioMap: Record<string, string> = {
       원본: 'original',
       '1:1': '1:1',
       '4:5': '4:5',
       '16:9': '16:9',
     };
-    formData.append('aspectRatios', aspectRatioMap[lastAspect] || 'original');
+    const aspectKey = lastAspect ?? '원본';
+    formData.append('aspectRatios', aspectRatioMap[aspectKey] || 'original');
 
     try {
       const validBlogId = blogId ?? (await ensureDraft());
@@ -242,7 +254,7 @@ export default function ImageSelector({
         <div className="flex w-full items-center gap-1 rounded-full bg-slate-100 p-1 text-xs">
           {[
             { key: 'upload', label: '이미지 업로드' },
-            { key: 'blog', label: '블로그 본문 이미지' },
+            { key: 'blog', label: '본문 이미지' },
             { key: 'unsplash', label: '무료 이미지 (Unsplash)' },
             { key: 'pixabay', label: '무료 이미지 (Pixabay)' },
           ].map((tab) => {
@@ -271,14 +283,16 @@ export default function ImageSelector({
             <UploadTab
               uploadedFile={uploadedFile}
               uploadedFileUrl={uploadedFileUrl}
-              selectedImage={selectedImage}
               originalImage={originalImage}
-              setSelectedImage={setSelectedImage}
-              setCroppingImage={setCroppingImage}
-              setOriginalImage={setOriginalImage}
               setUploadedFile={setUploadedFile}
               setUploadedFileUrl={setUploadedFileUrl}
               setImageSourceType={setImageSourceType}
+              onSelect={(url: string | null) => {
+                setSelectedImage(url);
+                setOriginalImage(url);
+                setCroppingImage(url);
+                setLastAspect(null);
+              }}
               showToast={showToast}
             />
           )}
@@ -286,12 +300,13 @@ export default function ImageSelector({
           {selectedTab === 'blog' && (
             <BlogImageTab
               images={blogImages}
-              selectedImage={selectedImage}
-              onSelect={(url: string) => {
-                setSelectedImage(url);
-                setCroppingImage(url);
-                setOriginalImage(url);
+              originalImage={originalImage}
+              onSelect={(url: string | null) => {
                 setImageSourceType('url');
+                setSelectedImage(url);
+                setOriginalImage(url);
+                setCroppingImage(url);
+                setLastAspect(null);
               }}
             />
           )}
