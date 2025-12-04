@@ -1,9 +1,9 @@
 'use client';
 
-import BlogCommentSection from "@/src/app/components/blogs/detail/BlogCommentSection";
-import type { BlogDetailDto } from "@/src/types/blog";
+import BlogCommentSection from '@/src/app/components/blogs/detail/BlogCommentSection';
+import type { BlogDetailDto } from '@/src/types/blog';
 import { Bookmark, BookmarkCheck, Heart, MessageCircle, Share2 } from 'lucide-react';
-import { useState } from "react";
+import { useState } from 'react';
 
 type BlogReactionBarProps = {
   blog: BlogDetailDto;
@@ -32,7 +32,6 @@ export function BlogReactionBar({
   onOpenLinkedShorlogs,
   onShare,
 }: BlogReactionBarProps) {
-
   const [openComments, setOpenComments] = useState(false);
 
   return (
@@ -40,7 +39,6 @@ export function BlogReactionBar({
       {/* 반응 버튼 영역 */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 text-xs text-slate-500 sm:px-8">
         <div className="flex items-center gap-3">
-
           {/* 좋아요 */}
           <button
             type="button"
@@ -89,13 +87,8 @@ export function BlogReactionBar({
 
         {/* 댓글 · 공유 */}
         <div className="flex items-center gap-2 text-[11px]">
-          <button
-            onClick={() => setOpenComments(prev => !prev)}
-            className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-slate-500 hover:bg-slate-100"
-          >
-            <MessageCircle className="h-3.5 w-3.5" />
-            <span>댓글 {blog.commentCount}</span>
-          </button>
+          <MessageCircle className="h-3.5 w-3.5" />
+          <span>댓글 {blog.commentCount}</span>
 
           <button
             type="button"
@@ -109,11 +102,9 @@ export function BlogReactionBar({
       </div>
 
       {/* 댓글 토글 */}
-      {openComments && (
-        <div className="border-t bg-white px-5 py-5 sm:px-8">
-          <BlogCommentSection blogId={blog.id} />
-        </div>
-      )}
+      <div className="border-t bg-white px-5 py-5 sm:px-8">
+        <BlogCommentSection blogId={blog.id} initialCommentCount={blog.commentCount} />
+      </div>
     </div>
   );
 }

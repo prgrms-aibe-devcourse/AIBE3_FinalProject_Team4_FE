@@ -9,14 +9,14 @@ export interface User {
   profileImgUrl?: string;
 }
 
-async function getCurrentUser(): Promise<User | null> {
+export async function getCurrentUser(): Promise<User | null> {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'}/api/v1/auth/me`,
       {
         credentials: 'include',
         cache: 'no-store',
-      }
+      },
     );
 
     if (!response.ok) {
