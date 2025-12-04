@@ -4,11 +4,12 @@ import { useAuth } from '@/src/providers/AuthProvider';
 import { useLoginModal } from '@/src/providers/LoginModalProvider';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function LoginModal() {
   const pathname = usePathname();
+  const router = useRouter();
   const { isOpen, close } = useLoginModal();
   const { refreshUser } = useAuth();
 
@@ -44,6 +45,7 @@ export default function LoginModal() {
 
     await refreshUser();
     close();
+    router.push('/'); // 로그인 후 홈으로 이동
   };
 
   return (

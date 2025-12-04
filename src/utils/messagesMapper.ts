@@ -1,4 +1,8 @@
-import type { MessageThreadDetailDto, MessageThreadListItemDto } from '@/src/types/message';
+import type {
+  MessageDto,
+  MessageThreadDetailDto,
+  MessageThreadListItemDto,
+} from '@/src/types/messageApi';
 import type { ChatMessage, MessageThread } from '@/src/types/messages';
 
 export function mapThreadListItem(dto: MessageThreadListItemDto): MessageThread {
@@ -11,7 +15,7 @@ export function mapThreadListItem(dto: MessageThreadListItemDto): MessageThread 
     },
     lastMessage: dto.lastMessageContent ?? '',
     lastAt: dto.lastMessageCreatedAt ?? '',
-    unreadCount: 0,
+    unreadCount: dto.unreadCount ?? 0,
     messages: [],
   };
 }
@@ -23,4 +27,13 @@ export function mapDetailMessages(detail: MessageThreadDetailDto, myUserId: numb
     text: m.content,
     at: m.createdAt,
   }));
+}
+
+export function mapMessageDtoToChatMessage(dto: MessageDto, myId: number): ChatMessage {
+  return {
+    id: String(dto.id),
+    sender: dto.senderId === myId ? 'me' : 'them',
+    text: dto.content,
+    at: dto.createdAt, // 나중에 포맷팅은 UI에서
+  };
 }

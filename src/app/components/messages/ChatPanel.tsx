@@ -6,6 +6,18 @@ import * as React from 'react';
 const AVATAR = 32;
 const AVATAR_GAP = 8;
 
+const BOTTOM_THRESHOLD = 24; // px
+
+function isNearBottom(el: HTMLDivElement) {
+  const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+  return distance <= BOTTOM_THRESHOLD;
+}
+
+function scrollToBottom(el: HTMLDivElement) {
+  // scrollTo보다 이게 더 “확실”하게 먹는 케이스가 많음
+  el.scrollTop = el.scrollHeight;
+}
+
 function Avatar({ src, alt, hidden }: { src: string; alt: string; hidden: boolean }) {
   return (
     <div className="h-8 w-8 shrink-0">
@@ -92,17 +104,13 @@ function ThemRow({
 }) {
   return (
     <div className={compactTop ? 'mt-1' : 'mt-4'}>
-      {/* 🔥 top 정렬로 변경: 아바타 top == 버블 top */}
       <div className="flex items-start gap-2">
         <Avatar src={avatarUrl} alt={`${name} 프로필`} hidden={avatarHidden} />
-
-        {/* 버블이 카드/텍스트 모두에서 라인업 유지되도록 wrapper로 고정 */}
         <div className="min-w-0 max-w-[70%]">
           <Bubble m={m} mine={false} />
         </div>
       </div>
 
-      {/* 시간은 그대로: 아바타 폭만큼 들여쓰기 */}
       <div className="mt-1" style={{ paddingLeft: AVATAR + AVATAR_GAP }}>
         <p
           className={['text-[11px] text-slate-500', compactTop ? 'opacity-60' : 'opacity-100'].join(
@@ -150,11 +158,64 @@ export default function ChatPanel({
   const [text, setText] = React.useState('');
   const scrollerRef = React.useRef<HTMLDivElement | null>(null);
 
+  // IME(한글 조합) Enter 처리
+  const [isComposing, setIsComposing] = React.useState(false);
+
+  // 사용자 스크롤 상태 추적: 사용자가 맨 아래 근처일 때만 자동으로 따라 내려감
+  const wasNearBottomRef = React.useRef(true);
+
+  // 최초 페인트/스레드 전환 시 강제 바닥
+  const isFirstPaintRef = React.useRef(true);
+
   React.useEffect(() => {
-    requestAnimationFrame(() => {
-      scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: 'smooth' });
-    });
-  }, [thread?.id, thread?.messages.length]);
+    const el = scrollerRef.current;
+    if (!el) return;
+
+    const onScroll = () => {
+      wasNearBottomRef.current = isNearBottom(el);
+    };
+
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // ✅ 스레드가 바뀌거나 새로 들어오면: 무조건 즉시(bottom) + 여러 프레임 보정
+  React.useLayoutEffect(() => {
+    const el = scrollerRef.current;
+    if (!el || !thread) return;
+
+    isFirstPaintRef.current = true;
+
+    let canceled = false;
+    let count = 0;
+
+    const tick = () => {
+      if (canceled) return;
+      scrollToBottom(el);
+      if (++count < 8) requestAnimationFrame(tick);
+    };
+
+    requestAnimationFrame(tick);
+
+    return () => {
+      canceled = true;
+    };
+  }, [thread?.id]);
+
+  // ✅ 새 메시지 증가 시: 사용자가 아래 보고 있을 때만 따라 내려가기 (주르륵 방지)
+  React.useLayoutEffect(() => {
+    const el = scrollerRef.current;
+    if (!el || !thread) return;
+
+    if (isFirstPaintRef.current) {
+      isFirstPaintRef.current = false;
+      return;
+    }
+
+    if (wasNearBottomRef.current) {
+      scrollToBottom(el);
+    }
+  }, [thread?.messages?.length]);
 
   const submit = () => {
     const trimmed = text.trim();
@@ -164,7 +225,9 @@ export default function ChatPanel({
   };
 
   const onKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
+    const composing = isComposing || (e.nativeEvent as any).isComposing;
     if (e.key === 'Enter' && !e.shiftKey) {
+      if (composing) return;
       e.preventDefault();
       submit();
     }
@@ -211,7 +274,10 @@ export default function ChatPanel({
         </button>
       </div>
 
-      <div ref={scrollerRef} className="flex-1 overflow-auto bg-slate-50 px-4 py-5">
+      <div
+        ref={scrollerRef}
+        className="flex-1 overflow-auto bg-slate-50 px-4 py-5 [overflow-anchor:none]"
+      >
         <div className="space-y-0">
           {thread.messages.map((m, idx) => {
             const prev = thread.messages[idx - 1];
@@ -245,6 +311,8 @@ export default function ChatPanel({
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={onKeyDown}
+            onCompositionStart={() => setIsComposing(true)}
+            onCompositionEnd={() => setIsComposing(false)}
             placeholder="메시지를 입력하세요"
             className="max-h-28 min-h-[44px] w-full resize-none bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
           />

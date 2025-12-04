@@ -5,6 +5,7 @@ export type MessageThreadListItemDto = {
   otherUserProfileImgUrl: string | null;
   lastMessageContent: string | null;
   lastMessageCreatedAt: string | null;
+  unreadCount?: number;
 };
 
 export type MessageDto = {
