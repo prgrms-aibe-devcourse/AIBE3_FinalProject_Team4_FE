@@ -10,6 +10,7 @@ import { useAuth } from '@/src/providers/AuthProvider';
 import type { ChatMessage, MessageThread } from '@/src/types/messages';
 import { mapDetailMessages } from '@/src/utils/messagesMapper';
 import type { StompSubscription } from '@stomp/stompjs';
+import { useSearchParams } from 'next/navigation';
 import * as React from 'react';
 
 type MessagePushDto = {
@@ -71,6 +72,9 @@ export default function MessagesShell() {
   const { isLogin, loginUser } = useAuth();
   const myUserId = loginUser?.id ?? -1;
 
+  const searchParams = useSearchParams();
+  const threadIdFromQuery = searchParams.get('threadId'); // string | null
+
   const [query, setQuery] = React.useState('');
   const [tab, setTab] = React.useState<'all' | 'unread'>('all');
   const [activeId, setActiveId] = React.useState<string>('');
@@ -80,6 +84,7 @@ export default function MessagesShell() {
     data: threadsFromServer = [],
     isLoading: listLoading,
     isError: listError,
+    refetch: refetchThreads,
   } = useMessageThreads();
 
   // ✅ 리스트 실시간 변경분 patch
@@ -103,10 +108,21 @@ export default function MessagesShell() {
     return merged.slice().sort(compareLastAtDesc);
   }, [threadsFromServer, threadPatch]);
 
-  // ✅ activeId 초기값
+  // ✅ 1) 쿼리에 threadId가 있으면 그걸 우선 선택 + 목록에 없으면 refetch
   React.useEffect(() => {
-    if (!activeId && threads.length > 0) setActiveId(threads[0].id);
-  }, [threads, activeId]);
+    if (!threadIdFromQuery) return;
+
+    const id = String(threadIdFromQuery);
+
+    // 우선 active 선택(한 번만 바뀌게)
+    setActiveId((prev) => (prev === id ? prev : id));
+
+    // 목록에 없으면 한 번 더 당겨오기
+    const exists = threadsFromServer.some((t) => t.id === id);
+    if (!exists) {
+      refetchThreads();
+    }
+  }, [threadIdFromQuery, threadsFromServer, refetchThreads]);
 
   const activeThreadBase = React.useMemo(
     () => threads.find((t) => t.id === activeId),
@@ -174,26 +190,33 @@ export default function MessagesShell() {
     [myUserId],
   );
 
-  // ✅ push 수신 처리
+  const getServerThread = (threadId: string) => threadsFromServer.find((t) => t.id === threadId);
+
   const handleIncoming = React.useCallback(
     (dto: MessagePushDto) => {
-      const threadId = String(dto.messageThreadId);
+      const threadId = String(dto.messageThreadId); // ✅ 먼저 선언!
+
+      const exists = threadsFromServer.some((t) => t.id === threadId);
+      if (!exists) {
+        refetchThreads();
+      }
+
       const chatMsg = pushToChatMessage(dto, myUserId);
 
-      // 1) 채팅창 append
+      // 이하 동일...
       setLiveMessages((prev) => {
         const cur = prev[threadId] ?? [];
         if (cur.some((m) => m.id === chatMsg.id)) return prev;
         return { ...prev, [threadId]: [...cur, chatMsg] };
       });
 
-      // 2) 리스트 patch 업데이트
       setThreadPatch((prev) => {
-        const currentUnread = (prev[threadId]?.unreadCount as number | undefined) ?? 0;
-        const unreadCount =
-          threadId !== activeId && chatMsg.sender === 'them'
-            ? currentUnread + 1
-            : (prev[threadId]?.unreadCount ?? 0);
+        const serverUnread = getServerThread(threadId)?.unreadCount ?? 0;
+        const patchedUnread = prev[threadId]?.unreadCount as number | undefined;
+        const baseUnread = patchedUnread ?? serverUnread;
+
+        const shouldBump = threadId !== activeId && chatMsg.sender === 'them';
+        const nextUnread = shouldBump ? baseUnread + 1 : baseUnread;
 
         return {
           ...prev,
@@ -201,12 +224,11 @@ export default function MessagesShell() {
             ...(prev[threadId] ?? {}),
             lastMessage: chatMsg.text ?? '',
             lastAt: chatMsg.at ?? '',
-            unreadCount,
+            unreadCount: nextUnread,
           },
         };
       });
 
-      // 3) 내가 보고 있는 방이면: unread 0 + 서버 read 처리 예약
       if (threadId === activeId) {
         setThreadPatch((prev) => ({
           ...prev,
@@ -215,7 +237,7 @@ export default function MessagesShell() {
         scheduleMarkRead(threadId, dto.id);
       }
     },
-    [myUserId, activeId, scheduleMarkRead],
+    [threadsFromServer, refetchThreads, myUserId, activeId, scheduleMarkRead],
   );
 
   // ✅ STOMP 연결 + 인박스 구독(한 번)
@@ -227,12 +249,17 @@ export default function MessagesShell() {
     clientRef.current = client;
 
     client.onConnect = () => {
+      console.log('[stomp] connected, subscribing inbox:', `/sub/users.${myUserId}`);
       try {
         inboxSubRef.current?.unsubscribe();
       } catch {}
       inboxSubRef.current = client.subscribe(`/sub/users.${myUserId}`, (msg) => {
+        console.log('[stomp] inbox raw:', msg.body); // ✅ 무조건 찍기
         const dto = safeJsonParse<MessagePushDto>(msg.body);
-        if (!dto) return;
+        if (!dto) {
+          console.warn('[stomp] inbox parse fail');
+          return;
+        }
         handleIncoming(dto);
       });
     };

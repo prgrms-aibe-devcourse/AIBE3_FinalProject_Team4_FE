@@ -17,6 +17,12 @@ export const messagesApi = {
       method: 'POST',
       params: { otherUserId: String(otherUserId) },
     }),
+
+  createThreadWithMe: (meId: number, otherUserId: number) =>
+    apiClient<CreateMessageThreadResponseDto>('/api/v1/message/threads', {
+      method: 'POST',
+      params: { meId: String(meId), otherUserId: String(otherUserId) },
+    }),
 };
 
 export async function postThreadRead(threadId: number, meId: number, lastMessageId?: number) {
