@@ -35,8 +35,8 @@ export default function BlogImageTab({ images, selectedImage, onSelect }: BlogIm
 
   if (images.length === 0) {
     return (
-      <div className="flex items-center justify-center h-40">
-        <p className="text-xs text-gray-500">블로그 본문에 업로드된 이미지가 아직 없습니다.</p>
+      <div className="flex items-center justify-center h-[141px]">
+        <p className="text-xs text-gray-500">블로그 본문에 업로드된 이미지가 아직 없습니다</p>
       </div>
     );
   }

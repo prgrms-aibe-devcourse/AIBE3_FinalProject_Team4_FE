@@ -98,13 +98,16 @@ export default function UploadTab({
       {!uploadedFile ? (
         // 파일이 없을 때: 업로드 영역 표시
         <div
-          className="flex flex-col items-center justify-center border-2 border-dashed rounded-xl h-56 cursor-pointer hover:bg-slate-50 transition"
+          className="flex flex-col items-center justify-center border-2 border-dashed rounded-xl h-[141px] cursor-pointer hover:bg-slate-50 transition"
           onClick={() => document.getElementById('thumbnail-upload')?.click()}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
         >
-          <UploadCloud className="w-10 h-10 mb-2 text-slate-600" />
+          <UploadCloud className="w-10 h-10 mb-3 text-slate-400" />
           <p className="text-xs text-slate-600">이미지를 끌어오거나 클릭하여 업로드하세요</p>
+          <p className="mt-1 text-[11px] text-slate-400 text-center">
+            JPG / JPEG / PNG / WEBP 형식의 이미지 파일을 업로드할 수 있어요. (최대 10MB)
+          </p>
         </div>
       ) : (
         // 파일이 있을 때: 파일 정보 표시

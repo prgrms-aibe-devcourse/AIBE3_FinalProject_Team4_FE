@@ -6,7 +6,7 @@ import type { BlogFileDto, BlogImage, BlogMediaUploadResponse, RsData } from '@/
 import { SetStateAction, useState } from 'react';
 import Cropper from './Cropper';
 import BlogImageTab from './tabs/BlogImageTab';
-import FreeImagePicker from './tabs/FreeImageTab';
+import FreeImageTab from './tabs/FreeImageTab';
 import UploadTab from './tabs/UploadImageTab';
 
 interface ImageSelectorProps {
@@ -105,7 +105,7 @@ export default function ImageSelector({
         return;
       }
 
-      // 4) 썸네일 URL을 부모에 반영
+      // 4) 섬네일 URL을 부모에 반영
       onChangeThumbnail(dto.url);
       // 필요하면 이미지 리스트에도 추가
       const newImage: BlogFileDto = {
@@ -185,7 +185,7 @@ export default function ImageSelector({
         {/* 블로그 카드 스타일 미리보기 */}
         <article className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
           <div className="flex items-start gap-4">
-            {/* 썸네일 */}
+            {/* 섬네일 */}
             <div className="flex-shrink-0">
               {selectedImage || thumbnailUrl ? (
                 <div className="relative h-20 w-20 overflow-hidden rounded-xl bg-slate-100">
@@ -197,7 +197,7 @@ export default function ImageSelector({
                 </div>
               ) : (
                 <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-slate-100 text-[10px] text-slate-400">
-                  썸네일 없음
+                  섬네일 없음
                 </div>
               )}
             </div>
@@ -242,8 +242,8 @@ export default function ImageSelector({
           {[
             { key: 'upload', label: '이미지 업로드' },
             { key: 'blog', label: '블로그 본문 이미지' },
-            { key: 'unsplash', label: '무료 사진 (Unsplash)' },
-            { key: 'pixabay', label: '무료 사진 (Pixabay)' },
+            { key: 'unsplash', label: '무료 이미지 (Unsplash)' },
+            { key: 'pixabay', label: '무료 이미지 (Pixabay)' },
           ].map((tab) => {
             const isActive = selectedTab === tab.key;
             return (
@@ -254,8 +254,8 @@ export default function ImageSelector({
                 className={[
                   'flex-1 rounded-full px-3 py-1.5 font-medium transition',
                   isActive
-                    ? 'bg-white text-[#2979FF] shadow-sm'
-                    : 'text-slate-500 hover:text-[#2979FF]',
+                    ? 'bg-white text-slate-700 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700',
                 ].join(' ')}
               >
                 {tab.label}
@@ -295,7 +295,7 @@ export default function ImageSelector({
           )}
 
           {selectedTab === 'unsplash' && (
-            <FreeImagePicker
+            <FreeImageTab
               blogContent={blogContent}
               searchKeyword={unsplashSearchKeyword}
               onSearchKeywordChange={setUnsplashSearchKeyword}
@@ -311,7 +311,7 @@ export default function ImageSelector({
           )}
 
           {selectedTab === 'pixabay' && (
-            <FreeImagePicker
+            <FreeImageTab
               blogContent={blogContent}
               searchKeyword={pixabaySearchKeyword}
               onSearchKeywordChange={setPixabaySearchKeyword}

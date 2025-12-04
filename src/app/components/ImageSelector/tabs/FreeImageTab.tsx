@@ -7,7 +7,7 @@ import { Check } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import AiGeneration from '../../ai/generate/AiGeneration';
 
-interface UnsplashImagePickerProps {
+interface FreeImageTabProps {
   blogContent?: string;
   searchKeyword: string;
   onSearchKeywordChange: (keyword: string) => void;
@@ -20,7 +20,7 @@ interface UnsplashImagePickerProps {
 const PAGE_SIZE = 20;
 const MAX_IMAGES = 300;
 
-export default function FreeImagePicker({
+export default function FreeImageTab({
   blogContent,
   searchKeyword,
   onSearchKeywordChange,
@@ -28,7 +28,7 @@ export default function FreeImagePicker({
   originalImage,
   onSelect,
   apiEndpoint = 'unsplash',
-}: UnsplashImagePickerProps) {
+}: FreeImageTabProps) {
   const [keyword, setKeyword] = useState(searchKeyword);
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
 
