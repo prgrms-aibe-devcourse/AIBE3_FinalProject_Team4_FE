@@ -354,7 +354,7 @@ export default function ChatPanel({
             const dNext = toDate(next?.at);
 
             // 날짜 divider: "오늘이 아닌 날짜"에서, 날짜가 바뀌는 지점에 표시
-            const showDateDivider = !!d && !isToday(d) && (!dPrev || ymdKey(dPrev) !== ymdKey(d));
+            const showDateDivider = !!d && (!dPrev || ymdKey(dPrev) !== ymdKey(d));
 
             // 시간 표시: 오늘이면 HH:MM
             // 같은 "분(minuteKey) + 같은 sender"로 다음 메시지가 이어지면 지금은 숨기고,
@@ -369,7 +369,7 @@ export default function ChatPanel({
               curMinuteKey === nextMinuteKey &&
               next?.sender === m.sender;
 
-            const showTime = !!d && isToday(d) ? !sameMinuteNext : false;
+            const showTime = !!d ? !sameMinuteNext : false;
 
             const groupedBySender = isSameSender(prev, m);
             const compactTop = groupedBySender;

@@ -1,8 +1,11 @@
 'use client';
 
 import apiClient from '@/src/api/clientForRs';
+import { messagesApi } from '@/src/api/messagesApi';
 import ChatPanel from '@/src/app/components/messages/ChatPanel';
+import NewThreadModal, { type FollowingUser } from '@/src/app/components/messages/NewThreadModal';
 import ThreadList from '@/src/app/components/messages/ThreadList';
+import { useFollowingUsers } from '@/src/hooks/useFollowingUsers';
 import { useMessageThread } from '@/src/hooks/useMessageThread';
 import { useMessageThreads } from '@/src/hooks/useMessageThreads';
 import { createStompClient } from '@/src/lib/wsClient';
@@ -10,7 +13,7 @@ import { useAuth } from '@/src/providers/AuthProvider';
 import type { ChatMessage, MessageThread } from '@/src/types/messages';
 import { mapDetailMessages } from '@/src/utils/messagesMapper';
 import type { StompSubscription } from '@stomp/stompjs';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import * as React from 'react';
 
 type MessagePushDto = {
@@ -31,6 +34,15 @@ type ReadMessageThreadResponseDto = {
   messageThreadId: number;
   lastReadMessageId: number;
 };
+
+function useDebouncedValue<T>(value: T, delay = 250) {
+  const [v, setV] = React.useState(value);
+  React.useEffect(() => {
+    const t = window.setTimeout(() => setV(value), delay);
+    return () => window.clearTimeout(t);
+  }, [value, delay]);
+  return v;
+}
 
 function safeJsonParse<T>(s: string): T | null {
   try {
@@ -68,6 +80,37 @@ async function markThreadRead(threadId: string, meId: number, lastMessageId?: nu
 export default function MessagesShell() {
   const { isLogin, loginUser } = useAuth();
   const myUserId = loginUser?.id ?? -1;
+  const router = useRouter();
+  const [creating, setCreating] = React.useState(false);
+
+  const {
+    data: threadsFromServer = [],
+    isLoading: listLoading,
+    isError: listError,
+    refetch: refetchThreads,
+  } = useMessageThreads();
+
+  const onSelectUser = React.useCallback(
+    async (u: FollowingUser) => {
+      if (creating) return;
+      if (myUserId <= 0) return; // 로그인 가드
+
+      setCreating(true);
+      try {
+        const created = await messagesApi.createThreadWithMe(myUserId, u.id);
+
+        setNewOpen(false); // 모달 닫기
+        router.push(`/messages/?threadId=${created.messageThreadId}`); // ✅ 해당 채팅 열기
+        refetchThreads(); // (선택) 목록 즉시 반영
+      } catch (e) {
+        console.warn('[create thread failed]', e);
+        // TODO 토스트 처리
+      } finally {
+        setCreating(false);
+      }
+    },
+    [creating, myUserId, router, refetchThreads],
+  );
 
   const searchParams = useSearchParams();
   const threadIdFromQuery = searchParams.get('threadId');
@@ -76,12 +119,26 @@ export default function MessagesShell() {
   const [tab, setTab] = React.useState<'all' | 'unread'>('all');
   const [activeId, setActiveId] = React.useState<string>('');
 
+  const [newQ, setNewQ] = React.useState('');
+  const debouncedQ = useDebouncedValue(newQ, 250);
+  const [newOpen, setNewOpen] = React.useState(false);
+
   const {
-    data: threadsFromServer = [],
-    isLoading: listLoading,
-    isError: listError,
-    refetch: refetchThreads,
-  } = useMessageThreads();
+    data: followingDtos = [],
+    isLoading: followingLoading,
+    isError: followingIsError,
+  } = useFollowingUsers(myUserId, debouncedQ, newOpen);
+
+  const followingUsers: FollowingUser[] = React.useMemo(
+    () =>
+      followingDtos.map((u) => ({
+        id: u.id,
+        name: u.nickname, // ✅ DTO 필드 맞춰서 수정
+        handle: u.handle ?? undefined,
+        avatarUrl: u.profileImgUrl ?? undefined,
+      })),
+    [followingDtos],
+  );
 
   const [threadPatch, setThreadPatch] = React.useState<Record<string, Partial<MessageThread>>>({});
   const [liveMessages, setLiveMessages] = React.useState<Record<string, ChatMessage[]>>({});
@@ -97,6 +154,24 @@ export default function MessagesShell() {
     const merged = threadsFromServer.map((t) => ({ ...t, ...(threadPatch[t.id] ?? {}) }));
     return merged.slice().sort(compareLastAtDesc);
   }, [threadsFromServer, threadPatch]);
+
+  // TODO: 추후 API로 교체
+  const followingMock: FollowingUser[] = React.useMemo(
+    () => [
+      { id: 101, name: '지민', handle: 'jimin', avatarUrl: '/tmpProfile.png' },
+      { id: 102, name: '민수', handle: 'minsu', avatarUrl: '/tmpProfile.png' },
+      { id: 103, name: '서연', handle: 'seoyeon', avatarUrl: '/tmpProfile.png' },
+      { id: 104, name: '현우', handle: 'hyunwoo', avatarUrl: '/tmpProfile.png' },
+    ],
+    [],
+  );
+
+  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+
+  const onNewThread = React.useCallback((el: HTMLElement | null) => {
+    setAnchorEl(el);
+    setNewOpen(true);
+  }, []);
 
   React.useEffect(() => {
     if (!threadIdFromQuery) return;
@@ -291,11 +366,6 @@ export default function MessagesShell() {
     [activeId, myUserId],
   );
 
-  const onNewThread = React.useCallback(() => {
-    // TODO: 모달/드로어 열기 or /messages/new 이동
-    console.log('new thread');
-  }, []);
-
   return (
     <main className="min-h-dvh px-4 py-8 sm:px-6 lg:px-10">
       {/* background like other pages */}
@@ -334,6 +404,17 @@ export default function MessagesShell() {
           </div>
         </section>
       </div>
+      <NewThreadModal
+        open={newOpen}
+        onClose={() => setNewOpen(false)}
+        users={followingUsers}
+        query={newQ}
+        onQueryChange={setNewQ}
+        loading={followingLoading || creating}
+        error={followingIsError ? '팔로잉 목록을 불러오지 못했어요.' : null}
+        onSelectUser={onSelectUser}
+        anchorEl={anchorEl}
+      />
     </main>
   );
 }

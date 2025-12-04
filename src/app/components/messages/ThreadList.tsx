@@ -9,7 +9,7 @@ type Props = {
   onTabChange: (v: 'all' | 'unread') => void;
   onQueryChange: (v: string) => void;
   onSelect: (id: string) => void;
-  onNewThread?: () => void;
+  onNewThread?: (anchorEl: HTMLElement | null) => void;
 };
 
 function Pill({
@@ -74,6 +74,7 @@ export default function ThreadList({
   onSelect,
   onNewThread,
 }: Props) {
+  const newBtnRef = React.useRef<HTMLButtonElement | null>(null);
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70">
       <div className="border-b border-slate-200/70 p-4">
@@ -106,8 +107,9 @@ export default function ThreadList({
 
           {onNewThread ? (
             <button
+              ref={newBtnRef}
               type="button"
-              onClick={onNewThread}
+              onClick={(e) => onNewThread?.(e.currentTarget)}
               className={[
                 'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] font-semibold',
                 'border border-[#2979FF]/30 transition',

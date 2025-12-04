@@ -136,7 +136,6 @@ export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) =
     try {
       const created = await messagesApi.createThreadWithMe(myId, profile.id);
       console.log('Created message thread:', created);
-      // ✅ messages 페이지로 이동 + 만든 threadId를 쿼리로 전달
       router.push(`/messages/?threadId=${created.messageThreadId}`);
     } finally {
       setLoading(false);
