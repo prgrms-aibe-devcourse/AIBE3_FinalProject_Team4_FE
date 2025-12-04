@@ -47,7 +47,7 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
             <input
               ref={inputRef}
               type="text"
-              placeholder="검색어를 입력하세요..."
+              placeholder="통합 검색어를 입력하세요..."
               className="
               w-full pl-10 pr-3 py-2
               rounded-lg bg-gray-100

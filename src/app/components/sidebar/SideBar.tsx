@@ -229,30 +229,33 @@ export default function Sidebar() {
                     else openPanelFn('more');
                   }}
                   className={`
-                    flex items-center gap-3 px-4 py-2 rounded-lg transition-all
-                    ${isMoreOpen ? 'text-blue-600 font-medium' : 'text-gray-500 hover:bg-gray-100'}
-                  `}
+          w-full text-left flex items-center gap-3 px-4 py-2 rounded-lg transition-all
+          ${isMoreOpen ? 'text-blue-600 font-medium bg-slate-50' : 'text-gray-600 hover:bg-gray-100'}
+        `}
                 >
+                  {/* 아이콘 영역 – 다른 메뉴와 동일한 폭/정렬 */}
                   <div
                     className={`
-    flex items-center justify-center flex-shrink-0
-    rounded-xl
-    ${isActive ? 'bg-sky-50 text-[#2979FF]' : 'text-slate-500'}
-  `}
+            flex items-center justify-center flex-shrink-0
+            ${isCollapsed ? 'w-6 h-6' : 'w-7 h-7'}
+            ${isMoreOpen ? 'rounded-xl bg-sky-50 text-[#2979FF]' : 'text-slate-500'}
+          `}
                   >
                     <item.icon size={20} />
                   </div>
 
+                  {/* 라벨 – 접히면 숨기고, 펼치면 보이기 */}
                   <span
                     className={`
-    whitespace-nowrap transition-all duration-300
-    ${isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'}
-  `}
+            whitespace-nowrap transition-all duration-300
+            ${isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'}
+          `}
                   >
                     {item.label}
                   </span>
                 </button>
 
+                {/* 접힌 상태에서 툴팁 */}
                 {isCollapsed && (
                   <span className="absolute left-20 top-1/2 -translate-y-1/2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">
                     {item.label}
