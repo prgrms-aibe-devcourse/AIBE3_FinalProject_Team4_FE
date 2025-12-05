@@ -215,18 +215,8 @@ export function useShorlogCreate() {
   const handleSelectBlog = async (blogId: ShorlogRelatedBlogSummary['id']) => {
     if (!createdShorlogId) return;
 
-    try {
-      console.log('블로그 연결:', { shorlogId: createdShorlogId, blogId });
-
-      // TODO: 블로그 연결 API 호출 구현 예정
-      showGlobalToast('블로그 연결 기능은 곧 추가됩니다!', 'warning');
-
-      setShowBlogConnectModal(false);
-      router.push(`/profile/${createdUserId}`);
-    } catch (e) {
-      console.error('블로그 연결 실패:', e);
-      showGlobalToast(e instanceof Error ? e.message : '블로그 연결 중 오류가 발생했습니다.', 'error');
-    }
+    setShowBlogConnectModal(false);
+    router.push(`/profile/${createdUserId}`);
   };
 
   const handleCreateNewBlog = () => {

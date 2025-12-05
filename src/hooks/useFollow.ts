@@ -68,6 +68,9 @@ export function useFollowMutation(userId: number, currentUserId: number | null) 
       console.error('팔로우 실패:', { userId, error: errorMessage });
     },
     onSuccess: () => {
+      // 성공 토스트 표시
+      showGlobalToast('팔로우했습니다.', 'success');
+
       // 성공 시 관련 쿼리들 무효화
       queryClient.invalidateQueries({
         queryKey: ['follow'],
@@ -115,6 +118,9 @@ export function useFollowMutation(userId: number, currentUserId: number | null) 
       console.error('언팔로우 실패:', { userId, error: errorMessage });
     },
     onSuccess: () => {
+      // 성공 토스트 표시
+      showGlobalToast('언팔로우했습니다.', 'success');
+
       // 성공 시 관련 쿼리들 무효화
       queryClient.invalidateQueries({
         queryKey: ['follow'],
