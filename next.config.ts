@@ -15,6 +15,18 @@ const nextConfig = {
         pathname: '/**',
       },
 
+      // 배포 s3 버킷
+      {
+        protocol: 'https',
+        hostname: 'next5-app-bucket.s3.ap-northeast-2.amazonaws.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'next5-app-bucket.s3.ap-northeast-2.amazonaws.com',
+        pathname: '/**',
+      },
+
       // --- next5 dev images ---
       {
         protocol: 'https',
