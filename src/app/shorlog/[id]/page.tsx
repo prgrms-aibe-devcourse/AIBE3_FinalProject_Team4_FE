@@ -1,12 +1,12 @@
+'use client';
+
 import ShorlogDetailPageClient from '../../components/shorlog/detail/ShorlogDetailPageClient';
 import ShorlogDetailModalWrapper from '../../components/shorlog/detail/ShorlogDetailModalWrapper';
 import type { ShorlogDetail } from '../../components/shorlog/detail/types';
-import type { Metadata } from 'next';
-import { getSessionUser } from '@/src/lib/getSessionUser';
-
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
+import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { fetchMe } from '@/src/api/user';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 // 실제 API 연동용
 async function fetchShorlogDetail(id: string): Promise<ShorlogDetail> {
@@ -46,19 +46,65 @@ async function fetchShorlogDetail(id: string): Promise<ShorlogDetail> {
   };
 }
 
-export const metadata: Metadata = {
-  title: '숏로그 상세 - TexTok',
-};
+export default function ShorlogDetailPage() {
+  const params = useParams();
+  const shorlogId = String(params.id);
 
-export default async function ShorlogDetailPage({ params }: PageProps) {
-  const { id } = await params;
+  const [detail, setDetail] = useState<ShorlogDetail | null>(null);
+  const [me, setMe] = useState<{ id: number } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<Error | null>(null);
 
-  const [detail, sessionUser] = await Promise.all([
-    fetchShorlogDetail(id),
-    getSessionUser(),
-  ]);
+  useEffect(() => {
+    let cancelled = false;
 
-  const isOwner = sessionUser ? detail.userId === sessionUser.id : false;
+    async function load() {
+      try {
+        const [shorlogData, meData] = await Promise.all([
+          fetchShorlogDetail(shorlogId),
+          fetchMe().catch(() => null), // 비로그인 → null
+        ]);
+
+        if (!cancelled) {
+          setDetail(shorlogData);
+          setMe(meData);
+        }
+      } catch (e: any) {
+        console.error('숏로그 조회 실패', e);
+        if (!cancelled) {
+          setLoadError(e);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [shorlogId]);
+
+  if (loading) {
+    return (
+      <div className="p-8">
+        <LoadingSpinner label="숏로그를 불러오는 중입니다" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return <p className="p-8">숏로그를 불러오는 중 오류가 발생했습니다.</p>;
+  }
+
+  if (!detail) {
+    return <p className="p-8">존재하지 않는 숏로그입니다.</p>;
+  }
+
+  const isOwner = me?.id === detail.userId;
 
   return (
     <ShorlogDetailModalWrapper>
