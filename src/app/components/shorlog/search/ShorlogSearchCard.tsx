@@ -41,7 +41,7 @@ export default function ShorlogSearchCard({
 
     return parts.map((part, index) =>
       regex.test(part) ? (
-        <mark key={index} className="bg-yellow-200 text-yellow-900">
+        <mark key={index} className="bg-yellow-100 text-yellow-900">
           {part}
         </mark>
       ) : (

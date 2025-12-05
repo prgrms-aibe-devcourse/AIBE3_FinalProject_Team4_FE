@@ -2,7 +2,7 @@
 
 import { useRequireAuth } from '@/src/hooks/userRequireAuth';
 import { timeAgo } from '@/src/utils/timeAgo';
-import { Heart, MoreHorizontal } from 'lucide-react';
+import { EllipsisVertical, Heart } from 'lucide-react';
 import { useState } from 'react';
 import { CommentType } from '../../../types/comment';
 
@@ -96,7 +96,7 @@ export default function ShorlogCommentItem({
               onClick={() => setMenuOpen((prev) => !prev)}
               className="p-1 text-slate-500 hover:text-slate-700"
             >
-              <MoreHorizontal size={16} />
+              <EllipsisVertical size={16} />
             </button>
           )}
         </div>

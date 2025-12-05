@@ -21,10 +21,11 @@ import type {
 } from '@/src/types/blog';
 import { useMutation } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import BlogCommentSection from '../../components/blogs/detail/BlogCommentSection';
+import { ShareModal } from '../../components/blogs/detail/BlogShareModal';
 import { LinkedShorlogListModal } from '../../components/blogs/detail/LinkedShorlogModal';
 import BlogConnectShorlogModal from '../../components/blogs/link/BlogConnectShorlogModal';
+import { MarkdownViewer } from '../../components/blogs/write/MarkdownViewer';
 
 type Props = {
   initialData: BlogDetailDto;
@@ -58,6 +59,7 @@ export default function BlogDetailClient({
     initialData.hasLinkedShorlogs ?? false,
   );
   const [linkedShorlogCount, setLinkedShorlogCount] = useState(initialData.linkedShorlogCount ?? 0);
+  const [shareOpen, setShareOpen] = useState(false);
   // 조회수 증가
   useEffect(() => {
     let cancelled = false;
@@ -198,15 +200,25 @@ export default function BlogDetailClient({
 
   return (
     <>
+      {/* 공유 모달 */}
+      <ShareModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        title={blog.title}
+        description={blog.content.slice(0, 80)}
+        authorName={blog.nickname}
+        thumbnailUrl={blog.thumbnailUrl}
+      />
       {/* 연결된 숏로그 리스트 모달 */}
       <LinkedShorlogListModal
         open={linkedOpen}
         loading={linkedLoading}
+        canUnlink={isOwner}
         items={linkedItems}
         onClose={() => setLinkedOpen(false)}
         onUnlink={handleUnlinkShorlog}
       />
-      <article className="rounded-3xl bg-white/90 shadow-xl ring-1 ring-slate-100 backdrop-blur-sm">
+      <article className="rounded-3xl overflow-hidden bg-white/90 shadow-xl ring-1 ring-slate-100 backdrop-blur-sm">
         {/* 상단 헤더 */}
         <BlogDetailHeader
           blog={{ ...blog, viewCount }}
@@ -220,7 +232,7 @@ export default function BlogDetailClient({
         {/* 본문 */}
         <section className="px-5 py-8 sm:px-8">
           <div className="prose prose-slate max-w-none leading-relaxed">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{blog.content}</ReactMarkdown>
+            <MarkdownViewer markdown={blog.content} />
           </div>
 
           {/* 태그 */}
@@ -248,11 +260,12 @@ export default function BlogDetailClient({
           onToggleLike={handleToggleLike}
           onToggleBookmark={handleToggleBookmark}
           onOpenLinkedShorlogs={handleOpenLinkedShorlogs}
-          onShare={() => {
-            navigator.clipboard.writeText(location.href);
-            alert('공유 링크 복사됨');
-          }}
+          onShare={() => setShareOpen(true)}
         />
+        {/* 댓글 토글 */}
+        <div className="border-t border-slate-100 bg-slate-50 px-5 py-5 sm:px-8">
+          <BlogCommentSection blogId={blog.id} initialCommentCount={blog.commentCount} />
+        </div>
       </article>
       <BlogConnectShorlogModal
         isOpen={connectModalOpen}

@@ -3,6 +3,7 @@ import { fetchBlogDetail } from '@/src/api/blogDetail';
 import { uploadBlogImage } from '@/src/api/blogImageApi';
 import { createDraft, deleteBlog, fetchDrafts, updateBlog } from '@/src/api/blogWrite';
 import apiClient from '@/src/api/clientForRs';
+import { handleApiError } from '@/src/lib/handleApiError';
 import { showGlobalToast } from '@/src/lib/toastStore';
 import type {
   BlogDraftDto,
@@ -25,7 +26,6 @@ import { MarkdownEditor } from '../../components/blogs/write/MarkdownEditor';
 import { LoginRequiredModal } from '../../components/common/LoginRequireModal';
 import ImageSelector from '../../components/ImageSelector/ImageSelector';
 import { useChatPanelSlot } from '../Slot';
-import { handleApiError } from '@/src/lib/handleApiError';
 
 type NewBlogPageProps = {
   editId?: number;
@@ -119,7 +119,6 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
         setBlogImages(detail.images ?? []);
         setThumbnailUrl(detail.thumbnailUrl ?? null);
       } catch (e) {
-        console.error(e);
         showGlobalToast('글 정보를 불러오지 못했습니다.', 'error');
 
         router.push('/blogs');
@@ -191,7 +190,7 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
       const list = await fetchDrafts();
       setDrafts(list);
     } catch (e) {
-      console.error(e);
+      // console.error(e);
       showGlobalToast('임시저장 목록을 불러오지 못했습니다.', 'error');
     } finally {
       setIsLoadingDrafts(false);
@@ -215,7 +214,7 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
 
       setIsDraftModalOpen(false);
     } catch (e) {
-      console.error(e);
+      // console.error(e);
       showGlobalToast('임시저장 글을 불러오지 못했습니다.', 'error');
     }
   };
@@ -237,7 +236,7 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
       }
       showGlobalToast('임시저장을 삭제했어요.', 'success');
     } catch (e) {
-      console.error(e);
+      // console.error(e);
       showGlobalToast('삭제 중 오류가 발생했습니다.', 'error');
     }
   };
@@ -248,6 +247,7 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
       </div>
     );
   }
+
   // 이미지 업로드 함수
   const handleUploadContentImage = async (file: File): Promise<string> => {
     if (!form.title.trim() || !form.contentMarkdown.trim()) {
@@ -275,6 +275,7 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
       return rs.data.url;
     } catch (e) {
       console.error(e);
+      handleApiError(e);
       throw e;
     }
   };

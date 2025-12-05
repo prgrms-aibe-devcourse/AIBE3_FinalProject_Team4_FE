@@ -10,6 +10,9 @@ import {
 } from '@/src/api/BlogComments';
 import BlogCommentList from '@/src/app/components/comments/BlogCommentList';
 import { useRequireAuth } from '@/src/hooks/userRequireAuth';
+import { handleApiError } from '@/src/lib/handleApiError';
+import { showGlobalToast } from '@/src/lib/toastStore';
+import { MessageCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface Props {
@@ -28,14 +31,14 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
   /** =============================
    *  공통: 최신순 정렬 함수
    * ============================= */
-  const sortCommentsLatest = (list: any[]): any[] => {
+  const sortCommentsOldest = (list: any[]): any[] => {
     const sorted = [...list]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
       .map((c) => ({
         ...c,
         children: c.children
           ? [...c.children].sort(
-              (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+              (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
             )
           : [],
       }));
@@ -60,7 +63,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
     const fetch = async () => {
       try {
         let data = await getBlogComments(blogId);
-        data = sortCommentsLatest(data);
+        data = sortCommentsOldest(data);
 
         setComments(data);
         setTotalCount(countAllComments(data));
@@ -79,7 +82,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
    * ============================= */
   const handleCommentSubmit = async () => {
     if (!requireAuth('댓글 작성')) return;
-    if (!commentText.trim()) return alert('댓글을 입력해주세요.');
+    if (!commentText.trim()) return showGlobalToast('내용을 입력해주세요.', 'warning');
 
     const content = commentText.trim();
     setCommentText('');
@@ -87,10 +90,10 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
     try {
       const newComment = await createBlogComment(blogId, content, undefined);
 
-      setComments((prev) => sortCommentsLatest([newComment, ...prev]));
+      setComments((prev) => sortCommentsOldest([newComment, ...prev]));
       setTotalCount((prev) => prev + 1);
     } catch (err: any) {
-      alert(err.message);
+      showGlobalToast(err.message);
     }
   };
 
@@ -105,7 +108,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
    * ============================= */
   const handleReply = async (parentId: number, replyText: string) => {
     if (!requireAuth('답글 작성')) return;
-    if (!replyText.trim()) return alert('내용을 입력해주세요.');
+    if (!replyText.trim()) return showGlobalToast('내용을 입력해주세요.');
 
     try {
       const newReply = await createBlogComment(blogId, replyText.trim(), parentId);
@@ -115,7 +118,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
           c.id === parentId
             ? {
                 ...c,
-                children: sortCommentsLatest([...(c.children ?? []), newReply]),
+                children: sortCommentsOldest([...(c.children ?? []), newReply]),
               }
             : c,
         ),
@@ -123,7 +126,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
 
       setTotalCount((prev) => prev + 1);
     } catch (err: any) {
-      alert(err.message);
+      handleApiError(err.message);
     }
   };
 
@@ -144,7 +147,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
       optimisticNext ? await likeBlogComment(commentId) : await unlikeBlogComment(commentId);
     } catch (err: any) {
       updateCommentLikeState(commentId, !optimisticNext);
-      alert(err.message);
+      handleApiError(err);
     }
   };
 
@@ -198,7 +201,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
       const updated = await editBlogComment(commentId, newContent);
 
       setComments((prev) =>
-        sortCommentsLatest(
+        sortCommentsOldest(
           prev.map((comment) => {
             if (comment.id === commentId) return updated;
             return {
@@ -211,7 +214,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
         ),
       );
     } catch (err: any) {
-      alert(err.message);
+      handleApiError(err.message);
     }
   };
 
@@ -225,7 +228,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
       await deleteBlogComment(commentId);
 
       setComments((prev) =>
-        sortCommentsLatest(
+        sortCommentsOldest(
           prev
             .map((comment) => ({
               ...comment,
@@ -237,7 +240,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
 
       setTotalCount((prev) => prev - 1);
     } catch (err: any) {
-      alert(err.message);
+      handleApiError(err.message);
     }
   };
 
@@ -245,31 +248,53 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
    *  렌더
    * ============================= */
   return (
-    <div className="mt-6">
-      <p className="mb-2 text-sm font-semibold text-slate-700">댓글 {totalCount}개</p>
+    <section className="border-slate-100 px-3 py-1 sm:px-4">
+      {/* 댓글 헤더 */}
+      <div className="flex items-center gap-1 mb-4">
+        <div className="flex h-6 w-6 items-center justify-center rounded-full text-slate-500">
+          <MessageCircle className="h-3.5 w-3.5" />
+        </div>
+
+        <p className="text-sm font-semibold text-slate-900">
+          댓글 <span className="ml-0.5 font-bold text-sky-600">{totalCount}</span>개
+        </p>
+      </div>
 
       {/* 입력창 */}
-      <div className="flex items-center gap-2 rounded-lg border bg-slate-50 px-3 py-2">
-        <input
-          type="text"
-          className="flex-1 bg-transparent text-sm outline-none"
-          placeholder="댓글을 입력하세요..."
-          value={commentText}
-          onChange={(e) => setCommentText(e.target.value)}
-          onFocus={handleCommentFocus}
-        />
-        <button
-          onClick={handleCommentSubmit}
-          className="text-sm font-semibold text-blue-600 hover:text-blue-700"
-        >
-          등록
-        </button>
+      <div className="rounded-2xl border border-slate-100 bg-slate-50/80 px-3 py-2.5 sm:px-4 sm:py-3">
+        <div className="flex items-center gap-2">
+          {/* 프로필 자리 (지금은 간단한 플레이스홀더) */}
+          {/* <div className="hidden h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-[11px] font-semibold text-slate-600 sm:flex">
+            나
+          </div> */}
+
+          <input
+            type="text"
+            className="flex-1 rounded-full bg-white px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-[#2979FF]/40"
+            placeholder="따뜻한 댓글을 남겨보세요"
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            onFocus={handleCommentFocus}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleCommentSubmit();
+              }
+            }}
+          />
+          <button
+            onClick={handleCommentSubmit}
+            className="shrink-0 rounded-full bg-[#2979FF] px-3.5 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-[#1f5ecc] transition-colors"
+          >
+            등록
+          </button>
+        </div>
       </div>
 
       {/* 댓글 리스트 */}
-      <div className="mt-4">
+      <div className="mt-5 space-y-3">
         {loading ? (
-          <p className="text-xs text-slate-400">불러오는 중...</p>
+          <p className="py-4 text-center text-xs text-slate-400">댓글을 불러오는 중입니다…</p>
         ) : (
           <BlogCommentList
             comments={comments}
@@ -280,6 +305,6 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
           />
         )}
       </div>
-    </div>
+    </section>
   );
 }

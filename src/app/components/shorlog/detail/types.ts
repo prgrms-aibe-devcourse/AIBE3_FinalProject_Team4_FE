@@ -14,4 +14,6 @@ export interface ShorlogDetail {
   createdAt: string;
   modifiedAt: string;
   linkedBlogId: number | null;
+  linkedBlogCount?: number;
+  hasLinkedBlogs?: boolean;
 }

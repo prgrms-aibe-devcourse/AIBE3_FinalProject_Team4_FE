@@ -77,7 +77,7 @@ export default function ShorlogSearchPageClient() {
   return (
     <div>
       {/* 검색 결과 헤더 */}
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <h1 className="text-xl font-bold text-slate-900">
           "{keyword}" 검색 결과
         </h1>
@@ -86,7 +86,7 @@ export default function ShorlogSearchPageClient() {
             {totalCount.toLocaleString()}개의 숏로그를 찾았습니다
           </p>
         )}
-      </div>
+      </div> */}
 
       {/* 검색 결과 */}
       {isLoading ? (

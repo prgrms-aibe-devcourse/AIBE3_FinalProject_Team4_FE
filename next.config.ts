@@ -2,7 +2,8 @@
 const nextConfig = {
   images: {
     remotePatterns: [
-      // --- HM dev images ---
+
+      // s3 bucket
       {
         protocol: 'https',
         hostname: 'hm-dev-images.s3.ap-northeast-2.amazonaws.com',
@@ -38,10 +39,31 @@ const nextConfig = {
         pathname: '/**',
       },
 
-      // --- Google profile ---
+      //google
       {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
+        pathname: '/**',
+      }, 
+      //kakao
+      {
+        protocol: 'http',
+        hostname: 'img1.kakaocdn.net',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 't1.kakaocdn.net',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img1.kakaocdn.net',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 't1.kakaocdn.net',
         pathname: '/**',
       },
 

@@ -7,6 +7,7 @@ import type { BlogDetailDto } from '@/src/types/blog';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import BlogDetailClient from './BlogDetailClient';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 export default function BlogDetailPage() {
   const params = useParams();
@@ -59,9 +60,13 @@ export default function BlogDetailPage() {
       cancelled = true;
     };
   }, [blogId]);
-  //TODO: 로딩스피너 도입
-  if (loading) return <p className="p-8">로딩 중...</p>;
-  if (!blog) return <p className="p-8">존재하지 않는 게시글입니다.</p>;
+if (loading)
+  return (
+    <div className="p-8">
+      <LoadingSpinner label="블로그 페이지 로딩중입니다"/>
+    </div>
+  );
+if (!blog) return <div className="p-8">존재하지 않는 게시글입니다.</div>;
 
   const handleDelete = async () => {
     if (!confirm('정말 삭제하시겠습니까?')) return;
@@ -78,7 +83,11 @@ export default function BlogDetailPage() {
     router.push(`/blogs/${blogId}/edit`);
   };
 
-  if (loading) return <p className="p-8">로딩 중...</p>;
+  if (loading) return (
+    <div className="p-8">
+      <LoadingSpinner label="게시글을 불러오는 중입니다" />
+    </div>
+  );
 
   if (loadError) {
     return <p className="p-8">게시글을 불러오는 중 오류가 발생했습니다.</p>;

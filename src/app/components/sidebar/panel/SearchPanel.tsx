@@ -121,7 +121,7 @@ export default function SearchPanel({
           <input
             type="text"
             autoFocus
-            placeholder="검색어를 입력하세요"
+            placeholder="통합 검색어를 입력해주세요."
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             onKeyDown={(e) => {
