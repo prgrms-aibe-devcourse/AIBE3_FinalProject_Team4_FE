@@ -36,8 +36,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <AuthProvider>
-          <ReactQueryProvider>
+        <ReactQueryProvider>
+          <AuthProvider>
             <LoginModalProvider>
               <NotificationInitializer />
               <div className="flex min-h-screen">
@@ -56,8 +56,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
               <LoginModal />
             </LoginModalProvider>
-          </ReactQueryProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );
