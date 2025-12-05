@@ -83,28 +83,39 @@ export default function RegisterStep1Page() {
   const onCheckUserId = async () => {
     setIdAvailable(false);
     setIdCheckMsg('');
+    setUserIdError('');
     setIdCheckLoading(false);
 
-    // 먼저 문법 검증
     if (!validateUserId(userId)) return;
 
     setIdCheckLoading(true);
 
     try {
-      const res = await fetch(`${API}/api/v1/auth/check-username?username=${userId}`);
+      const res = await fetch(
+        `${API}/api/v1/auth/check-username?username=${encodeURIComponent(userId)}`,
+      );
       const data = await res.json();
 
-      const available = data.resultCode === '200';
+      // 서버 응답 기준: data.data.isAvailable이 진짜 값
+      const isAvailable = !!data?.data?.isAvailable;
 
-      if (available) {
+      if (!res.ok) {
+        setIdAvailable(false);
+        setUserIdError(data?.msg ?? '서버 오류가 발생했습니다.');
+        return;
+      }
+
+      if (isAvailable) {
         setIdAvailable(true);
-        setIdCheckMsg('사용 가능한 ID입니다.');
+        setIdCheckMsg(data?.msg ?? '사용 가능한 ID입니다.');
         setUserIdError('');
       } else {
         setIdAvailable(false);
-        setUserIdError(data.msg ?? '이미 사용 중인 ID입니다.');
+        setIdCheckMsg('');
+        setUserIdError(data?.msg ?? '이미 사용 중인 ID입니다.');
       }
     } catch {
+      setIdAvailable(false);
       setUserIdError('서버 오류가 발생했습니다.');
     } finally {
       setIdCheckLoading(false);

@@ -1,120 +1,123 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { showGlobalToast } from '../lib/toastStore';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-type UserDto = {
+export type UserDto = {
   id: number;
   nickname: string;
   profileImgUrl: string;
 };
 
-const fetchCurrentUser = async (): Promise<UserDto | null> => {
+type AuthState = {
+  isLogin: boolean;
+  loginUser: UserDto | null;
+  isLoading: boolean;
+  refreshUser: () => Promise<void>;
+  logout: () => Promise<void>;
+  setLoginUser: React.Dispatch<React.SetStateAction<UserDto | null>>;
+};
+
+const AuthContext = createContext<AuthState | null>(null);
+
+async function fetchCurrentUser(): Promise<UserDto | null> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
       method: 'GET',
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
     });
 
-    if (!response.ok) {
-      return null;
-    }
-
+    if (!response.ok) return null;
     const resData = await response.json();
     return resData.data as UserDto;
   } catch (error) {
     console.error('Failed to fetch user:', error);
     return null;
   }
-};
+}
 
-const sendLogoutRequest = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
-      method: 'DELETE',
-      credentials: 'include',
-    });
+async function sendLogoutRequest() {
+  const response = await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
 
-    if (!response.ok) {
+  if (!response.ok) {
+    let msg = '로그아웃 실패';
+    try {
       const errorData = await response.json();
-      throw new Error(errorData.msg || '로그아웃 실패');
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Logout error:', error);
-    throw error;
+      if (errorData?.msg) msg = errorData.msg;
+    } catch {}
+    throw new Error(msg);
   }
-};
+}
 
-function useAuthLogic() {
+function useAuthLogic(): AuthState {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [loginUser, setLoginUser] = useState<UserDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchUser = async () => {
+  const fetchUser = useCallback(async () => {
     setIsLoading(true);
     const user = await fetchCurrentUser();
     setLoginUser(user);
     setIsLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
     fetchUser();
-  }, []);
+  }, [fetchUser]);
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     await fetchUser();
-  };
+  }, [fetchUser]);
 
-  const logout = async () => {
-    await sendLogoutRequest();
+  const logout = useCallback(async () => {
     setLoginUser(null);
+
+    queryClient.clear();
+
     router.replace('/');
-  };
+    router.refresh();
 
-  const isLogin = loginUser !== null;
+    try {
+      await sendLogoutRequest();
+    } catch (e) {
+      console.error('Logout error:', e);
+      showGlobalToast('로그아웃에 실패했습니다.', 'error');
+    }
+  }, [queryClient, router]);
 
-  const authState = useMemo(() => {
-    return {
+  const isLogin = !!loginUser;
+
+  return useMemo(
+    () => ({
       isLogin,
       loginUser,
-      logout,
-      setLoginUser,
       isLoading,
       refreshUser,
-    };
-  }, [isLogin, loginUser, isLoading]);
-
-  return authState;
+      logout,
+      setLoginUser,
+    }),
+    [isLogin, loginUser, isLoading, refreshUser, logout],
+  );
 }
-
-type AuthState = ReturnType<typeof useAuthLogic>;
-
-export const AuthContext = createContext<AuthState | null>(null);
 
 export function useAuth() {
   const authState = useContext(AuthContext);
-
-  if (authState === null) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-
+  if (authState === null) throw new Error('useAuth must be used within an AuthProvider');
   return authState;
 }
 
-export function AuthProvider({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const authState = useAuthLogic();
-
   return <AuthContext.Provider value={authState}>{children}</AuthContext.Provider>;
 }

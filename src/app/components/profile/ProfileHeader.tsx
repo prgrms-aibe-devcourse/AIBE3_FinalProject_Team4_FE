@@ -1,5 +1,6 @@
 'use client';
 
+import { messagesApi } from '@/src/api/messagesApi';
 import { useFollow } from '@/src/hooks/useFollow';
 import { useAuth } from '@/src/providers/AuthProvider';
 import { useRouter } from 'next/navigation';
@@ -130,6 +131,17 @@ export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) =
     }
   };
 
+  const onClick = async () => {
+    setLoading(true);
+    try {
+      const created = await messagesApi.createThreadWithMe(myId, profile.id);
+      console.log('Created message thread:', created);
+      router.push(`/messages/?threadId=${created.messageThreadId}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   /** 프로필 편집 모달 */
   const [editOpen, setEditOpen] = useState(false);
 
@@ -193,7 +205,11 @@ export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) =
                   {followLoading ? '...' : isFollowing ? '팔로잉' : '팔로우'}
                 </button>
 
-                <button className="rounded-md border border-slate-300 px-8 h-10 text-sm font-medium hover:bg-slate-100">
+                <button
+                  onClick={onClick}
+                  disabled={loading}
+                  className="rounded-md border border-slate-300 px-8 h-10 text-sm font-medium hover:bg-slate-100"
+                >
                   메시지
                 </button>
 
@@ -278,3 +294,6 @@ export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) =
     </>
   );
 };
+function createMessageThread(arg0: { myId: number; otherUserId: number }) {
+  throw new Error('Function not implemented.');
+}

@@ -73,17 +73,13 @@ export function BlogDetailHeader({
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 overflow-hidden rounded-full bg-slate-200">
-                {blog.profileImageUrl ? (
                   <img
-                    src={blog.profileImageUrl}
+                    src={blog.profileImageUrl || '/tmpProfile.png'}
                     alt={`${blog.nickname} 프로필 이미지`}
                     className="h-full w-full object-cover"
+                    loading="lazy"
                   />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-slate-500">
-                    {blog.nickname?.[0] ?? '?'}
-                  </div>
-                )}
+              
               </div>
 
               <div className="flex flex-col">

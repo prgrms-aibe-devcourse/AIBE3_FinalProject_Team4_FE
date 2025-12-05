@@ -1,10 +1,9 @@
 'use client';
 
-import { useFollow } from '@/src/hooks/useFollow';
+import { useFollowMutation, useFollowStatus } from '@/src/hooks/useFollow';
+import { useAuth } from '@/src/providers/AuthProvider';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCurrentUser } from '@/src/hooks/useCurrentUser';
-import { useFollowStatus, useFollowMutation } from '@/src/hooks/useFollow';
 
 export type Creator = {
   id: number;
@@ -16,23 +15,21 @@ export type Creator = {
 };
 
 export default function CreatorCard({ creator }: { creator: Creator }) {
+  const { loginUser, isLogin } = useAuth();
   const router = useRouter();
 
-  // 현재 사용자 정보
-  const { data: currentUser } = useCurrentUser();
-
   // 팔로우 상태 (서버에서 가져온 값 우선, 없으면 초기값 사용)
-  const { data: isFollowingFromServer } = useFollowStatus(creator.id, currentUser?.id ?? null);
+  const { data: isFollowingFromServer } = useFollowStatus(creator.id, loginUser?.id ?? null);
   const isFollowing = isFollowingFromServer ?? creator.isFollowing;
 
   // 팔로우/언팔로우 뮤테이션
-  const { followMutation, unfollowMutation } = useFollowMutation(creator.id, currentUser?.id ?? null);
+  const { followMutation, unfollowMutation } = useFollowMutation(creator.id, loginUser?.id ?? null);
 
   const handleFollowToggle = async () => {
     // 로그인 확인
-    if (!currentUser) {
+    if (!isLogin) {
       const confirmLogin = window.confirm(
-        '팔로우 기능은 로그인이 필요합니다.\n로그인 페이지로 이동하시겠습니까?'
+        '팔로우 기능은 로그인이 필요합니다.\n로그인 페이지로 이동하시겠습니까?',
       );
       if (confirmLogin) {
         router.push('/auth/login');
@@ -85,7 +82,7 @@ export default function CreatorCard({ creator }: { creator: Creator }) {
           <p className="mt-2 text-white font-semibold text-xl">{creator.nickname}</p>
 
           {/* 팔로우 버튼 - 본인이 아닌 경우에만 표시 */}
-          {currentUser?.id !== creator.id && (
+          {loginUser?.id !== creator.id && (
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -103,10 +100,13 @@ export default function CreatorCard({ creator }: { creator: Creator }) {
                 }
               `}
             >
-              {(followMutation.isPending || unfollowMutation.isPending)
-                ? (isFollowing ? '처리중...' : '처리중...')
-                : (isFollowing ? '팔로잉' : '팔로우')
-              }
+              {followMutation.isPending || unfollowMutation.isPending
+                ? isFollowing
+                  ? '처리중...'
+                  : '처리중...'
+                : isFollowing
+                  ? '팔로잉'
+                  : '팔로우'}
             </button>
           )}
         </div>

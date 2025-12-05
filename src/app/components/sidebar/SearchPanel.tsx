@@ -43,11 +43,11 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
         {/* Search Box */}
         <div className="p-4">
           <div className="relative">
-            <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               ref={inputRef}
               type="text"
-              placeholder="검색어를 입력하세요..."
+              placeholder="통합 검색어를 입력하세요..."
               className="
               w-full pl-10 pr-3 py-2
               rounded-lg bg-gray-100
@@ -61,7 +61,7 @@ export default function SearchPanel({ onClose }: { onClose: () => void }) {
         {/* Body */}
         <div className="px-4 py-2">
           <h3 className="text-sm font-semibold text-gray-500 mb-2">최근 검색</h3>
-          <div className="text-gray-400 text-sm">기록이 없습니다.</div>
+          <div className="text-gray-400 text-sm">최근 검색 기록이 없습니다.</div>
         </div>
       </div>
     </>,

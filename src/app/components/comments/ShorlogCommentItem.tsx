@@ -1,8 +1,8 @@
 'use client';
 
-import { requireAuth } from '@/src/lib/auth';
+import { useRequireAuth } from '@/src/hooks/userRequireAuth';
 import { timeAgo } from '@/src/utils/timeAgo';
-import { Heart, MoreHorizontal } from 'lucide-react';
+import { EllipsisVertical, Heart } from 'lucide-react';
 import { useState } from 'react';
 import { CommentType } from '../../../types/comment';
 
@@ -29,12 +29,12 @@ export default function ShorlogCommentItem({
   const [editMode, setEditMode] = useState(false);
   const [editText, setEditText] = useState(comment.content);
   const [openReplies, setOpenReplies] = useState(false);
-
+  const requireAuth = useRequireAuth();
   /** 좋아요 처리 */
   const handleLike = async () => {
-    if (!(await requireAuth('좋아요'))) return;
+    if (!requireAuth('좋아요')) return;
 
-    // ✅ 내 댓글이면 좋아요 금지
+    // 내 댓글이면 좋아요 금지
     if (comment.isMine) {
       alert('내 댓글에는 좋아요를 누를 수 없습니다.');
       return;
@@ -49,7 +49,7 @@ export default function ShorlogCommentItem({
 
   /** 답글 작성 */
   const handleReplySubmit = async () => {
-    if (!(await requireAuth('댓글 작성'))) return;
+    if (!requireAuth('댓글 작성')) return;
     if (!replyText.trim()) return alert('내용을 입력해주세요.');
 
     await onReply(comment.id, replyText.trim());
@@ -73,7 +73,6 @@ export default function ShorlogCommentItem({
 
   return (
     <div className="py-4 border-b flex gap-3">
-
       {/* 프로필 이미지 */}
       <img
         src={comment.userProfileImgUrl || '/tmpProfile.png'}
@@ -81,15 +80,14 @@ export default function ShorlogCommentItem({
         className="h-8 w-8 rounded-full object-cover"
       />
 
-      <div className="flex-1 relative"> {/* 메뉴 absolute 기준 */}
-        
+      <div className="flex-1 relative">
+        {' '}
+        {/* 메뉴 absolute 기준 */}
         {/* 상단: 닉네임 + 시간 + 메뉴 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold">{comment.nickname}</span>
-            <span className="text-[11px] text-slate-400">
-              {timeAgo(comment.createdAt)}
-            </span>
+            <span className="text-[11px] text-slate-400">{timeAgo(comment.createdAt)}</span>
           </div>
 
           {/* 본인 댓글만 수정/삭제 메뉴 */}
@@ -98,11 +96,10 @@ export default function ShorlogCommentItem({
               onClick={() => setMenuOpen((prev) => !prev)}
               className="p-1 text-slate-500 hover:text-slate-700"
             >
-              <MoreHorizontal size={16} />
+              <EllipsisVertical size={16} />
             </button>
           )}
         </div>
-
         {/* 메뉴 — 위치 오류 해결 */}
         {menuOpen && (
           <div className="absolute right-0 top-6 bg-white border rounded-md shadow px-3 py-2 text-sm z-10">
@@ -124,7 +121,6 @@ export default function ShorlogCommentItem({
             </button>
           </div>
         )}
-
         {/* 내용 or 수정폼 */}
         {!editMode ? (
           <p className="text-sm whitespace-pre-line">{comment.content}</p>
@@ -139,15 +135,11 @@ export default function ShorlogCommentItem({
             <button className="text-blue-600 text-sm" onClick={handleEditSubmit}>
               저장
             </button>
-            <button
-              className="text-slate-500 text-sm"
-              onClick={() => setEditMode(false)}
-            >
+            <button className="text-slate-500 text-sm" onClick={() => setEditMode(false)}>
               취소
             </button>
           </div>
         )}
-
         {/* 좋아요 + 답글 */}
         <div className="flex items-center gap-3 mt-1">
           {/* 좋아요 */}
@@ -168,14 +160,13 @@ export default function ShorlogCommentItem({
 
           {depth === 0 && (
             <button
-                onClick={() => setReplyMode(prev => !prev)}
-                className="text-xs text-slate-600 hover:text-slate-900"
+              onClick={() => setReplyMode((prev) => !prev)}
+              className="text-xs text-slate-600 hover:text-slate-900"
             >
-                답글 달기
+              답글 달기
             </button>
-            )}
+          )}
         </div>
-
         {/* 답글 input */}
         {replyMode && (
           <div className="flex gap-2 mt-2">
@@ -186,15 +177,11 @@ export default function ShorlogCommentItem({
               className="flex-1 border rounded px-2 py-1 text-sm"
               placeholder="답글 입력..."
             />
-            <button
-              onClick={handleReplySubmit}
-              className="text-sm text-blue-600 font-semibold"
-            >
+            <button onClick={handleReplySubmit} className="text-sm text-blue-600 font-semibold">
               등록
             </button>
           </div>
         )}
-
         {/* 대댓글(1단계만 허용) */}
         {comment.children.length > 0 && (
           <div className="mt-2">
@@ -202,9 +189,7 @@ export default function ShorlogCommentItem({
               onClick={() => setOpenReplies((prev) => !prev)}
               className="text-xs text-slate-500 hover:text-slate-700"
             >
-              {openReplies
-                ? '답글 숨기기'
-                : `답글 ${comment.children.length}개 보기`}
+              {openReplies ? '답글 숨기기' : `답글 ${comment.children.length}개 보기`}
             </button>
 
             {openReplies && (
@@ -217,14 +202,13 @@ export default function ShorlogCommentItem({
                     onReply={onReply}
                     onDelete={onDelete}
                     onEdit={onEdit}
-                    depth={depth + 1} 
+                    depth={depth + 1}
                   />
                 ))}
               </div>
             )}
           </div>
         )}
-
       </div>
     </div>
   );

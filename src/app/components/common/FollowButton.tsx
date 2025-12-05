@@ -53,11 +53,9 @@ export default function FollowButton({
 
       if (previousState) {
         await unfollowMutation.mutateAsync();
-        showGlobalToast('언팔로우했습니다.', 'success');
         onFollowChange?.(false);
       } else {
         await followMutation.mutateAsync();
-        showGlobalToast('팔로우했습니다.', 'success');
         onFollowChange?.(true);
       }
     } catch (error) {

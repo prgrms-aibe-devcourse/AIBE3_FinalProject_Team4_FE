@@ -15,12 +15,15 @@ export function useFollowStatus(userId: number, currentUserId: number | null) {
     staleTime: 3 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     retry: (failureCount, error) => {
-      if (error instanceof Error && (error.message.includes('로그인') || error.message.includes('권한'))) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('로그인') || error.message.includes('권한'))
+      ) {
         return false;
       }
       return failureCount < 2; // 최대 2번 재시도
     },
-    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // 지수 백오프
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // 지수 백오프
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
   });
@@ -65,17 +68,20 @@ export function useFollowMutation(userId: number, currentUserId: number | null) 
       console.error('팔로우 실패:', { userId, error: errorMessage });
     },
     onSuccess: () => {
+      // 성공 토스트 표시
+      showGlobalToast('팔로우했습니다.', 'success');
+
       // 성공 시 관련 쿼리들 무효화
       queryClient.invalidateQueries({
         queryKey: ['follow'],
-        exact: false
+        exact: false,
       });
     },
     onSettled: () => {
       // 뮤테이션 완료 후 해당 사용자의 팔로우 상태 쿼리 무효화
       if (currentUserId) {
         queryClient.invalidateQueries({
-          queryKey: ['follow-status', currentUserId, userId]
+          queryKey: ['follow-status', currentUserId, userId],
         });
       }
     },
@@ -112,17 +118,20 @@ export function useFollowMutation(userId: number, currentUserId: number | null) 
       console.error('언팔로우 실패:', { userId, error: errorMessage });
     },
     onSuccess: () => {
+      // 성공 토스트 표시
+      showGlobalToast('언팔로우했습니다.', 'success');
+
       // 성공 시 관련 쿼리들 무효화
       queryClient.invalidateQueries({
         queryKey: ['follow'],
-        exact: false
+        exact: false,
       });
     },
     onSettled: () => {
       // 뮤테이션 완료 후 해당 사용자의 팔로우 상태 쿼리 무효화
       if (currentUserId) {
         queryClient.invalidateQueries({
-          queryKey: ['follow-status', currentUserId, userId]
+          queryKey: ['follow-status', currentUserId, userId],
         });
       }
     },

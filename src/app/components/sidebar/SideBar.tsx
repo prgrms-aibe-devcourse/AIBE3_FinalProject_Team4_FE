@@ -3,18 +3,24 @@
 import { useAuth } from '@/src/providers/AuthProvider';
 import { useLoginModal } from '@/src/providers/LoginModalProvider';
 import { Search } from 'lucide-react';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+
+import { useNotificationStore } from '@/src/stores/useNotificationsStore';
+import NotificationDropdown from '../notifications/NotificationDropDown';
 import MorePanel from './panel/MorePanel';
 import SearchPanel from './panel/SearchPanel';
 import { guestMenu, loggedInMenu } from './SideBarMenu';
-
 type OpenPanel = 'none' | 'more' | 'search';
 
 export default function Sidebar() {
   const { loginUser, isLogin } = useAuth();
   const { open } = useLoginModal();
 
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
+
+  const [openNotification, setOpenNotification] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openPanel, setOpenPanel] = useState<OpenPanel>('none');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -26,7 +32,8 @@ export default function Sidebar() {
   const moreModalRef = useRef<HTMLDivElement>(null);
   const searchWrapperRef = useRef<HTMLDivElement>(null);
 
-  const menu = isLogin ? loggedInMenu : guestMenu;
+  const menuData = isLogin ? loggedInMenu : guestMenu;
+  const menu = typeof menuData === 'function' ? menuData(0) : menuData;
 
   const isMoreOpen = openPanel === 'more';
   const isSearchOpen = openPanel === 'search';
@@ -34,12 +41,16 @@ export default function Sidebar() {
 
   const openPanelFn = (panel: OpenPanel) => {
     setOpenPanel(panel);
-    setIsCollapsed(true); // 패널 열면 자동 축소
+    setIsCollapsed(true);
   };
 
   const closePanelFn = () => {
     setOpenPanel('none');
-    setIsCollapsed(false); // 패널 닫으면 원래 크기
+    setIsCollapsed(false);
+  };
+
+  const goHome = () => {
+    router.push('/');
   };
 
   useEffect(() => {
@@ -47,7 +58,6 @@ export default function Sidebar() {
       if (window.innerWidth < 1280) {
         setIsCollapsed(true);
       } else {
-        // 패널이 열려있으면 collapsed 유지
         if (openPanel === 'none') {
           setIsCollapsed(false);
         }
@@ -58,9 +68,7 @@ export default function Sidebar() {
     return () => window.removeEventListener('resize', handleResize);
   }, [openPanel]);
 
-  /* ============================================================
-        외부 클릭 시 패널 닫기 (collapse는 변경 금지!)
-     ============================================================ */
+  // 외부 클릭 시 패널 닫기
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (showLogoutModal) return;
@@ -86,9 +94,7 @@ export default function Sidebar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openPanel, showLogoutModal]);
 
-  /* ============================================================
-        검색 페이지 벗어난 경우 사이드바 검색어 초기화
-     ============================================================ */
+  // 검색 페이지 벗어나면 search keyword 제거
   useEffect(() => {
     if (!pathname.startsWith('/search')) {
       setSidebarKeyword('');
@@ -106,58 +112,92 @@ export default function Sidebar() {
       `}
     >
       {/* ================= HEADER ================= */}
-      <div className="p-5 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <div className="w-10 h-10 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
-            📝
-          </div>
-
-          <div
-            className={`
-              transition-all overflow-hidden
-              ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}
-            `}
+      <div className="pl-1 pr-1 pt-5 pb-2 flex items-center justify-center">
+        {/* 1) 접혔을 때만 보이는 책 아이콘 버튼 */}
+        {isCollapsed && (
+          <button
+            type="button"
+            onClick={goHome}
+            className="flex items-center justify-center rounded-xl text-slate-900 transition"
           >
-            <span className="font-bold text-xl whitespace-nowrap">TEXTOK</span>
-          </div>
-        </div>
+            <Image
+              src="/icons/book.png"
+              alt="텍스톡 아이콘"
+              width={48}
+              height={39}
+              className="object-contain"
+            />
+          </button>
+        )}
+
+        {/* 2) 펼쳤을 때만 보이는 가로형 로고 */}
+        {!isCollapsed && (
+          <button
+            type="button"
+            onClick={goHome}
+            className="flex items-center justify-center transition py-2"
+          >
+            <Image
+              src="/icons/logo.png"
+              alt="textok 로고"
+              width={145}
+              height={44}
+              className="object-contain"
+            />
+          </button>
+        )}
       </div>
 
-      {/* =============== SEARCH + PANEL WRAPPER =============== */}
+      {/* SEARCH WRAPPER */}
       <div ref={searchWrapperRef}>
-        <div className="px-4 py-1 flex justify-start">
+        <div className="px-5 pt-2 pb-1">
           <div
             onClick={() => {
               if (isSearchOpen) closePanelFn();
               else openPanelFn('search');
             }}
             className={`
-              relative flex items-center cursor-pointer overflow-hidden
-              transition-all duration-300 ease-in-out
-              ${
-              isCollapsed
-                ? 'w-10 h-10 rounded-full justify-center'
-                : 'w-full h-10 rounded-full bg-gray-100 pl-12 pr-3 border border-gray-200'
-            }
-            `}
+        relative flex items-center cursor-pointer overflow-hidden
+        transition-all duration-200
+        mx-auto
+        ${
+          isCollapsed
+            ? 'h-10 w-10 justify-center rounded-full'
+            : 'h-10 w-full rounded-full pl-10 pr-3 border'
+        }
+        ${
+          isSearchOpen
+            ? 'bg-sky-50 border-sky-200 text-[#2979FF]'
+            : isCollapsed
+              ? ' text-slate-600 hover:bg-slate-100'
+              : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-white'
+        }
+      `}
           >
+            {/* 아이콘 */}
             <div
-              className="absolute left-3 top-1/2 -translate-y-1/2
-                         flex items-center justify-center w-7 h-7 pointer-events-none"
+              className={`
+          flex items-center justify-center
+          ${
+            isCollapsed
+              ? 'h-6 w-6 text-slate-600'
+              : 'pointer-events-none absolute left-3 top-1/2 h-6 w-6 -translate-y-1/2 text-slate-400'
+          }
+        `}
             >
-              <Search size={22} />
+              <Search size={18} />
             </div>
 
             <input
               type="text"
               readOnly
               value={sidebarKeyword}
-              placeholder="Search"
+              placeholder="검색어를 입력하세요"
               className={`
-                bg-transparent text-sm outline-none
-                transition-all duration-300
-                ${isCollapsed ? 'w-0 opacity-0' : 'w-full opacity-100'}
-              `}
+          bg-transparent text-sm outline-none text-slate-800 placeholder:text-slate-400
+          transition-all duration-200
+          ${isCollapsed ? 'w-0 opacity-0' : 'w-full opacity-100'}
+        `}
             />
           </div>
         </div>
@@ -171,14 +211,14 @@ export default function Sidebar() {
         )}
       </div>
 
-      {/* ======================= MENU LIST ======================= */}
+      {/* MENU LIST */}
       <nav className="flex-1 px-3 space-y-1 text-[15px]">
         {menu.map((item) => {
           const isActive =
             item.href === '/profile' ? pathname.startsWith('/profile') : pathname === item.href;
 
-          const isProtected = protectedMenus.includes(item.label);
           const isProfile = item.label === '프로필';
+          const isProtected = protectedMenus.includes(item.label);
 
           if (item.label === '더보기') {
             return (
@@ -189,32 +229,35 @@ export default function Sidebar() {
                     else openPanelFn('more');
                   }}
                   className={`
-                    flex items-center gap-3 px-4 py-2 rounded-lg transition-all
-                    ${isMoreOpen ? 'text-blue-600 font-medium' : 'text-gray-800 hover:bg-gray-100'}
-                  `}
+          w-full text-left flex items-center gap-3 px-4 py-2 rounded-lg transition-all
+          ${isMoreOpen ? 'text-blue-600 font-medium bg-slate-50' : 'text-gray-600 hover:bg-gray-100'}
+        `}
                 >
-                  <div className="flex items-center justify-center w-7 h-7 flex-shrink-0">
-                    <item.icon size={24} />
+                  {/* 아이콘 영역 – 다른 메뉴와 동일한 폭/정렬 */}
+                  <div
+                    className={`
+            flex items-center justify-center flex-shrink-0
+            ${isCollapsed ? 'w-6 h-6' : 'w-7 h-7'}
+            ${isMoreOpen ? 'rounded-xl bg-sky-50 text-[#2979FF]' : 'text-slate-500'}
+          `}
+                  >
+                    <item.icon size={20} />
                   </div>
 
+                  {/* 라벨 – 접히면 숨기고, 펼치면 보이기 */}
                   <span
                     className={`
-                      whitespace-nowrap transition-all duration-300
-                      ${isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'}
-                    `}
+            whitespace-nowrap transition-all duration-300
+            ${isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'}
+          `}
                   >
                     {item.label}
                   </span>
                 </button>
 
+                {/* 접힌 상태에서 툴팁 */}
                 {isCollapsed && (
-                  <span
-                    className="
-                      absolute left-20 top-1/2 -translate-y-1/2
-                      px-2 py-1 bg-gray-900 text-white text-xs rounded
-                      opacity-0 group-hover:opacity-100 transition pointer-events-none
-                    "
-                  >
+                  <span className="absolute left-20 top-1/2 -translate-y-1/2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">
                     {item.label}
                   </span>
                 )}
@@ -234,7 +277,10 @@ export default function Sidebar() {
             <div key={item.label} className="relative group">
               <button
                 onClick={() => {
-                  // 로그인 필요한 메뉴인데 로그인 안됨 → 모달 열기
+                  if (item.label === '알림') {
+                    setOpenNotification((prev) => !prev);
+                    return;
+                  }
                   if (isProtected && !isLogin) {
                     open();
                     return;
@@ -244,9 +290,12 @@ export default function Sidebar() {
                     router.push(`/profile/${loginUser.id}`);
                     return;
                   }
-                  
+
                   // 숏피드 버튼 클릭 시 강제 새로고침 (숏피드/프로필 페이지에서)
-                  if (item.href === '/shorlog/feed' && (pathname.startsWith('/shorlog') || pathname.startsWith('/profile'))) {
+                  if (
+                    item.href === '/shorlog/feed' &&
+                    (pathname.startsWith('/shorlog') || pathname.startsWith('/profile'))
+                  ) {
                     window.location.href = '/shorlog/feed';
                     return;
                   }
@@ -255,10 +304,15 @@ export default function Sidebar() {
                 }}
                 className={`
               w-full text-left flex items-center gap-3 px-4 py-2 rounded-lg transition-all
-              ${isActive ? 'text-blue-600 font-medium' : 'text-gray-800 hover:bg-gray-100'}
+              ${isActive ? 'text-blue-600 font-medium' : 'text-gray-600 hover:bg-gray-100'}
             `}
               >
-                <div className="flex items-center justify-center w-7 h-7 flex-shrink-0">
+                <div
+                  className={`
+      flex items-center justify-center flex-shrink-0
+      ${isCollapsed ? 'w-6 h-6' : 'w-7 h-7'}
+    `}
+                >
                   {isProfile && isLogin ? (
                     <img
                       src={loginUser?.profileImgUrl || '/tmpProfile.png'}
@@ -267,32 +321,33 @@ export default function Sidebar() {
                     />
                   ) : (
                     <>
-                      <item.icon size={24} />
-                      {item.alert && (
+                      <item.icon size={20} />
+
+                      {/* 알림 메뉴에 unreadCount > 0 이면 빨간 점 */}
+                      {item.label === '알림' && unreadCount > 0 && (
                         <span className="absolute -top-1.5 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                       )}
                     </>
                   )}
                 </div>
-
+                {/* 라벨 */}
                 <span
                   className={`
-                whitespace-nowrap transition-all
-                ${isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'}
-              `}
+                    whitespace-nowrap transition-all
+                    ${isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'}
+                  `}
                 >
                   {item.label}
                 </span>
               </button>
 
-              {/* Hover Tooltip */}
               {isCollapsed && (
                 <span
                   className="
-                absolute left-20 top-1/2 -translate-y-1/2
-                px-2 py-1 bg-gray-900 text-white text-xs rounded
-                opacity-0 group-hover:opacity-100 transition pointer-events-none
-              "
+      absolute left-20 top-1/2 -translate-y-1/2
+      px-2 py-1 bg-gray-900 text-white text-xs rounded
+      opacity-0 group-hover:opacity-100 transition pointer-events-none
+    "
                 >
                   {item.label}
                 </span>
@@ -312,6 +367,8 @@ export default function Sidebar() {
           </div>
         )}
       </nav>
+      {/* 알림 드롭다운 */}
+      {openNotification && <NotificationDropdown onClose={() => setOpenNotification(false)} />}
     </aside>
   );
 }
