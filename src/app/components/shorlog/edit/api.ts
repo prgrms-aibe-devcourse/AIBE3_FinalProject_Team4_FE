@@ -1,14 +1,8 @@
+import { LocalImage, UploadImageOrderRequest, UploadImageResponse } from '../create/types';
 import { UpdateShorlogRequest, UpdateShorlogResponse } from './types';
-import {
-  LocalImage,
-  UploadImageOrderRequest,
-  UploadImageResponse,
-} from '../create/types';
 
 // 이미지 일괄 업로드 (생성과 동일)
-export async function uploadImagesBatch(
-  images: LocalImage[],
-): Promise<UploadImageResponse[]> {
+export async function uploadImagesBatch(images: LocalImage[]): Promise<UploadImageResponse[]> {
   const formData = new FormData();
 
   // FILE 타입 이미지의 인덱스를 추적하기 위한 카운터
@@ -27,7 +21,7 @@ export async function uploadImagesBatch(
       order: index,
       type: type,
       fileIndex: fileIndex,
-      url: img.sourceType === 'URL' ? img.remoteUrl ?? null : null,
+      url: img.sourceType === 'URL' ? (img.remoteUrl ?? null) : null,
       aspectRatio: img.aspectRatio,
     };
   });
@@ -44,7 +38,6 @@ export async function uploadImagesBatch(
       console.log(`📎 파일 ${fileCount - 1}: ${img.file.name}`);
     }
   });
-
 
   if (totalFileSize > 100 * 1024 * 1024) {
     throw new Error('파일 전체 크기가 100MB를 초과합니다. 일부 이미지를 제거해주세요.');
@@ -65,13 +58,14 @@ export async function uploadImagesBatch(
     const result = await response.json();
     return result.data || [];
   } catch (error) {
-
     if (error instanceof TypeError && error.message === 'Failed to fetch') {
       throw new Error('서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.');
     }
 
     if (error instanceof Error && error.message.includes('net::ERR_CONNECTION_RESET')) {
-      throw new Error('파일 크기가 너무 크거나 서버 제한을 초과했습니다. 이미지를 압축하거나 개수를 줄여주세요.');
+      throw new Error(
+        '파일 크기가 너무 크거나 서버 제한을 초과했습니다. 이미지를 압축하거나 개수를 줄여주세요.',
+      );
     }
 
     throw error;
@@ -81,7 +75,7 @@ export async function uploadImagesBatch(
 // 숏로그 수정 API
 export async function updateShorlog(
   shorlogId: string,
-  payload: UpdateShorlogRequest
+  payload: UpdateShorlogRequest,
 ): Promise<UpdateShorlogResponse> {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
@@ -146,4 +140,3 @@ export async function deleteShorlog(shorlogId: string): Promise<void> {
     throw new Error(errorData.message || '숏로그 삭제 실패');
   }
 }
-

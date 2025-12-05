@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Bookmark } from 'lucide-react';
-import { addBookmark, removeBookmark, getBookmarkStatus } from '@/src/api/shorlogBookmarkApi';
+import { addBookmark, getBookmarkStatus, removeBookmark } from '@/src/api/shorlogBookmarkApi';
 import { handleApiError } from '@/src/lib/handleApiError';
 import { showGlobalToast } from '@/src/lib/toastStore';
+import { Bookmark } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 interface BookmarkButtonProps {
   shorlogId: number;
@@ -116,8 +116,13 @@ export default function BookmarkButton({
   // 로딩 중일 때 표시할 컴포넌트
   if (isCheckingAuth) {
     return (
-      <button disabled className={`flex items-center justify-center ${variant === 'small' ? 'p-1' : 'p-2'}`}>
-        <Bookmark className={`${variant === 'small' ? 'h-4 w-4' : 'h-5 w-5'} text-slate-300 animate-pulse`} />
+      <button
+        disabled
+        className={`flex items-center justify-center ${variant === 'small' ? 'p-1' : 'p-2'}`}
+      >
+        <Bookmark
+          className={`${variant === 'small' ? 'h-4 w-4' : 'h-5 w-5'} text-slate-300 animate-pulse`}
+        />
       </button>
     );
   }
@@ -137,19 +142,22 @@ export default function BookmarkButton({
         className={`
           ${variant === 'small' ? 'h-4 w-4' : 'h-5 w-5'}
           transition-all duration-200
-          ${isBookmarked 
-            ? 'fill-yellow-500 text-yellow-500' 
-            : 'fill-none text-slate-500 hover:text-yellow-400'
+          ${
+            isBookmarked
+              ? 'fill-yellow-500 text-yellow-500'
+              : 'fill-none text-slate-500 hover:text-yellow-400'
           }
           ${isLoading ? 'animate-pulse' : ''}
         `}
       />
 
       {showCount && (
-        <span className={`
+        <span
+          className={`
           font-medium transition-colors duration-200
           ${isBookmarked ? 'text-yellow-500' : 'text-slate-600'}
-        `}>
+        `}
+        >
           {bookmarkCount.toLocaleString()}
         </span>
       )}
