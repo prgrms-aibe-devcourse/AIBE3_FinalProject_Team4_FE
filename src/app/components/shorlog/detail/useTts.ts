@@ -94,16 +94,22 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
       }
 
       // 캐시가 유효하면 기존 것 재생
-      if (isCacheValid) {
+      if (isCacheValid && ttsUrl) {
         audioPlayer.play(ttsUrl);
         setMode('ai');
         setIsLoading(false);
         return;
       }
 
-      // TTS 생성 또는 기존 것 가져오기
-      const response = await TtsService.generateTts(shorlogId);
-      if (response) {
+      // 먼저 기존 TTS URL 조회 시도
+      let response = await TtsService.getTtsUrl(shorlogId);
+
+      // 기존 TTS가 없으면 새로 생성
+      if (!response || !response.ttsUrl) {
+        response = await TtsService.generateTts(shorlogId);
+      }
+
+      if (response && response.ttsUrl) {
         setTtsUrl(response.ttsUrl);
         setCachedUserId(currentUserId);
         setCachedShorlogId(shorlogId);
@@ -115,9 +121,14 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
           token: response.remainingToken,
           resetDate: tokens?.resetDate || new Date().toISOString()
         });
+      } else {
+        // TTS URL이 없으면 Web Speech 사용
+        playWebSpeech();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'TTS 생성에 실패했습니다.');
+      const errorMessage = err instanceof Error ? err.message : 'TTS 생성에 실패했습니다.';
+      console.error('TTS 에러:', errorMessage);
+      setError(errorMessage);
       playWebSpeech();
     } finally {
       setIsLoading(false);
