@@ -72,18 +72,12 @@ export default function BlogSearchCard({ item, searchKeyword }: BlogSearchCardPr
         {/* 작성자 + 프로필 */}
         <div className="flex items-center gap-2">
           <div className="h-7 w-7 overflow-hidden rounded-full bg-slate-200">
-            {hasProfile ? (
               <img
               src={item.profileImageUrl || '/tmpProfile.png'}
               alt={`${item.userNickname} 프로필 이미지`}
               className="h-full w-full object-cover"
               loading="lazy"
             />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-slate-700">
-                {item.userNickname.charAt(0)}
-              </div>
-            )}
           </div>
           <p className="truncate text-xs font-semibold text-slate-900">{item.userNickname}</p>
         </div>

@@ -237,8 +237,13 @@ export default function Sidebar() {
                   <div
                     className={`
             flex items-center justify-center flex-shrink-0
-            ${isCollapsed ? 'w-6 h-6' : 'w-7 h-7'}
-            ${isMoreOpen ? 'rounded-xl bg-sky-50 text-[#2979FF]' : 'text-slate-500'}
+           ${
+             isMoreOpen
+               ? 'text-[#2979FF]'
+               : isCollapsed
+                 ? ' text-slate-600 hover:bg-slate-100'
+                 : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-white'
+           }
           `}
                   >
                     <item.icon size={20} />
