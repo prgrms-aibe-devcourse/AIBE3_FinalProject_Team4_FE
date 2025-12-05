@@ -64,7 +64,8 @@ export async function uploadImagesBatch(images: LocalImage[]): Promise<UploadIma
         statusText: response.statusText,
         errorData,
       });
-      throw new Error(errorData.message || `이미지 업로드 실패 (${response.status})`);
+      // RsData 형식: { resultCode, msg, data }
+      throw new Error(errorData.msg || errorData.message || `이미지 업로드 실패 (${response.status})`);
     }
 
     const result = await response.json();
@@ -95,7 +96,6 @@ export async function uploadImagesBatch(images: LocalImage[]): Promise<UploadIma
 }
 
 export async function createShorlog(payload: CreateShorlogRequest): Promise<any> {
-
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/shorlog`, {
       method: 'POST',
@@ -108,10 +108,18 @@ export async function createShorlog(payload: CreateShorlogRequest): Promise<any>
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      const errorMessage = errorData.message || `숏로그 생성 실패 (${response.status})`;
+      console.log('숏로그 생성 에러 응답:', errorData);
 
-      // 해시태그 관련 오류인 경우 더 명확한 메시지
-      if (errorMessage.includes('해시태그') || errorMessage.includes('hashtag')) {
+      // RsData 형식: { resultCode, msg, data }
+      const errorMessage = errorData.msg || errorData.message || errorData.error || `숏로그 생성 실패 (${response.status})`;
+
+      // 해시태그 관련 오류 감지 (400 에러이면서 해시태그 관련)
+      if (
+        response.status === 400 &&
+        (errorMessage.toLowerCase().includes('해시태그') ||
+          errorMessage.toLowerCase().includes('hashtag') ||
+          errorMessage.toLowerCase().includes('특수문자'))
+      ) {
         throw new Error('해시태그는 한글, 영문, 숫자만 사용 가능합니다.');
       }
 
@@ -147,7 +155,8 @@ export async function callAiApi(params: {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `AI API 호출 실패 (${response.status})`);
+      // RsData 형식: { resultCode, msg, data }
+      throw new Error(errorData.msg || errorData.message || `AI API 호출 실패 (${response.status})`);
     }
 
     const result = await response.json();
@@ -192,7 +201,8 @@ export async function getDrafts(): Promise<DraftResponse[]> {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `임시저장 조회 실패 (${response.status})`);
+      // RsData 형식: { resultCode, msg, data }
+      throw new Error(errorData.msg || errorData.message || `임시저장 조회 실패 (${response.status})`);
     }
 
     const result = await response.json();
@@ -219,10 +229,18 @@ export async function createDraft(data: DraftData): Promise<DraftResponse> {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      const errorMessage = errorData.message || `임시저장 실패 (${response.status})`;
+      console.log('임시저장 에러 응답:', errorData);
 
-      // 해시태그 관련 오류인 경우 더 명확한 메시지
-      if (errorMessage.includes('해시태그') || errorMessage.includes('hashtag')) {
+      // RsData 형식: { resultCode, msg, data }
+      const errorMessage = errorData.msg || errorData.message || errorData.error || `임시저장 실패 (${response.status})`;
+
+      // 해시태그 관련 오류 감지 (400 에러이면서 해시태그 관련)
+      if (
+        response.status === 400 &&
+        (errorMessage.toLowerCase().includes('해시태그') ||
+          errorMessage.toLowerCase().includes('hashtag') ||
+          errorMessage.toLowerCase().includes('특수문자'))
+      ) {
         throw new Error('해시태그는 한글, 영문, 숫자만 사용 가능합니다.');
       }
 
@@ -249,7 +267,8 @@ export async function getDraft(id: number): Promise<DraftResponse> {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `임시저장 조회 실패 (${response.status})`);
+      // RsData 형식: { resultCode, msg, data }
+      throw new Error(errorData.msg || errorData.message || `임시저장 조회 실패 (${response.status})`);
     }
 
     const result = await response.json();
@@ -264,7 +283,6 @@ export async function getDraft(id: number): Promise<DraftResponse> {
 
 // 임시저장 삭제
 export async function deleteDraft(id: number): Promise<void> {
-
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/draft/${id}`, {
       method: 'DELETE',
@@ -273,7 +291,8 @@ export async function deleteDraft(id: number): Promise<void> {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `임시저장 삭제 실패 (${response.status})`);
+      // RsData 형식: { resultCode, msg, data }
+      throw new Error(errorData.msg || errorData.message || `임시저장 삭제 실패 (${response.status})`);
     }
   } catch (error) {
     if (error instanceof TypeError && error.message === 'Failed to fetch') {
