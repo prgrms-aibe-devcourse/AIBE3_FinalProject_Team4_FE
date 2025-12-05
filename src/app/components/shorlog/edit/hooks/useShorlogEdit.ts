@@ -133,12 +133,6 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
       // 모든 이미지가 이미 업로드되었으므로 uploadedImages의 ID만 사용
       const allImageIds = uploadedImages.map(img => img.id);
 
-      console.log('📝 수정 요청:', {
-        imagesCount: images.length,
-        uploadedImagesCount: uploadedImages.length,
-        allImageIds,
-      });
-
       if (allImageIds.length === 0) {
         setError('최소 1개의 이미지가 필요합니다.');
         return;
@@ -155,7 +149,6 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
       // 기존 모달 상태를 정리하기 위해 새로고침 방식으로 이동
       window.location.href = `/profile/${result.userId || initialData.userId}`;
     } catch (e) {
-      console.error(e);
       setError(e instanceof Error ? e.message : '숏로그 수정 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);

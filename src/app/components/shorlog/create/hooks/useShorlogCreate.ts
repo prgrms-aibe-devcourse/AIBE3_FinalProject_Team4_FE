@@ -147,7 +147,6 @@ export function useShorlogCreate() {
       setUploadedImages(uploaded);
       return uploaded;
     } catch (e) {
-      console.error(e);
       throw e;
     }
   };
@@ -190,7 +189,6 @@ export function useShorlogCreate() {
         router.push(`/profile/${userId}`);
       }
     } catch (e) {
-      console.error(e);
       showGlobalToast(
         e instanceof Error ? e.message : '숏로그 생성 중 오류가 발생했습니다.',
         'error',

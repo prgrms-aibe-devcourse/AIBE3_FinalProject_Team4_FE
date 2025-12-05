@@ -68,7 +68,6 @@ export function useHashtag(initialHashtags: string[] = []) {
       setHashtags(merged);
       return { error: null };
     } catch (e) {
-      console.error(e);
       return { error: e instanceof Error ? e.message : 'AI 해시태그 추천 호출 중 오류가 발생했습니다.' };
     } finally {
       setIsAiLoading(false);

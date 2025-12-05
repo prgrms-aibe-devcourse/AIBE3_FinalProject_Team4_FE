@@ -15,7 +15,6 @@ export class TtsService {
       }
       return null;
     } catch (err) {
-      console.error('토큰 조회 실패:', err);
       return null;
     }
   }
@@ -30,7 +29,6 @@ export class TtsService {
         throw new Error(response.msg);
       }
     } catch (err) {
-      console.error('AI TTS 생성 실패:', err);
       throw err;
     }
   }

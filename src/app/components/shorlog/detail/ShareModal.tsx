@@ -55,7 +55,6 @@ export default function ShareModal({
       setTimeout(() => setIsCopied(false), 2000);
       success('링크가 클립보드에 복사되었습니다.');
     } catch (copyError) {
-      console.error('클립보드 복사 실패:', copyError);
       // Fallback: 수동 복사
       const textArea = document.createElement('textarea');
       textArea.value = shareData.url;

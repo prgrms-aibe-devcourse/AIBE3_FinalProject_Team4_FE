@@ -1,7 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
-
 export default function ShorlogDetailError({
   error,
   reset,
@@ -9,9 +7,6 @@ export default function ShorlogDetailError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error('숏로그 상세보기 에러:', error);
-  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50">

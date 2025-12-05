@@ -69,7 +69,6 @@ export default function ShorlogModalPage() {
           setMe(meData);
         }
       } catch (e: any) {
-        console.error('숏로그 조회 실패', e);
         if (!cancelled) {
           setLoadError(e);
         }

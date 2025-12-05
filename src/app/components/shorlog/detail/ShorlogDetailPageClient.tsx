@@ -223,7 +223,7 @@ export default function ShorlogDetailPageClient({
         setLinkedBlogs([]);
       }
     } catch (error) {
-      console.error('연결된 블로그 정보 로드 실패:', error);
+      // 에러 무시
     }
   };
 

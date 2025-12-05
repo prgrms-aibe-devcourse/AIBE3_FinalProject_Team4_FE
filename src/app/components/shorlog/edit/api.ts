@@ -98,7 +98,6 @@ export async function updateShorlog(
     const result = await response.json();
     return result.data;
   } catch (error) {
-    console.error('숏로그 수정 오류:', error);
     throw error;
   }
 }

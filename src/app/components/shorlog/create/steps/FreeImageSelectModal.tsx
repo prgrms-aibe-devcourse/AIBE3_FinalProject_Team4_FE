@@ -63,7 +63,6 @@ export default function FreeImageSelectModal({
         setError('검색 결과가 없습니다. 다른 키워드를 시도해보세요.');
       }
     } catch (e) {
-      console.error('이미지 검색 실패:', e);
       setError(e instanceof Error ? e.message : '이미지를 불러오는데 실패했습니다.');
     } finally {
       setIsLoading(false);

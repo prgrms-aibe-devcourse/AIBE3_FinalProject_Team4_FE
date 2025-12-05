@@ -67,7 +67,6 @@ export default function ShorlogAuthorHeader({
       // 모달을 확실히 닫기 위해 window.location.href 사용
       window.location.href = `/profile/${userId}`;
     } catch (error) {
-      console.error('삭제 오류:', error);
       showGlobalToast(error instanceof Error ? error.message : '숏로그 삭제 중 오류가 발생했습니다.', 'error');
       setIsDeleting(false);
       setShowDeleteModal(false);

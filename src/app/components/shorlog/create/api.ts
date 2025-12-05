@@ -21,7 +21,6 @@ export async function uploadImagesBatch(images: LocalImage[]): Promise<UploadIma
     };
   });
 
-  console.log('📤 업로드 요청 orders:', JSON.stringify(orders, null, 2));
   formData.append('orders', JSON.stringify(orders));
 
   let totalFileSize = 0;
@@ -31,24 +30,14 @@ export async function uploadImagesBatch(images: LocalImage[]): Promise<UploadIma
       formData.append('files', img.file);
       totalFileSize += img.file.size;
       fileCount++;
-      console.log(
-        `  📎 파일 ${index + 1}: ${img.file.name} (${(img.file.size / 1024 / 1024).toFixed(2)}MB)`,
-      );
     }
   });
-
-  console.log(`\n📊 업로드 요약:`);
-  console.log(`  - 총 이미지 수: ${images.length}`);
-  console.log(`  - FILE 타입: ${fileCount}개`);
-  console.log(`  - URL 타입: ${images.filter((img) => img.sourceType === 'URL').length}개`);
-  console.log(`  - 총 파일 크기: ${(totalFileSize / 1024 / 1024).toFixed(2)}MB`);
 
   if (totalFileSize > 100 * 1024 * 1024) {
     // 100MB
     throw new Error('파일 전체 크기가 100MB를 초과합니다. 일부 이미지를 제거해주세요.');
   }
 
-  console.log(`\n🚀 업로드 시작: POST /api/v1/shorlog/images/batch`);
 
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/images/batch`, {

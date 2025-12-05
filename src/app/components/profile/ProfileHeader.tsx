@@ -127,7 +127,7 @@ export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) =
         setFollowingCount(j2.data.followingCount ?? followingCount);
       }
     } catch (e) {
-      console.error('팔로우 보정 실패:', e);
+      // 에러 무시
     }
   };
 
@@ -135,7 +135,6 @@ export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) =
     setLoading(true);
     try {
       const created = await messagesApi.createThreadWithMe(myId, profile.id);
-      console.log('Created message thread:', created);
       router.push(`/messages/?threadId=${created.messageThreadId}`);
     } finally {
       setLoading(false);

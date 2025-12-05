@@ -55,7 +55,7 @@ export default function ShorlogCommentSection({
 
       setComments(data);
     } catch (err) {
-      console.error(err);
+      // 에러 무시
     } finally {
       setLoading(false);
     }

@@ -92,7 +92,6 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
         await fetchTokens(); // 토큰 업데이트
       }
     } catch (err) {
-      console.error('AI TTS 생성 실패:', err);
       setError(err instanceof Error ? err.message : 'TTS 생성에 실패했습니다.');
       playWebSpeech(); // 실패 시 Web Speech로 전환
     } finally {

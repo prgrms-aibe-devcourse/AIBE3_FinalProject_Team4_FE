@@ -149,7 +149,6 @@ export class TtsWebSpeech {
     };
 
     utterance.onerror = (event) => {
-      console.error('Web Speech 오류:', event.error);
       this.onError?.('음성 재생에 실패했습니다.');
     };
 
@@ -225,7 +224,6 @@ export class TtsFileDownloader {
       // blob URL 해제 (메모리 누수 방지)
       window.URL.revokeObjectURL(blobUrl);
     } catch (error) {
-      console.error('다운로드 실패:', error);
 
       // 실패 시 기존 방식으로 폴백 (새 탭에서 열기)
       const link = document.createElement('a');
