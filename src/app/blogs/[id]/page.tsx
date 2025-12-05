@@ -63,7 +63,7 @@ export default function BlogDetailPage() {
 if (loading)
   return (
     <div className="p-8">
-      <LoadingSpinner />
+      <LoadingSpinner label="블로그 페이지 로딩중입니다"/>
     </div>
   );
 if (!blog) return <div className="p-8">존재하지 않는 게시글입니다.</div>;
@@ -83,7 +83,11 @@ if (!blog) return <div className="p-8">존재하지 않는 게시글입니다.</
     router.push(`/blogs/${blogId}/edit`);
   };
 
-  if (loading) return <p className="p-8">로딩 중...</p>;
+  if (loading) return (
+    <div className="p-8">
+      <LoadingSpinner label="게시글을 불러오는 중입니다" />
+    </div>
+  );
 
   if (loadError) {
     return <p className="p-8">게시글을 불러오는 중 오류가 발생했습니다.</p>;
