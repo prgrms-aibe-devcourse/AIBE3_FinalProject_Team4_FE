@@ -31,7 +31,7 @@ export default function ChatInput({
   const handleModelSelect = (value: ModelOption['value']) => {
     onModelChange(value);
   };
-  const isModelDisabled = !selected.enabled;
+  const isModelDisabled = !selected || !selected.enabled;
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const isAnswering = aiChat.isStreaming;
