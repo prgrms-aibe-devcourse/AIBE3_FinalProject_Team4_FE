@@ -248,7 +248,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
    *  렌더
    * ============================= */
   return (
-    <section className="border-slate-100 px-3 py-1 sm:px-4">
+    <section className="border-slate-100 px-3 py-1 sm:px-1">
       {/* 댓글 헤더 */}
       <div className="flex items-center gap-1 mb-4">
         <div className="flex h-6 w-6 items-center justify-center rounded-full text-slate-500">
@@ -261,7 +261,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
       </div>
 
       {/* 입력창 */}
-      <div className="rounded-2xl border border-slate-100 bg-slate-50/80 px-3 py-2.5 sm:px-4 sm:py-3">
+      <div className="rounded-2xl border border-slate-100 bg-slate-50/80 px-3 py-7 sm:px-0.5 sm:py-2">
         <div className="flex items-center gap-2">
           {/* 프로필 자리 (지금은 간단한 플레이스홀더) */}
           {/* <div className="hidden h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-[11px] font-semibold text-slate-600 sm:flex">

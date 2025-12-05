@@ -40,7 +40,14 @@ export function BlogCard({ blog }: BlogCardProps) {
 
           <div className="flex-1 space-y-3">
             <div className="flex items-center gap-2 text-xs text-slate-500">
-              <AuthorAvatar name={blog.userNickname} url={blog.profileImageUrl ?? undefined} />
+              <div className="relative h-7 w-7 overflow-hidden rounded-full bg-slate-200">
+                <img
+                  src={blog.profileImageUrl || '/tmpProfile.png'}
+                  alt={`${blog.userNickname} 프로필 이미지`}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              </div>
               <span className="font-medium text-slate-800">{blog.userNickname}</span>
               <span className="h-1 w-1 rounded-full bg-slate-300" aria-hidden />
               <span className="h-1 w-1 rounded-full bg-slate-300" aria-hidden />
@@ -59,7 +66,7 @@ export function BlogCard({ blog }: BlogCardProps) {
               </h2>
               <p className="line-clamp-2 text-xs text-slate-500 sm:text-sm">
                 {' '}
-                {buildPreview(blog.contentPre )}
+                {buildPreview(blog.contentPre)}
               </p>
             </div>
 
@@ -129,20 +136,20 @@ type AuthorAvatarProps = {
 };
 
 function AuthorAvatar({ name, url }: AuthorAvatarProps) {
-  const initial = name.charAt(0);
-  if (!url) {
-    return (
-      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-[11px] font-semibold text-slate-700">
-        {initial}
-      </div>
-    );
-  }
-
-  return (
-    <div className="relative h-7 w-7 overflow-hidden rounded-full bg-slate-200">
-      <Image src={url} alt={`${name} 프로필 이미지`} fill sizes="28px" className="object-cover" />
-    </div>
-  );
+  // 닉네임의 첫번째 글자를 프로필로 쓰는
+  // const initial = name.charAt(0);
+  // if (!url) {
+  //   return (
+  //     <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-[11px] font-semibold text-slate-700">
+  //       {initial}
+  //     </div>
+  //   );
+  // }
+  // return (
+  //   <div className="relative h-7 w-7 overflow-hidden rounded-full bg-slate-200">
+  //     <Image src={url} alt={`${name} 프로필 이미지`} fill sizes="28px" className="object-cover" />
+  //   </div>
+  // );
 }
 
 type StatProps = {
