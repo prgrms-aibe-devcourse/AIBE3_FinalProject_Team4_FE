@@ -4,11 +4,6 @@ import apiClient from './apiClient';
 // 공통 에러 처리 함수
 async function handleFollowResponse(response: Response, actionType: 'follow' | 'unfollow') {
   if (response.ok) {
-    if (actionType === 'follow') {
-      showGlobalToast('팔로우했습니다.', 'success');
-    } else {
-      showGlobalToast('언팔로우했습니다.', 'success');
-    }
     return;
   }
 

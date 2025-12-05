@@ -354,7 +354,7 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
           onClose={handleCloseConnectModal}
           onSkip={handleCloseConnectModal}
           onLinked={(res) => {
-            showGlobalToast('연관된 숏로그를 연결했어요.', 'success');
+            handleCloseConnectModal();
           }}
           onCreateNewShorlog={() => router.push(`/shorlog/create?blogId=${publishedBlogId}`)}
         />
