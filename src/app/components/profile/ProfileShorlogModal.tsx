@@ -60,8 +60,11 @@ export default function ProfileShorlogModal({
   onNavigate
 }: Omit<Props, 'profileUserId'>) {
   const [detail, setDetail] = useState<ShorlogDetail | null>(null);
+  const [nextDetail, setNextDetail] = useState<ShorlogDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [fadeOut, setFadeOut] = useState(false);
 
   // 이전/다음 항목 계산
   const hasPrev = currentIndex > 0;
@@ -69,16 +72,52 @@ export default function ProfileShorlogModal({
   const prevItem = hasPrev ? allItems[currentIndex - 1] : null;
   const nextItem = hasNext ? allItems[currentIndex + 1] : null;
 
+  // 다음/이전 숏로그 프리페칭 및 캐싱
+  useEffect(() => {
+    const prefetchAndCache = async (id: number) => {
+      try {
+        const detail = await fetchShorlogDetail(id);
+        // 다음 항목이면 미리 상태에 저장
+        if (nextItem && id === nextItem.id) {
+          setNextDetail(detail);
+        }
+      } catch {
+        // 프리페칭 실패는 무시
+      }
+    };
+
+    if (prevItem) prefetchAndCache(prevItem.id);
+    if (nextItem) prefetchAndCache(nextItem.id);
+  }, [prevItem, nextItem]);
+
   // 숏로그 상세 정보 로드
   useEffect(() => {
     async function loadDetail() {
       try {
+        // 네비게이션 중이면 페이드 아웃 먼저
+        if (isNavigating) {
+          setFadeOut(true);
+          await new Promise(resolve => setTimeout(resolve, 150));
+        }
+
         setLoading(true);
         setError(null);
-        const shorlogDetail = await fetchShorlogDetail(shorlogId);
-        setDetail(shorlogDetail);
+
+        // 캐시된 데이터가 있으면 사용
+        if (nextDetail && nextDetail.id === shorlogId) {
+          setDetail(nextDetail);
+          setNextDetail(null);
+        } else {
+          const shorlogDetail = await fetchShorlogDetail(shorlogId);
+          setDetail(shorlogDetail);
+        }
+
+        setFadeOut(false);
+        setIsNavigating(false);
       } catch (err) {
         setError(err instanceof Error ? err.message : '숏로그를 불러오는데 실패했습니다.');
+        setIsNavigating(false);
+        setFadeOut(false);
       } finally {
         setLoading(false);
       }
@@ -107,13 +146,15 @@ export default function ProfileShorlogModal({
 
   // 네비게이션 핸들러
   const handlePrev = () => {
-    if (hasPrev && prevItem) {
+    if (hasPrev && prevItem && !isNavigating) {
+      setIsNavigating(true);
       onNavigate(prevItem.id, currentIndex - 1);
     }
   };
 
   const handleNext = () => {
-    if (hasNext && nextItem) {
+    if (hasNext && nextItem && !isNavigating) {
+      setIsNavigating(true);
       onNavigate(nextItem.id, currentIndex + 1);
     }
   };
@@ -139,20 +180,30 @@ export default function ProfileShorlogModal({
       {hasPrev && (
         <button
           onClick={handlePrev}
-          className="absolute left-4 top-1/2 z-60 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full border-2 border-white bg-white text-2xl text-slate-700 shadow-xl transition hover:bg-slate-50 hover:scale-110"
+          disabled={isNavigating}
+          className="absolute left-4 top-1/2 z-60 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full border-2 border-white bg-white text-2xl text-slate-700 shadow-xl transition-all duration-200 hover:bg-slate-50 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="이전 숏로그"
         >
-          <ChevronLeft className="h-6 w-6" />
+          {isNavigating ? (
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700"></div>
+          ) : (
+            <ChevronLeft className="h-6 w-6" />
+          )}
         </button>
       )}
 
       {hasNext && (
         <button
           onClick={handleNext}
-          className="absolute right-4 top-1/2 z-60 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full border-2 border-white bg-white text-2xl text-slate-700 shadow-xl transition hover:bg-slate-50 hover:scale-110"
+          disabled={isNavigating}
+          className="absolute right-4 top-1/2 z-60 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full border-2 border-white bg-white text-2xl text-slate-700 shadow-xl transition-all duration-200 hover:bg-slate-50 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="다음 숏로그"
         >
-          <ChevronRight className="h-6 w-6" />
+          {isNavigating ? (
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700"></div>
+          ) : (
+            <ChevronRight className="h-6 w-6" />
+          )}
         </button>
       )}
 
@@ -193,7 +244,7 @@ export default function ProfileShorlogModal({
           <div className="w-full">
             <ShorlogDetailPageClient
               detail={detail}
-              isOwner={false} // TODO: 로그인 유저와 비교
+              isOwner={false}
               hideNavArrows={true}
             />
           </div>

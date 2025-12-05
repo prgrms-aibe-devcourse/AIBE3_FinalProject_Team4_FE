@@ -64,6 +64,7 @@ function PrevNextNavArrows({ currentId }: { currentId: number }) {
   const searchParams = useSearchParams();
   const [prevId, setPrevId] = useState<string | null>(null);
   const [nextId, setNextId] = useState<string | null>(null);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
     let prev = searchParams.get('prev');
@@ -90,12 +91,35 @@ function PrevNextNavArrows({ currentId }: { currentId: number }) {
 
     setPrevId(prev);
     setNextId(next);
+
+    // 페이지 로드 완료 시 네비게이션 상태 해제
+    setIsNavigating(false);
   }, [currentId, searchParams]);
+
+  // 다음/이전 숏로그 데이터 프리페칭
+  useEffect(() => {
+    const prefetchShorlog = async (id: string) => {
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+        await fetch(`${API_URL}/api/v1/shorlog/${id}`, {
+          cache: 'force-cache',
+          credentials: 'include',
+        });
+      } catch {
+        // 프리페칭 실패는 무시
+      }
+    };
+
+    if (prevId) prefetchShorlog(prevId);
+    if (nextId) prefetchShorlog(nextId);
+  }, [prevId, nextId]);
 
   const hasPrev = !!prevId;
   const hasNext = !!nextId;
 
   const handleNavigation = (targetId: string) => {
+    setIsNavigating(true);
+
     // 프로필에서 온 경우 프로필 컨텍스트 유지
     const profileId = searchParams.get('profileId');
     const source = typeof window !== 'undefined' ? sessionStorage.getItem('shorlog_source') : null;
@@ -141,15 +165,21 @@ function PrevNextNavArrows({ currentId }: { currentId: number }) {
           type="button"
           aria-label="이전 숏로그"
           onClick={() => handleNavigation(prevId!)}
+          disabled={isNavigating}
           className="
             absolute left-0 top-1/2 z-50 -translate-x-12 -translate-y-1/2
             flex h-12 w-12 items-center justify-center rounded-full
             border-2 border-white bg-white text-2xl text-slate-700
-            shadow-xl transition hover:bg-slate-50 hover:scale-110
+            shadow-xl transition-all duration-200 hover:bg-slate-50 hover:scale-110
+            disabled:opacity-50 disabled:cursor-not-allowed
             md:flex
           "
         >
-          ‹
+          {isNavigating ? (
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700"></div>
+          ) : (
+            '‹'
+          )}
         </button>
       )}
       {hasNext && (
@@ -157,15 +187,21 @@ function PrevNextNavArrows({ currentId }: { currentId: number }) {
           type="button"
           aria-label="다음 숏로그"
           onClick={() => handleNavigation(nextId!)}
+          disabled={isNavigating}
           className="
             absolute right-0 top-1/2 z-50 translate-x-12 -translate-y-1/2
             flex h-12 w-12 items-center justify-center rounded-full
             border-2 border-white bg-white text-2xl text-slate-700
-            shadow-xl transition hover:bg-slate-50 hover:scale-110
+            shadow-xl transition-all duration-200 hover:bg-slate-50 hover:scale-110
+            disabled:opacity-50 disabled:cursor-not-allowed
             md:flex
           "
         >
-          ›
+          {isNavigating ? (
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700"></div>
+          ) : (
+            '›'
+          )}
         </button>
       )}
     </>

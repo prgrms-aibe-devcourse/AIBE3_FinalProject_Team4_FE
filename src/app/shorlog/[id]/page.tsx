@@ -87,27 +87,23 @@ export default function ShorlogDetailPage() {
     };
   }, [shorlogId]);
 
-  if (loading) {
-    return (
-      <div className="p-8">
-        <LoadingSpinner label="숏로그를 불러오는 중입니다" />
-      </div>
-    );
-  }
-
-  if (loadError) {
-    return <p className="p-8">숏로그를 불러오는 중 오류가 발생했습니다.</p>;
-  }
-
-  if (!detail) {
-    return <p className="p-8">존재하지 않는 숏로그입니다.</p>;
-  }
-
-  const isOwner = me?.id === detail.userId;
-
   return (
     <ShorlogDetailModalWrapper>
-      <ShorlogDetailPageClient detail={detail} isOwner={isOwner} />
+      {loading && !detail ? (
+        <div className="flex h-full w-full items-center justify-center">
+          <LoadingSpinner label="숏로그를 불러오는 중입니다" />
+        </div>
+      ) : loadError ? (
+        <div className="flex h-full w-full items-center justify-center">
+          <p className="text-slate-600">숏로그를 불러오는 중 오류가 발생했습니다.</p>
+        </div>
+      ) : !detail ? (
+        <div className="flex h-full w-full items-center justify-center">
+          <p className="text-slate-600">존재하지 않는 숏로그입니다.</p>
+        </div>
+      ) : (
+        <ShorlogDetailPageClient detail={detail} isOwner={me?.id === detail.userId} />
+      )}
     </ShorlogDetailModalWrapper>
   );
 }

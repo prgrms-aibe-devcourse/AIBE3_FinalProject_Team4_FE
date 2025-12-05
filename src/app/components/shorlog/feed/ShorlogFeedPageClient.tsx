@@ -99,13 +99,9 @@ export default function ShorlogFeedPageClient() {
       </div>
 
       <div className="mt-4 md:mt-6">
-        {isLoading ? (
-          <div className="flex justify-center py-16">
-            <LoadingSpinner label="숏로그를 불러오는 중입니다" />
-          </div>
-        ) : isError ? (
+        {isError ? (
           <ErrorState onRetry={refetch} />
-        ) : isEmpty ? (
+        ) : isEmpty && !isLoading ? (
           <EmptyState />
         ) : (
           <>
@@ -115,15 +111,24 @@ export default function ShorlogFeedPageClient() {
               ))}
             </div>
 
-            <div ref={sentinelRef} className="h-10 w-full" />
+            {hasNextPage && <div ref={sentinelRef} className="h-10 w-full" />}
 
             {isFetchingNextPage && (
-              <div className="flex justify-center py-6">
-                <LoadingSpinner label="더 많은 숏로그를 불러오는 중입니다" size="sm" />
+              <div className="flex justify-center py-4">
+                <div className="flex items-center gap-2 text-xs text-slate-400">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-slate-400"></div>
+                  <span>로딩중...</span>
+                </div>
               </div>
             )}
 
-            {!hasNextPage && items.length > 0 && (
+            {isLoading && items.length === 0 && (
+              <div className="flex justify-center py-12">
+                <LoadingSpinner label="숏로그를 불러오는 중입니다" size="sm" />
+              </div>
+            )}
+
+            {!hasNextPage && items.length > 0 && !isLoading && (
               <p className="mt-6 text-center text-xs text-slate-400">
                 끝까지 둘러보셨네요 👀 더 많은 숏로그는 곧 업데이트될 예정이에요.
               </p>
