@@ -112,8 +112,7 @@ export default function MessagesShell() {
     refetch: refetchThreads,
   } = useMessageThreads();
 
-  const effectiveActiveId = threadIdFromQuery ? String(threadIdFromQuery) : activeId;
-  const activeThreadIdNum = effectiveActiveId ? Number(effectiveActiveId) : undefined;
+  const activeThreadIdNum = activeId ? Number(activeId) : undefined;
   const {
     data: detail,
     isLoading: detailLoading,
@@ -212,7 +211,7 @@ export default function MessagesShell() {
   }, [threads, query, tab]);
 
   const activeThreadBase = React.useMemo(
-    () => threads.find((t) => t.id === effectiveActiveId),
+    () => threads.find((t) => t.id === activeId),
     [threads, activeId],
   );
 
@@ -249,7 +248,7 @@ export default function MessagesShell() {
       const chatMsg = pushToChatMessage(dto, myUserId);
 
       // ✅ active 방이면: 채팅창 즉시 업데이트 + 읽음 처리
-      if (threadId === effectiveActiveId) {
+      if (threadId === activeId) {
         setLiveMessages((prev) => {
           const cur = prev[threadId] ?? [];
           if (cur.some((m) => m.id === chatMsg.id)) return prev;
@@ -322,7 +321,7 @@ export default function MessagesShell() {
     const last = detail.messages?.[detail.messages.length - 1];
     const lastId = last?.id;
     if (typeof lastId === 'number' && lastId > 0) {
-      scheduleMarkRead(effectiveActiveId, lastId);
+      scheduleMarkRead(activeId, lastId);
     }
   }, [activeId, detail, scheduleMarkRead]);
 
@@ -424,7 +423,7 @@ export default function MessagesShell() {
           <aside className="min-w-0 min-h-0">
             <ThreadList
               threads={filteredThreads}
-              activeId={effectiveActiveId}
+              activeId={activeId}
               query={query}
               onQueryChange={setQuery}
               tab={tab}
