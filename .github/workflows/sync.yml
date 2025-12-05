@@ -13,22 +13,24 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout fork
+      - name: Checkout fork (force checkout develop)
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0        # 🔥 전체 히스토리 가져오기 (non-fast-forward 해결 핵심)
+          fetch-depth: 0
+          ref: develop          # 🔥 develop 브랜치로 checkout (핵심)
 
-      - name: Setup upstream safely
+      - name: Setup upstream
         run: |
           git remote remove upstream 2>/dev/null || true
           git remote add upstream https://github.com/prgrms-aibe-devcourse/AIBE3_FinalProject_Team4_FE.git
-          git fetch upstream --depth=0          # 🔥 upstream도 full history
+          git fetch upstream --depth=0
 
       - name: Merge upstream/develop → develop
         run: |
-          git checkout develop
           git merge upstream/develop --no-edit --allow-unrelated-histories || true
+          git status
 
-      - name: Push changes to fork
-        run: git push origin develop
+      - name: Push
+        run: |
+          git push origin develop --force-with-lease
