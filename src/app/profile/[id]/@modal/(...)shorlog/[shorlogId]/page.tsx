@@ -1,18 +1,12 @@
+'use client';
+
 import ShorlogDetailPageClient from '@/src/app/components/shorlog/detail/ShorlogDetailPageClient';
 import ProfileShorlogModalWrapper from '@/src/app/components/profile/ProfileShorlogModalWrapper';
 import type { ShorlogDetail } from '@/src/app/components/shorlog/detail/types';
-import { getSessionUser } from '@/src/lib/getSessionUser';
-
-interface PageProps {
-  params: Promise<{
-    shorlogId: string; // 숏로그 ID
-  }>;
-  searchParams: Promise<{
-    profileId?: string;
-    prev?: string;
-    next?: string;
-  }>;
-}
+import { fetchMe } from '@/src/api/user';
+import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import LoadingSpinner from '@/src/app/components/common/LoadingSpinner';
 
 async function fetchShorlogDetail(id: string): Promise<ShorlogDetail> {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
@@ -51,17 +45,79 @@ async function fetchShorlogDetail(id: string): Promise<ShorlogDetail> {
   };
 }
 
-export default async function ProfileShorlogModalPage({ params }: PageProps) {
-  const { shorlogId } = await params;
+export default function ProfileShorlogModalPage() {
+  const params = useParams();
+  const shorlogId = String(params.shorlogId);
 
-  // 병렬로 데이터 가져오기
-  const [detail, currentUser] = await Promise.all([
-    fetchShorlogDetail(shorlogId),
-    getSessionUser()
-  ]);
+  const [detail, setDetail] = useState<ShorlogDetail | null>(null);
+  const [me, setMe] = useState<{ id: number } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<Error | null>(null);
 
-  // 로그인한 유저와 숏로그 작성자 비교
-  const isOwner = currentUser ? currentUser.id === detail.userId : false;
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const [shorlogData, meData] = await Promise.all([
+          fetchShorlogDetail(shorlogId),
+          fetchMe().catch(() => null), // 비로그인 → null
+        ]);
+
+        if (!cancelled) {
+          setDetail(shorlogData);
+          setMe(meData);
+        }
+      } catch (e: any) {
+        console.error('숏로그 조회 실패', e);
+        if (!cancelled) {
+          setLoadError(e);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [shorlogId]);
+
+  if (loading) {
+    return (
+      <ProfileShorlogModalWrapper>
+        <div className="flex h-full w-full items-center justify-center">
+          <LoadingSpinner label="숏로그를 불러오는 중입니다" />
+        </div>
+      </ProfileShorlogModalWrapper>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <ProfileShorlogModalWrapper>
+        <div className="flex h-full w-full items-center justify-center">
+          <p className="text-red-500">숏로그를 불러오는 중 오류가 발생했습니다.</p>
+        </div>
+      </ProfileShorlogModalWrapper>
+    );
+  }
+
+  if (!detail) {
+    return (
+      <ProfileShorlogModalWrapper>
+        <div className="flex h-full w-full items-center justify-center">
+          <p className="text-slate-500">존재하지 않는 숏로그입니다.</p>
+        </div>
+      </ProfileShorlogModalWrapper>
+    );
+  }
+
+  const isOwner = me?.id === detail.userId;
 
   return (
     <ProfileShorlogModalWrapper>
