@@ -24,7 +24,7 @@ jobs:
         run: |
           git remote remove upstream 2>/dev/null || true
           git remote add upstream https://github.com/prgrms-aibe-devcourse/AIBE3_FinalProject_Team4_FE.git
-          git fetch upstream --depth=0
+          git fetch upstream
 
       - name: Merge upstream/develop → develop
         run: |
