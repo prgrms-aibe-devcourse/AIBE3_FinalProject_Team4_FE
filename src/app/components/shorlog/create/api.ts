@@ -108,7 +108,14 @@ export async function createShorlog(payload: CreateShorlogRequest): Promise<any>
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `숏로그 생성 실패 (${response.status})`);
+      const errorMessage = errorData.message || `숏로그 생성 실패 (${response.status})`;
+
+      // 해시태그 관련 오류인 경우 더 명확한 메시지
+      if (errorMessage.includes('해시태그') || errorMessage.includes('hashtag')) {
+        throw new Error('해시태그는 한글, 영문, 숫자만 사용 가능합니다.');
+      }
+
+      throw new Error(errorMessage);
     }
 
     return await response.json();
@@ -212,7 +219,14 @@ export async function createDraft(data: DraftData): Promise<DraftResponse> {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `임시저장 실패 (${response.status})`);
+      const errorMessage = errorData.message || `임시저장 실패 (${response.status})`;
+
+      // 해시태그 관련 오류인 경우 더 명확한 메시지
+      if (errorMessage.includes('해시태그') || errorMessage.includes('hashtag')) {
+        throw new Error('해시태그는 한글, 영문, 숫자만 사용 가능합니다.');
+      }
+
+      throw new Error(errorMessage);
     }
 
     const result = await response.json();

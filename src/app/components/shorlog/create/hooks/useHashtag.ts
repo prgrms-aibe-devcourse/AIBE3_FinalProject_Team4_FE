@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { callAiApi } from '../api';
+import { showGlobalToast } from '@/src/lib/toastStore';
 
 export function useHashtag(initialHashtags: string[] = []) {
   const [hashtags, setHashtags] = useState<string[]>(initialHashtags);
@@ -13,11 +14,20 @@ export function useHashtag(initialHashtags: string[] = []) {
     if (value.startsWith('#')) value = value.slice(1);
     if (!value) return;
 
+    // 한글, 영문, 숫자만 허용
+    const validPattern = /^[a-zA-Z0-9가-힣]+$/;
+    if (!validPattern.test(value)) {
+      showGlobalToast('해시태그는 한글, 영문, 숫자만 사용 가능합니다.', 'warning');
+      setHashtagInput('');
+      return { error: '해시태그는 한글, 영문, 숫자만 사용 가능합니다.' };
+    }
+
     if (hashtags.includes(value)) {
       setHashtagInput('');
       return;
     }
     if (hashtags.length >= 10) {
+      showGlobalToast('해시태그는 최대 10개까지 입력할 수 있어요.', 'warning');
       return { error: '해시태그는 최대 10개까지 입력할 수 있어요.' };
     }
 
