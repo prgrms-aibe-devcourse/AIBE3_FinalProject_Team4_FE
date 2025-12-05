@@ -1,3 +1,5 @@
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 import apiClient from '@/src/api/clientForRs';
 import type {
   BlogDraftDto,
@@ -7,25 +9,25 @@ import type {
 } from '@/src/types/blog';
 
 export function createDraft(body: BlogWriteReqBody) {
-  return apiClient<BlogWriteDto>('/api/v1/blogs/drafts', {
+  return apiClient<BlogWriteDto>(`${API_BASE_URL}/api/v1/blogs/drafts`, {
     method: 'POST',
     body: JSON.stringify(body),
   });
 }
 
 export function updateBlog(blogId: number, body: BlogWriteReqBody) {
-  return apiClient<BlogWriteDto>(`/api/v1/blogs/${blogId}`, {
+  return apiClient<BlogWriteDto>(`${API_BASE_URL}/api/v1/blogs/${blogId}`, {
     method: 'PUT',
     body: JSON.stringify(body),
   });
 }
 export const fetchDrafts = () =>
-  apiClient<BlogDraftDto[]>('/api/v1/blogs/drafts', {
+  apiClient<BlogDraftDto[]>(`${API_BASE_URL}/api/v1/blogs/drafts`, {
     method: 'GET',
   });
 
 export function deleteBlog(blogId: number) {
-  return apiClient<void>(`/api/v1/blogs/${blogId}`, {
+  return apiClient<void>(`${API_BASE_URL}/api/v1/blogs/${blogId}`, {
     method: 'DELETE',
   });
 }
@@ -34,7 +36,7 @@ export const uploadThumbnail = (blogId: number, file: File) => {
   formData.append('files', file);
   formData.append('type', 'THUMBNAIL');
 
-  return apiClient<BlogMediaUploadResponse>(`/api/v1/blogs/${blogId}/media`, {
+  return apiClient<BlogMediaUploadResponse>(`${API_BASE_URL}/api/v1/blogs/${blogId}/media`, {
     method: 'POST',
     body: formData,
   });

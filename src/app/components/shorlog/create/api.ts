@@ -1,3 +1,5 @@
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 import {
   CreateShorlogRequest,
   LocalImage,
@@ -5,9 +7,7 @@ import {
   UploadImageResponse,
 } from './types';
 
-export async function uploadImagesBatch(
-  images: LocalImage[],
-): Promise<UploadImageResponse[]> {
+export async function uploadImagesBatch(images: LocalImage[]): Promise<UploadImageResponse[]> {
   const formData = new FormData();
 
   const orders: UploadImageOrderRequest[] = images.map((img, index) => {
@@ -16,7 +16,7 @@ export async function uploadImagesBatch(
       order: index,
       type: type,
       fileIndex: img.sourceType === 'FILE' ? index : null,
-      url: img.sourceType === 'URL' ? img.remoteUrl ?? null : null,
+      url: img.sourceType === 'URL' ? (img.remoteUrl ?? null) : null,
       aspectRatio: img.aspectRatio,
     };
   });
@@ -31,24 +31,27 @@ export async function uploadImagesBatch(
       formData.append('files', img.file);
       totalFileSize += img.file.size;
       fileCount++;
-      console.log(`  📎 파일 ${index + 1}: ${img.file.name} (${(img.file.size / 1024 / 1024).toFixed(2)}MB)`);
+      console.log(
+        `  📎 파일 ${index + 1}: ${img.file.name} (${(img.file.size / 1024 / 1024).toFixed(2)}MB)`,
+      );
     }
   });
 
   console.log(`\n📊 업로드 요약:`);
   console.log(`  - 총 이미지 수: ${images.length}`);
   console.log(`  - FILE 타입: ${fileCount}개`);
-  console.log(`  - URL 타입: ${images.filter(img => img.sourceType === 'URL').length}개`);
+  console.log(`  - URL 타입: ${images.filter((img) => img.sourceType === 'URL').length}개`);
   console.log(`  - 총 파일 크기: ${(totalFileSize / 1024 / 1024).toFixed(2)}MB`);
 
-  if (totalFileSize > 100 * 1024 * 1024) { // 100MB
+  if (totalFileSize > 100 * 1024 * 1024) {
+    // 100MB
     throw new Error('파일 전체 크기가 100MB를 초과합니다. 일부 이미지를 제거해주세요.');
   }
 
   console.log(`\n🚀 업로드 시작: POST /api/v1/shorlog/images/batch`);
 
   try {
-    const response = await fetch('/api/v1/shorlog/images/batch', {
+    const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/images/batch`, {
       method: 'POST',
       body: formData,
       credentials: 'include',
@@ -59,7 +62,7 @@ export async function uploadImagesBatch(
       console.error('❌ 서버 오류 응답:', {
         status: response.status,
         statusText: response.statusText,
-        errorData
+        errorData,
       });
       throw new Error(errorData.message || `이미지 업로드 실패 (${response.status})`);
     }
@@ -67,14 +70,14 @@ export async function uploadImagesBatch(
     const result = await response.json();
     console.log('✅ 업로드 성공:', {
       uploadedCount: result.data?.length || 0,
-      data: result.data
+      data: result.data,
     });
     return result.data || [];
   } catch (error) {
     console.error('💥 업로드 오류 상세:', {
       errorType: error instanceof Error ? error.constructor.name : typeof error,
       message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined
+      stack: error instanceof Error ? error.stack : undefined,
     });
 
     if (error instanceof TypeError && error.message === 'Failed to fetch') {
@@ -82,7 +85,9 @@ export async function uploadImagesBatch(
     }
 
     if (error instanceof Error && error.message.includes('net::ERR_CONNECTION_RESET')) {
-      throw new Error('파일 크기가 너무 크거나 서버 제한을 초과했습니다. 이미지를 압축하거나 개수를 줄여주세요.');
+      throw new Error(
+        '파일 크기가 너무 크거나 서버 제한을 초과했습니다. 이미지를 압축하거나 개수를 줄여주세요.',
+      );
     }
 
     throw error;
@@ -91,7 +96,7 @@ export async function uploadImagesBatch(
 
 export async function createShorlog(payload: CreateShorlogRequest): Promise<any> {
   try {
-    const response = await fetch('/api/v1/shorlog', {
+    const response = await fetch(`${API_BASE_URL}/api/v1/shorlog`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -119,7 +124,7 @@ export async function callAiApi(params: {
   content: string;
 }): Promise<any> {
   try {
-    const response = await fetch('/api/v1/ais', {
+    const response = await fetch(`${API_BASE_URL}/api/v1/ais`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -172,7 +177,7 @@ export interface DraftResponse {
 // 임시저장 목록 조회
 export async function getDrafts(): Promise<DraftResponse[]> {
   try {
-    const response = await fetch('/api/v1/shorlog/draft', {
+    const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/draft`, {
       method: 'GET',
       credentials: 'include',
     });
@@ -195,7 +200,7 @@ export async function getDrafts(): Promise<DraftResponse[]> {
 // 임시저장 생성
 export async function createDraft(data: DraftData): Promise<DraftResponse> {
   try {
-    const response = await fetch('/api/v1/shorlog/draft', {
+    const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/draft`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -222,7 +227,7 @@ export async function createDraft(data: DraftData): Promise<DraftResponse> {
 // 임시저장 상세 조회
 export async function getDraft(id: number): Promise<DraftResponse> {
   try {
-    const response = await fetch(`/api/v1/shorlog/draft/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/draft/${id}`, {
       method: 'GET',
       credentials: 'include',
     });
@@ -245,7 +250,7 @@ export async function getDraft(id: number): Promise<DraftResponse> {
 // 임시저장 삭제
 export async function deleteDraft(id: number): Promise<void> {
   try {
-    const response = await fetch(`/api/v1/shorlog/draft/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/draft/${id}`, {
       method: 'DELETE',
       credentials: 'include',
     });
@@ -261,4 +266,3 @@ export async function deleteDraft(id: number): Promise<void> {
     throw error;
   }
 }
-
