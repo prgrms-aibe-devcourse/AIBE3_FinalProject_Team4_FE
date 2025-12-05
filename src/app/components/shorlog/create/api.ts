@@ -95,6 +95,8 @@ export async function uploadImagesBatch(images: LocalImage[]): Promise<UploadIma
 }
 
 export async function createShorlog(payload: CreateShorlogRequest): Promise<any> {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/shorlog`, {
       method: 'POST',
@@ -249,6 +251,8 @@ export async function getDraft(id: number): Promise<DraftResponse> {
 
 // 임시저장 삭제
 export async function deleteDraft(id: number): Promise<void> {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/draft/${id}`, {
       method: 'DELETE',
