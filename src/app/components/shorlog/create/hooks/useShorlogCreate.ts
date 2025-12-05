@@ -46,9 +46,11 @@ export function useShorlogCreate() {
 
   // 최근 블로그 목록 조회
   const fetchRecentBlogs = async () => {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+
     setIsLoadingBlogs(true);
     try {
-      const response = await fetch('/api/v1/blogs/my/recent-blogs', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/blogs/my/recent-blogs`, {
         headers: {
           'Content-Type': 'application/json',
         },

@@ -39,8 +39,9 @@ export default function LikeButton({
   useEffect(() => {
     const checkAuthAndLikeStatus = async () => {
       try {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
         // 현재 사용자 정보 가져오기
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'}/api/v1/auth/me`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
           credentials: 'include',
           cache: 'no-store',
         });

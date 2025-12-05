@@ -83,8 +83,10 @@ export async function updateShorlog(
   shorlogId: string,
   payload: UpdateShorlogRequest
 ): Promise<UpdateShorlogResponse> {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+
   try {
-    const response = await fetch(`/api/v1/shorlog/${shorlogId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/${shorlogId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -132,7 +134,9 @@ export async function disconnectBlogFromShorlog(shorlogId: string): Promise<void
 
 // 숏로그 삭제
 export async function deleteShorlog(shorlogId: string): Promise<void> {
-  const response = await fetch(`/api/v1/shorlog/${shorlogId}`, {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/${shorlogId}`, {
     method: 'DELETE',
     credentials: 'include',
   });
