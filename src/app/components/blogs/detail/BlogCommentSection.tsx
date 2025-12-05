@@ -31,14 +31,14 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
   /** =============================
    *  공통: 최신순 정렬 함수
    * ============================= */
-  const sortCommentsLatest = (list: any[]): any[] => {
+  const sortCommentsOldest = (list: any[]): any[] => {
     const sorted = [...list]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
       .map((c) => ({
         ...c,
         children: c.children
           ? [...c.children].sort(
-              (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+              (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
             )
           : [],
       }));
@@ -63,7 +63,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
     const fetch = async () => {
       try {
         let data = await getBlogComments(blogId);
-        data = sortCommentsLatest(data);
+        data = sortCommentsOldest(data);
 
         setComments(data);
         setTotalCount(countAllComments(data));
@@ -90,7 +90,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
     try {
       const newComment = await createBlogComment(blogId, content, undefined);
 
-      setComments((prev) => sortCommentsLatest([newComment, ...prev]));
+      setComments((prev) => sortCommentsOldest([newComment, ...prev]));
       setTotalCount((prev) => prev + 1);
     } catch (err: any) {
       showGlobalToast(err.message);
@@ -118,7 +118,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
           c.id === parentId
             ? {
                 ...c,
-                children: sortCommentsLatest([...(c.children ?? []), newReply]),
+                children: sortCommentsOldest([...(c.children ?? []), newReply]),
               }
             : c,
         ),
@@ -201,7 +201,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
       const updated = await editBlogComment(commentId, newContent);
 
       setComments((prev) =>
-        sortCommentsLatest(
+        sortCommentsOldest(
           prev.map((comment) => {
             if (comment.id === commentId) return updated;
             return {
@@ -228,7 +228,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
       await deleteBlogComment(commentId);
 
       setComments((prev) =>
-        sortCommentsLatest(
+        sortCommentsOldest(
           prev
             .map((comment) => ({
               ...comment,
@@ -275,6 +275,12 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
             onFocus={handleCommentFocus}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleCommentSubmit();
+              }
+            }}
           />
           <button
             onClick={handleCommentSubmit}

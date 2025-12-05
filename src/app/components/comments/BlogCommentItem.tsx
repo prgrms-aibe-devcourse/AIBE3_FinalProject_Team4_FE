@@ -187,6 +187,12 @@ export default function BlogCommentItem({
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
                 placeholder="답글을 입력해 주세요"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault(); // Enter 시 줄바꿈 방지
+                    handleReplySubmit();
+                  }
+                }}
               />
               <button
                 className="shrink-0 rounded-full bg-[#2979FF] px-3.5 py-1.0 text-xs font-medium text-white shadow-sm hover:bg-[#1f5ecc] transition-colors"
