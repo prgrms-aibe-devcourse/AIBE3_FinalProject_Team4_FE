@@ -2,8 +2,7 @@
 const nextConfig = {
   images: {
     remotePatterns: [
-
-      // s3 bucket
+      // 해민 개인 s3 bucket
       {
         protocol: 'https',
         hostname: 'hm-dev-images.s3.ap-northeast-2.amazonaws.com',
@@ -12,6 +11,18 @@ const nextConfig = {
       {
         protocol: 'http',
         hostname: 'hm-dev-images.s3.ap-northeast-2.amazonaws.com',
+        pathname: '/**',
+      },
+
+      // 배포 s3 버킷
+      {
+        protocol: 'https',
+        hostname: 'next5-app-bucket.s3.ap-northeast-2.amazonaws.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'next5-app-bucket.s3.ap-northeast-2.amazonaws.com',
         pathname: '/**',
       },
 
@@ -44,7 +55,7 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
         pathname: '/**',
-      }, 
+      },
       //kakao
       {
         protocol: 'http',
