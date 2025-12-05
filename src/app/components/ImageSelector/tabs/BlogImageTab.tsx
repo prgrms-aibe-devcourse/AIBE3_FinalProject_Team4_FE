@@ -31,7 +31,7 @@ export default function BlogImageTab({ images, originalImage, onSelect }: BlogIm
 
       container.scrollTo({ top: offset, behavior: 'smooth' });
     }
-  }, []);
+  }, [originalImage]);
 
   if (images.length === 0) {
     return (

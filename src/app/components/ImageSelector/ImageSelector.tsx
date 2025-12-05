@@ -5,7 +5,7 @@ import Toast from '@/src/app/components/ImageSelector/Toast';
 import { handleApiError } from '@/src/lib/handleApiError';
 import type { BlogFileDto, BlogImage, BlogMediaUploadResponse, RsData } from '@/src/types/blog';
 import { Crop } from 'lucide-react';
-import { SetStateAction, useState } from 'react';
+import { SetStateAction, useEffect, useRef, useState } from 'react';
 import Cropper from './Cropper';
 import BlogImageTab from './tabs/BlogImageTab';
 import FreeImageTab from './tabs/FreeImageTab';
@@ -32,6 +32,15 @@ export default function ImageSelector({
 }: ImageSelectorProps) {
   // UI 탭 상태
   const [selectedTab, setSelectedTab] = useState('upload');
+  // ImageSelector 최상단 ref
+  const selectorRef = useRef<HTMLDivElement>(null);
+
+  // 탭 변경 시 ImageSelector 시작 위치로 스크롤 이동
+  useEffect(() => {
+    if (['blog', 'unsplash', 'pixabay'].includes(selectedTab) && selectorRef.current) {
+      selectorRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [selectedTab]);
   // 크롭 모달 활성화 여부
   const [isCropping, setIsCropping] = useState(false);
 
@@ -181,7 +190,7 @@ export default function ImageSelector({
         </div>
       )}
 
-      <div className="w-full space-y-4">
+      <div ref={selectorRef} className="w-full space-y-4">
         {/* 블로그 카드 스타일 미리보기 */}
         <article className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
           <div className="flex items-start gap-4">
@@ -207,7 +216,7 @@ export default function ImageSelector({
               <div>
                 <h3 className="text-sm font-semibold text-slate-900">썸네일 이미지 선택하기</h3>
                 <p className="mt-1 text-xs text-slate-500">
-                  제목과 내용 입력 후, 아래 탭에서 이미지를 선택하거나 업로드하고 등록하기 버튼을
+                  제목과 내용 입력 후, 아래 탭에서 이미지를 선택하거나 업로드하고 적용하기 버튼을
                   누르세요.
                 </p>
               </div>
@@ -243,7 +252,7 @@ export default function ImageSelector({
                     }
                       `}
                 >
-                  썸네일 등록하기
+                  썸네일 적용하기
                 </button>
               </div>
             </div>
