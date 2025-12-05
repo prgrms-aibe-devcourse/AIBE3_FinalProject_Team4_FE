@@ -16,9 +16,14 @@ import { useEffect, useState } from 'react';
 interface Props {
   shorlogId: number;
   initialCommentCount?: number;
+  onCommentCountChange?: (count: number) => void;
 }
 
-export default function ShorlogCommentSection({ shorlogId, initialCommentCount }: Props) {
+export default function ShorlogCommentSection({
+  shorlogId,
+  initialCommentCount,
+  onCommentCountChange
+}: Props) {
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -59,6 +64,12 @@ export default function ShorlogCommentSection({ shorlogId, initialCommentCount }
   useEffect(() => {
     fetchComments();
   }, [shorlogId]);
+
+  // 댓글 수 변경 감지 및 부모에게 전달
+  useEffect(() => {
+    const totalCount = countAllComments(comments);
+    onCommentCountChange?.(totalCount);
+  }, [comments, onCommentCountChange]);
 
   /** 트리 전체 댓글 수 계산 (대댓글 포함) */
   const countAllComments = (list: any[]): number => {

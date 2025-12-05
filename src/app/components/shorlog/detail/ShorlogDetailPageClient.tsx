@@ -181,6 +181,7 @@ export default function ShorlogDetailPageClient({
   const [linkedBlogs, setLinkedBlogs] = useState<LinkedBlogDetail[]>([]);
   const [linkedBlogCount, setLinkedBlogCount] = useState(0);
   const [showLinkedBlogsModal, setShowLinkedBlogsModal] = useState(false);
+  const [currentCommentCount, setCurrentCommentCount] = useState(detail.commentCount);
   const firstLineForAlt = detail.content.split('\n')[0]?.slice(0, 40) ?? '';
 
   const formatDate = (dateStr: string) => {
@@ -301,7 +302,7 @@ export default function ShorlogDetailPageClient({
                 shorlogId={detail.id}
                 authorId={detail.userId}
                 likeCount={detail.likeCount}
-                commentCount={detail.commentCount}
+                commentCount={currentCommentCount}
                 bookmarkCount={detail.bookmarkCount}
                 title={`${detail.nickname}님의 숏로그`}
                 description={detail.content.split('\n')[0].trim() || '숏로그를 확인해보세요!'}
@@ -334,6 +335,7 @@ export default function ShorlogDetailPageClient({
             <section aria-label="댓글" className="mt-4 border-t border-slate-100 pt-3">
               <ShorlogCommentSection
                 shorlogId={detail.id}
+                onCommentCountChange={setCurrentCommentCount}
               />
             </section>
           </div>
