@@ -130,8 +130,8 @@ export default function ThreadList({
       <div className="min-h-0 flex-1 overflow-auto p-2">
         {threads.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-sm font-semibold text-slate-900">아직 대화가 없어요</p>
-            <p className="mt-1 text-xs text-slate-500">새 대화를 시작해서 메시지를 보내보세요.</p>
+            <p className="text-sm font-semibold text-slate-900">결과가 없어요</p>
+            <p className="mt-1 text-xs text-slate-500">검색어를 바꿔보거나 필터를 해제해보세요.</p>
           </div>
         ) : (
           <ul className="space-y-1">

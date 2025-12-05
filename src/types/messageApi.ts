@@ -17,6 +17,14 @@ export type MessageDto = {
   createdAt: string;
 };
 
+export type MessageThreadResponseDto = {
+  messageThreadId: number;
+  otherUserId: number;
+  otherUserNickname: string;
+  otherUserProfileImgUrl: string | null;
+  messages: MessageDto[];
+};
+
 export type MessageThreadDetailDto = {
   messageThreadId: number;
   otherUserId: number;

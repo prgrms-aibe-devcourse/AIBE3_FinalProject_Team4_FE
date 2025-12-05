@@ -10,5 +10,9 @@ export function useMessageThreads() {
       const list = await messagesApi.getThreads();
       return list.map(mapThreadListItem);
     },
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+    gcTime: 1000 * 60 * 10,
   });
 }
