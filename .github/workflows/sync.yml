@@ -1,0 +1,31 @@
+name: Sync Fork From Upstream
+
+on:
+  schedule:
+    - cron: '* * * * *' # 1분마다 실행 (가능한 가장 빠른 자동화)
+  workflow_dispatch: {} # 수동 실행 가능
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup upstream safely
+        run: |
+          git remote remove upstream 2>/dev/null || true
+          git remote add upstream https://github.com/prgrms-aibe-devcourse/AIBE3_FinalProject_Team4_FE.git
+          git fetch upstream
+
+      - name: Merge upstream/develop → develop (allow unrelated histories)
+        run: |
+          git checkout develop
+          git merge upstream/develop --no-edit --allow-unrelated-histories || true
+
+      - name: Push changes to fork
+        run: |
+          git push origin develop

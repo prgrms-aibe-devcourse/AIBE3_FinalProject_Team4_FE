@@ -1,16 +1,16 @@
-import { useState, useCallback, useMemo } from 'react';
+import { showGlobalToast } from '@/src/lib/toastStore';
 import { useRouter } from 'next/navigation';
+import { useCallback, useMemo, useState } from 'react';
+import { createShorlog, uploadImagesBatch } from '../api';
 import {
+  AspectRatio,
   LocalImage,
   MAX_CONTENT_LENGTH,
-  Step,
   MAX_FILES,
-  UploadImageResponse,
-  AspectRatio,
   ShorlogRelatedBlogSummary,
+  Step,
+  UploadImageResponse,
 } from '../types';
-import { uploadImagesBatch, createShorlog } from '../api';
-import { showGlobalToast } from '@/src/lib/toastStore';
 
 export function useShorlogCreate() {
   const router = useRouter();
@@ -46,9 +46,11 @@ export function useShorlogCreate() {
 
   // 최근 블로그 목록 조회
   const fetchRecentBlogs = async () => {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+
     setIsLoadingBlogs(true);
     try {
-      const response = await fetch('/api/v1/blogs/my/recent-blogs', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/blogs/my/recent-blogs`, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -123,7 +125,12 @@ export function useShorlogCreate() {
       goToStep(3);
     } catch (e) {
       console.error(e);
-      showGlobalToast(e instanceof Error ? e.message : '이미지 업로드 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.', 'error');
+      showGlobalToast(
+        e instanceof Error
+          ? e.message
+          : '이미지 업로드 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.',
+        'error',
+      );
     } finally {
       setIsUploading(false);
     }
@@ -180,20 +187,21 @@ export function useShorlogCreate() {
         setShowBlogConnectModal(true);
       } else {
         showGlobalToast('숏로그가 성공적으로 생성되었습니다!', 'success');
-          router.push(`/profile/${userId}`);
+        router.push(`/profile/${userId}`);
       }
     } catch (e) {
       console.error(e);
-      showGlobalToast(e instanceof Error ? e.message : '숏로그 생성 중 오류가 발생했습니다.', 'error');
+      showGlobalToast(
+        e instanceof Error ? e.message : '숏로그 생성 중 오류가 발생했습니다.',
+        'error',
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const changeAspectRatio = (id: string, ratio: AspectRatio) => {
-    setImages((prev) =>
-      prev.map((img) => (img.id === id ? { ...img, aspectRatio: ratio } : img)),
-    );
+    setImages((prev) => prev.map((img) => (img.id === id ? { ...img, aspectRatio: ratio } : img)));
   };
 
   const deleteImage = (id: string) => {
@@ -226,7 +234,7 @@ export function useShorlogCreate() {
 
   const handleSkipConnection = () => {
     setShowBlogConnectModal(false);
-      router.push(`/profile/${createdUserId}`);
+    router.push(`/profile/${createdUserId}`);
   };
 
   return {
@@ -267,4 +275,3 @@ export function useShorlogCreate() {
     fetchRecentBlogs,
   };
 }
-

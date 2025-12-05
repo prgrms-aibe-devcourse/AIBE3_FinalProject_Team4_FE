@@ -38,10 +38,12 @@ export default function FreeImageSelectModal({
     setError(null);
 
     try {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+
       const endpoint =
         apiType === 'unsplash'
-          ? `/api/v1/images/unsplash?keyword=${encodeURIComponent(keyword.trim())}&page=0&size=20`
-          : `/api/v1/images/pixabay?keyword=${encodeURIComponent(keyword.trim())}&page=0&size=20`;
+          ? `${API_BASE_URL}/api/v1/images/unsplash?keyword=${encodeURIComponent(keyword.trim())}&page=0&size=20`
+          : `${API_BASE_URL}/api/v1/images/pixabay?keyword=${encodeURIComponent(keyword.trim())}&page=0&size=20`;
 
       const response = await fetch(endpoint, {
         method: 'GET',

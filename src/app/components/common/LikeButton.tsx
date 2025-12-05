@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Heart } from 'lucide-react';
-import { addLike, removeLike, getLikeStatus } from '@/src/api/shorlogLikeApi';
+import { addLike, getLikeStatus, removeLike } from '@/src/api/shorlogLikeApi';
 import { handleApiError } from '@/src/lib/handleApiError';
 import { showGlobalToast } from '@/src/lib/toastStore';
+import { Heart } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 interface LikeButtonProps {
   shorlogId: number;
@@ -39,8 +39,9 @@ export default function LikeButton({
   useEffect(() => {
     const checkAuthAndLikeStatus = async () => {
       try {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
         // 현재 사용자 정보 가져오기
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'}/api/v1/auth/me`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
           credentials: 'include',
           cache: 'no-store',
         });
@@ -120,7 +121,9 @@ export default function LikeButton({
   if (isCheckingStatus) {
     return (
       <div className={`flex items-center gap-1 ${variant === 'small' ? 'text-xs' : 'text-sm'}`}>
-        <Heart className={`${variant === 'small' ? 'h-4 w-4' : 'h-5 w-5'} text-slate-300 animate-pulse`} />
+        <Heart
+          className={`${variant === 'small' ? 'h-4 w-4' : 'h-5 w-5'} text-slate-300 animate-pulse`}
+        />
         {showCount && <span className="text-slate-300">•</span>}
       </div>
     );
@@ -142,10 +145,7 @@ export default function LikeButton({
           className={`
             ${variant === 'small' ? 'h-4 w-4' : 'h-5 w-5'}
             transition-all duration-200
-            ${isLiked 
-              ? 'fill-red-500 text-red-500' 
-              : 'fill-none text-slate-500 hover:text-red-400'
-            }
+            ${isLiked ? 'fill-red-500 text-red-500' : 'fill-none text-slate-500 hover:text-red-400'}
             ${isAnimating ? 'animate-bounce' : ''}
           `}
         />
@@ -153,19 +153,23 @@ export default function LikeButton({
         {/* 좋아요 애니메이션 효과 */}
         {isAnimating && isLiked && (
           <div className="absolute inset-0 animate-ping">
-            <Heart className={`
+            <Heart
+              className={`
               ${variant === 'small' ? 'h-4 w-4' : 'h-5 w-5'}
               fill-red-300 text-red-300 opacity-75
-            `} />
+            `}
+            />
           </div>
         )}
       </div>
 
       {showCount && (
-        <span className={`
+        <span
+          className={`
           font-medium transition-colors duration-200
           ${isLiked ? 'text-red-500' : 'text-slate-600'}
-        `}>
+        `}
+        >
           {likeCount.toLocaleString()}
         </span>
       )}
