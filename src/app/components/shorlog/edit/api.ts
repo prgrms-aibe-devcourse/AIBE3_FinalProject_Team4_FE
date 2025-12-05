@@ -1,3 +1,5 @@
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+
 import { LocalImage, UploadImageOrderRequest, UploadImageResponse } from '../create/types';
 import { UpdateShorlogRequest, UpdateShorlogResponse } from './types';
 
@@ -44,7 +46,7 @@ export async function uploadImagesBatch(images: LocalImage[]): Promise<UploadIma
   }
 
   try {
-    const response = await fetch('/api/v1/shorlog/images/batch', {
+    const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/images/batch`, {
       method: 'POST',
       body: formData,
       credentials: 'include',
@@ -77,7 +79,6 @@ export async function updateShorlog(
   shorlogId: string,
   payload: UpdateShorlogRequest,
 ): Promise<UpdateShorlogResponse> {
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/${shorlogId}`, {
@@ -104,7 +105,7 @@ export async function updateShorlog(
 
 // 블로그 연결
 export async function connectBlogToShorlog(shorlogId: string, blogId: number): Promise<void> {
-  const response = await fetch(`/api/v1/shorlog/${shorlogId}/blog/${blogId}`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/${shorlogId}/blog/${blogId}`, {
     method: 'POST',
     credentials: 'include',
   });
@@ -116,7 +117,7 @@ export async function connectBlogToShorlog(shorlogId: string, blogId: number): P
 
 // 블로그 연결 해제
 export async function disconnectBlogFromShorlog(shorlogId: string): Promise<void> {
-  const response = await fetch(`/api/v1/shorlog/${shorlogId}/blog`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/${shorlogId}/blog`, {
     method: 'DELETE',
     credentials: 'include',
   });
@@ -128,7 +129,6 @@ export async function disconnectBlogFromShorlog(shorlogId: string): Promise<void
 
 // 숏로그 삭제
 export async function deleteShorlog(shorlogId: string): Promise<void> {
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
   const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/${shorlogId}`, {
     method: 'DELETE',
