@@ -149,12 +149,25 @@ export default function MessagesShell() {
 
   const scheduleThreadsSync = React.useCallback(() => {
     if (flushTimerRef.current) return;
-    flushTimerRef.current = window.setTimeout(() => {
+    flushTimerRef.current = window.setTimeout(async () => {
       flushTimerRef.current = null;
       dirtyRef.current.clear();
-      queryClient.invalidateQueries({ queryKey: ['messageThreads'] });
+
+      // ✅ stale 처리만 하지 말고, fetch를 강제한다
+      await queryClient.refetchQueries({
+        queryKey: ['messageThreads'],
+        type: 'active',
+      });
+
+      // 만약 드물게 active로 안 잡히는 케이스가 있으면 아래로 더 강하게:
+      // await queryClient.refetchQueries({ queryKey: ['messageThreads'], type: 'all' });
     }, 150);
   }, [queryClient]);
+
+  React.useEffect(() => {
+    if (!isLogin || myUserId <= 0) return;
+    refetchThreads();
+  }, [isLogin, myUserId, refetchThreads]);
 
   // markRead throttle
   const lastReadSentRef = React.useRef<Record<string, number>>({});
