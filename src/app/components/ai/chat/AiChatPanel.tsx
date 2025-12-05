@@ -25,7 +25,10 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
     { label: 'GPT-4.1 mini', value: 'gpt-4.1-mini', enabled: false },
     { label: 'GPT-5 mini', value: 'gpt-5-mini', enabled: false },
   ]);
-  const [selectedModel, setSelectedModel] = useState<ModelOption['value']>(modelOptions[0].value);
+  const DEFAULT_MODEL: ModelOption['value'] = 'gpt-4o-mini';
+  const [selectedModel, setSelectedModel] = useState<ModelOption['value']>(
+    modelOptions[0]?.value ?? DEFAULT_MODEL,
+  );// 
 
   const isModelOptionValue = (name: string): name is ModelOptionValue =>
     name === 'gpt-4o-mini' || name === 'gpt-4.1-mini' || name === 'gpt-5-mini';

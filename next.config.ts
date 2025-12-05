@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  productionBrowserSourceMaps: true,
   images: {
     remotePatterns: [
-
       // s3 bucket
       {
         protocol: 'https',
@@ -44,7 +44,7 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
         pathname: '/**',
-      }, 
+      },
       //kakao
       {
         protocol: 'http',
