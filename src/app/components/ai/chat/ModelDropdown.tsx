@@ -51,13 +51,13 @@ export default function ModelDropdown({
             setOpen((v) => !v);
           }}
         >
-          {selected.enabled ? (
+          {selected?.enabled ? (
             <Bot size={20} strokeWidth={1.2} />
           ) : (
             <BotOff size={20} strokeWidth={1.2} />
           )}
           <span className="ml-1 text-[12.5px] text-slate-700 whitespace-nowrap">
-            {selected.label}
+            {selected?.label ?? '모델 선택'}
           </span>
           {direction === 'up' ? (
             <ChevronUp size={16} className="ml-0.5" />
@@ -73,7 +73,7 @@ export default function ModelDropdown({
           className={`absolute left-0 z-30 min-w-[120px] bg-white border rounded-xl shadow p-1 flex flex-col ${direction === 'up' ? 'bottom-10' : 'top-10'}`}
         >
           {options.map((opt) => {
-            const isSelected = opt.value === selected.value;
+            const isSelected = opt.value === selected?.value;
             return (
               <div key={opt.value} className="relative group">
                 <button

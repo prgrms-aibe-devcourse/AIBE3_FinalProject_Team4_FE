@@ -26,12 +26,20 @@ export default function ChatInput({
   showScrollBtn = false,
   onScrollDown,
 }: ChatInputProps) {
-  // selectedModel, modelOptions, onModelChange는 모두 상위에서 관리
-  const selected = modelOptions.find((opt) => opt.value === selectedModel) || modelOptions[0];
+  const defaultSelected: ModelOption = modelOptions[0] ?? {
+    label: 'GPT-4o mini',
+    value: 'gpt-4o-mini',
+    enabled: false,
+  };
+
+  const selected = modelOptions.find((opt) => opt.value === selectedModel) ?? defaultSelected;
+
+  const isModelDisabled = !selected.enabled;
+
   const handleModelSelect = (value: ModelOption['value']) => {
     onModelChange(value);
   };
-  const isModelDisabled = !selected || !selected.enabled;
+
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const isAnswering = aiChat.isStreaming;

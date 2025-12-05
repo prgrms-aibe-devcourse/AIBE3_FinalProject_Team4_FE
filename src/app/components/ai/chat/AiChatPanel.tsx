@@ -13,6 +13,14 @@ import ChatBotButton from './ChatBotButton';
 type DisplayMode = 'sidebar' | 'floating';
 
 export default function AiChatPanel({ title, content }: { title?: string; content?: string }) {
+  const DEFAULT_OPTIONS: ModelOption[] = [
+    { label: 'GPT-4o mini', value: 'gpt-4o-mini', enabled: false },
+    { label: 'GPT-4.1 mini', value: 'gpt-4.1-mini', enabled: false },
+    { label: 'GPT-5 mini', value: 'gpt-5-mini', enabled: false },
+  ];
+
+  const DEFAULT_MODEL: ModelOption['value'] = 'gpt-4o-mini';
+
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<DisplayMode>('sidebar');
 
@@ -20,15 +28,9 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   // 모델 옵션/선택값/변경함수 상태를 여기서 관리
-  const [modelOptions, setModelOptions] = useState<ModelOption[]>([
-    { label: 'GPT-4o mini', value: 'gpt-4o-mini', enabled: false },
-    { label: 'GPT-4.1 mini', value: 'gpt-4.1-mini', enabled: false },
-    { label: 'GPT-5 mini', value: 'gpt-5-mini', enabled: false },
-  ]);
-  const DEFAULT_MODEL: ModelOption['value'] = 'gpt-4o-mini';
-  const [selectedModel, setSelectedModel] = useState<ModelOption['value']>(
-    modelOptions[0]?.value ?? DEFAULT_MODEL,
-  );// 
+  const [modelOptions, setModelOptions] = useState<ModelOption[]>(DEFAULT_OPTIONS);
+
+  const [selectedModel, setSelectedModel] = useState<ModelOption['value']>(DEFAULT_MODEL);
 
   const isModelOptionValue = (name: string): name is ModelOptionValue =>
     name === 'gpt-4o-mini' || name === 'gpt-4.1-mini' || name === 'gpt-5-mini';
@@ -53,7 +55,8 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
       .then((res) => {
         console.log('fetchModelAvailability response:', res);
         const data = res.data;
-        const options: ModelOption[] = data
+
+        const fetchedOptions: ModelOption[] = data
           .filter((m): m is ModelAvailabilityDto & { name: ModelOptionValue } =>
             isModelOptionValue(m.name),
           )
@@ -62,6 +65,9 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
             value: m.name,
             enabled: m.available,
           }));
+
+        // API 결과가 비면 기본 옵션으로 fallback
+        const options = fetchedOptions.length > 0 ? fetchedOptions : DEFAULT_OPTIONS;
 
         setModelOptions(options);
 
@@ -72,16 +78,12 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
 
           // 없으면 enabled 모델 중 첫 번째
           const firstEnabled = options.find((o) => o.enabled);
-          return (firstEnabled ?? options[0])?.value ?? 'gpt-4o-mini';
+          return (firstEnabled ?? options[0]).value;
         });
       })
       .catch(() => {
-        setModelOptions([
-          { label: 'GPT-4o mini', value: 'gpt-4o-mini', enabled: false },
-          { label: 'GPT-4.1 mini', value: 'gpt-4.1-mini', enabled: false },
-          { label: 'GPT-5 mini', value: 'gpt-5-mini', enabled: false },
-        ]);
-        setSelectedModel('gpt-4o-mini');
+        setModelOptions(DEFAULT_OPTIONS);
+        setSelectedModel(DEFAULT_MODEL);
       });
   }, []);
 
