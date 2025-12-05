@@ -8,6 +8,7 @@ export interface TtsTokenResponse {
 
 export interface TtsResponse {
   ttsUrl: string;
+  remainingToken: number;
 }
 
 export interface TtsUseResponse {

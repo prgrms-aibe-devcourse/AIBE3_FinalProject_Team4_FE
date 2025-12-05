@@ -14,6 +14,8 @@ interface UseTtsProps {
 export function useTts({ shorlogId, content }: UseTtsProps) {
   const [tokens, setTokens] = useState<TtsTokenResponse | null>(null);
   const [ttsUrl, setTtsUrl] = useState<string | null>(null);
+  const [cachedUserId, setCachedUserId] = useState<number | null>(null); // 캐시된 사용자 ID
+  const [cachedShorlogId, setCachedShorlogId] = useState<number | null>(null); // 캐시된 숏로그 ID
   const [mode, setMode] = useState<TtsMode>('none');
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -76,24 +78,47 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
     setError(null);
 
     try {
-      // 기존 TTS URL이 있으면 사용
-      if (ttsUrl) {
+      // 현재 사용자 ID 확인
+      const { fetchMe } = await import('@/src/api/user');
+      const currentUser = await fetchMe().catch(() => null);
+      const currentUserId = currentUser?.id || null;
+
+      // 캐시 유효성 검증
+      const isCacheValid =
+        ttsUrl &&
+        currentUserId === cachedUserId &&
+        shorlogId === cachedShorlogId;
+
+      if (!isCacheValid && ttsUrl) {
+        setTtsUrl(null);
+      }
+
+      // 캐시가 유효하면 기존 것 재생
+      if (isCacheValid) {
         audioPlayer.play(ttsUrl);
         setMode('ai');
+        setIsLoading(false);
         return;
       }
 
-      // TTS 생성
-      const url = await TtsService.generateTts(shorlogId);
-      if (url) {
-        setTtsUrl(url);
-        audioPlayer.play(url);
+      // TTS 생성 또는 기존 것 가져오기
+      const response = await TtsService.generateTts(shorlogId);
+      if (response) {
+        setTtsUrl(response.ttsUrl);
+        setCachedUserId(currentUserId);
+        setCachedShorlogId(shorlogId);
+        audioPlayer.play(response.ttsUrl);
         setMode('ai');
-        await fetchTokens(); // 토큰 업데이트
+
+        // 토큰 업데이트
+        setTokens({
+          token: response.remainingToken,
+          resetDate: tokens?.resetDate || new Date().toISOString()
+        });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'TTS 생성에 실패했습니다.');
-      playWebSpeech(); // 실패 시 Web Speech로 전환
+      playWebSpeech();
     } finally {
       setIsLoading(false);
     }
@@ -116,12 +141,12 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
 
   // 재생 시작
   const play = () => {
-    if (mode === 'ai') {
+    if (mode === 'ai' && ttsUrl) {
       audioPlayer.resume();
     } else if (mode === 'web') {
       webSpeech.resume();
     } else {
-      playAiTts(); // 처음 재생 시 AI TTS 시도
+      playAiTts();
     }
   };
 
@@ -182,9 +207,25 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
   // 초기화
   useEffect(() => {
     const initialize = async () => {
-      await fetchTokens();
-      const url = await TtsService.getTtsUrl(shorlogId);
-      if (url) setTtsUrl(url);
+      // shorlogId 변경 시 상태 초기화
+      setTtsUrl(null);
+      setCachedShorlogId(null);
+      setMode('none');
+      setIsPlaying(false);
+      setProgress(0);
+      setCurrentTime(0);
+      setError(null);
+
+      const { fetchMe } = await import('@/src/api/user');
+      const currentUser = await fetchMe().catch(() => null);
+      const currentUserId = currentUser?.id || null;
+      setCachedUserId(currentUserId);
+
+      // 토큰 조회만 수행
+      const tokenData = await TtsService.fetchTokens();
+      if (tokenData) {
+        setTokens(tokenData);
+      }
     };
 
     initialize();
@@ -220,4 +261,3 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
     fetchTokens,
   };
 }
-

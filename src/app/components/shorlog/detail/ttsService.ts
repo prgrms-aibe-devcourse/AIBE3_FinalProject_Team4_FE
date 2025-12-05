@@ -1,6 +1,6 @@
 'use client';
 
-import { ttsApi, TtsTokenResponse } from '@/src/api/ttsApi';
+import { ttsApi, TtsTokenResponse, TtsResponse } from '@/src/api/ttsApi';
 
 export type TtsMode = 'ai' | 'web' | 'none';
 
@@ -19,12 +19,12 @@ export class TtsService {
     }
   }
 
-  // AI TTS 생성
-  static async generateTts(shorlogId: number): Promise<string | null> {
+  // AI TTS 생성 (TtsResponse 반환)
+  static async generateTts(shorlogId: number): Promise<TtsResponse | null> {
     try {
       const response = await ttsApi.generateShorlogTts(shorlogId);
       if (response.resultCode === '200-1') {
-        return response.data.ttsUrl;
+        return response.data; // { ttsUrl, remainingToken }
       } else {
         throw new Error(response.msg);
       }
@@ -34,11 +34,11 @@ export class TtsService {
   }
 
   // 기존 TTS URL 조회
-  static async getTtsUrl(shorlogId: number): Promise<string | null> {
+  static async getTtsUrl(shorlogId: number): Promise<TtsResponse | null> {
     try {
       const response = await ttsApi.getShorlogTts(shorlogId);
       if (response.resultCode === '200-1' && response.data.ttsUrl) {
-        return response.data.ttsUrl;
+        return response.data; // { ttsUrl, remainingToken }
       }
       return null;
     } catch (err) {
