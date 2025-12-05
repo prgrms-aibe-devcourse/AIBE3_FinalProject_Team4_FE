@@ -1,8 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  productionBrowserSourceMaps: true,
   images: {
     remotePatterns: [
-      // 해민 개인 s3 bucket
+      // s3 bucket
       {
         protocol: 'https',
         hostname: 'hm-dev-images.s3.ap-northeast-2.amazonaws.com',

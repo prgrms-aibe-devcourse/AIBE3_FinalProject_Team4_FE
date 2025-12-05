@@ -74,11 +74,11 @@ export default function BlogSearchCard({ item, searchKeyword }: BlogSearchCardPr
           <div className="h-7 w-7 overflow-hidden rounded-full bg-slate-200">
             {hasProfile ? (
               <img
-                src={item.profileImageUrl!}
-                alt={`${item.userNickname} 프로필 이미지`}
-                className="h-full w-full object-cover"
-                loading="lazy"
-              />
+              src={item.profileImageUrl || '/tmpProfile.png'}
+              alt={`${item.userNickname} 프로필 이미지`}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-slate-700">
                 {item.userNickname.charAt(0)}
