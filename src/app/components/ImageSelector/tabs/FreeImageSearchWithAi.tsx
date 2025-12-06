@@ -1,23 +1,22 @@
 import AiGeneration from '@/src/app/components/ai/generate/AiGeneration';
 import { SearchField } from '@/src/app/components/common/SearchField';
 
-interface SearchWithAiProps {
+interface FreeImageSearchWithAiProps {
   keyword: string;
   setKeyword: (value: string) => void;
-  blogContent?: string;
   onSearchKeywordChange: (keyword: string) => void;
+  blogContent?: string;
 }
 
-export default function SearchWithAi({
+export default function FreeImageSearchWithAi({
   keyword,
   setKeyword,
-  blogContent,
   onSearchKeywordChange,
-}: SearchWithAiProps) {
+  blogContent,
+}: FreeImageSearchWithAiProps) {
   const onSearch = () => {
     if (keyword.trim()) {
       onSearchKeywordChange(keyword.trim());
-      setKeyword(keyword.trim());
     }
   };
 
@@ -36,7 +35,6 @@ export default function SearchWithAi({
         contentType="blog"
         content={blogContent}
         onApply={(value) => {
-          setKeyword(value);
           onSearchKeywordChange(value);
         }}
       />

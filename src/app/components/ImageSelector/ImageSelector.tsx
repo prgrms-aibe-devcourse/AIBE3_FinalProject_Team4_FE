@@ -333,36 +333,14 @@ export default function ImageSelector({
             />
           )}
 
-          {/* {selectedTab === 'unsplash' && (
-            <FreeImageTab
-              blogContent={blogContent}
-              searchKeyword={unsplashSearchKeyword}
-              onSearchKeywordChange={setUnsplashSearchKeyword}
-              originalImage={originalImage}
-              onSelect={handleSelectImage}
-            />
-          )}
-
-          {selectedTab === 'pixabay' && (
-            <FreeImageTab
-              blogContent={blogContent}
-              searchKeyword={pixabaySearchKeyword}
-              onSearchKeywordChange={setPixabaySearchKeyword}
-              originalImage={originalImage}
-              onSelect={handleSelectImage}
-              apiEndpoint="pixabay"
-            />
-          )} */}
-
-          {/* <div style={{ display: active ? "block" : "none" }} /> */}
           <div
             style={{
               display: selectedTab === 'unsplash' || selectedTab === 'pixabay' ? 'block' : 'none',
             }}
           >
             <FreeImageTab
-              selectedTab={selectedTab}
               blogContent={blogContent}
+              selectedTab={selectedTab}
               searchKeyword={
                 selectedTab === 'pixabay' ? pixabaySearchKeyword : unsplashSearchKeyword
               }
@@ -371,23 +349,8 @@ export default function ImageSelector({
               }
               originalImage={originalImage}
               onSelect={handleSelectImage}
-              apiEndpoint={selectedTab === 'pixabay' ? 'pixabay' : 'unsplash'}
             />
           </div>
-          {/* {(selectedTab === 'pixabay' || selectedTab === 'unsplash') && (
-            <FreeImageTab
-              blogContent={blogContent}
-              searchKeyword={
-                selectedTab === 'pixabay' ? pixabaySearchKeyword : unsplashSearchKeyword
-              }
-              onSearchKeywordChange={
-                selectedTab === 'pixabay' ? setPixabaySearchKeyword : setUnsplashSearchKeyword
-              }
-              originalImage={originalImage}
-              onSelect={handleSelectImage}
-              apiEndpoint={selectedTab === 'pixabay' ? 'pixabay' : 'unsplash'}
-            />
-          )} */}
         </div>
       </div>
     </>
