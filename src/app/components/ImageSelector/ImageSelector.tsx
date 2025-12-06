@@ -4,8 +4,9 @@ import { uploadBlogImage } from '@/src/api/blogImageApi';
 import Toast from '@/src/app/components/ImageSelector/Toast';
 import { handleApiError } from '@/src/lib/handleApiError';
 import type { BlogFileDto, BlogImage, BlogMediaUploadResponse, RsData } from '@/src/types/blog';
-import { Crop } from 'lucide-react';
+import { CheckCircle, Crop } from 'lucide-react';
 import { SetStateAction, useEffect, useRef, useState } from 'react';
+import Tooltip from '../ai/Tooltip';
 import Cropper from './Cropper';
 import BlogImageTab from './tabs/BlogImageTab';
 import FreeImageTab from './tabs/FreeImageTab';
@@ -59,6 +60,13 @@ export default function ImageSelector({
   const [unsplashSearchKeyword, setUnsplashSearchKeyword] = useState('');
   const [pixabaySearchKeyword, setPixabaySearchKeyword] = useState('');
 
+  // 이미 썸네일(원본) 상태 여부
+  const isAlreadyThumbnailOriginal =
+    selectedImage === thumbnailUrl && (!lastAspect || lastAspect === '원본');
+
+  // 적용 중 상태
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // 토스트
   const [toast, setToast] = useState<{
     message: string;
@@ -76,6 +84,7 @@ export default function ImageSelector({
       return;
     }
 
+    setIsSubmitting(true);
     const formData = new FormData();
 
     if (imageSourceType === 'file' && uploadedFile) {
@@ -84,6 +93,7 @@ export default function ImageSelector({
       formData.append('url', originalImage);
     } else {
       showToast('업로드할 이미지가 없습니다.', 'warning');
+      setIsSubmitting(false);
       return;
     }
 
@@ -117,6 +127,7 @@ export default function ImageSelector({
         } else {
           showToast('업로드에 실패했습니다.', 'error');
         }
+        setIsSubmitting(false);
         return;
       }
 
@@ -125,6 +136,7 @@ export default function ImageSelector({
       const dto = rs.data;
       if (!dto) {
         showToast('업로드 응답이 올바르지 않습니다.', 'error');
+        setIsSubmitting(false);
         return;
       }
 
@@ -149,8 +161,9 @@ export default function ImageSelector({
 
       showToast('썸네일이 성공적으로 업로드되었습니다!', 'success');
     } catch (error) {
-      console.error('업로드 중 오류 발생:', error);
       handleApiError(error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -240,20 +253,26 @@ export default function ImageSelector({
                   <Crop className="w-4 h-4 mr-1" />
                   자르기
                 </button>
-                <button
-                  onClick={handleSubmit}
-                  disabled={!selectedImage}
-                  className={`
-                    rounded-xl px-3 py-1.5 text-xs text-white shadow-sm transition
-                    ${
-                      selectedImage
-                        ? 'bg-[#2979FF] hover:opacity-90'
-                        : 'bg-slate-300 cursor-not-allowed opacity-60'
-                    }
-                      `}
-                >
-                  썸네일 적용하기
-                </button>
+                <div className="group relative">
+                  <button
+                    onClick={handleSubmit}
+                    disabled={!selectedImage || isSubmitting || isAlreadyThumbnailOriginal}
+                    className={`
+                      rounded-xl px-3 py-1.5 text-xs text-white shadow-sm transition flex items-center gap-1
+                      ${
+                        selectedImage && !isSubmitting && !isAlreadyThumbnailOriginal
+                          ? 'bg-[#2979FF] hover:opacity-90'
+                          : 'bg-slate-300 cursor-not-allowed opacity-60'
+                      }
+                    `}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    {isSubmitting ? '적용 중...' : '적용하기'}
+                  </button>
+                  {isAlreadyThumbnailOriginal && (
+                    <Tooltip text="이미 썸네일로 등록된 이미지입니다" />
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -263,7 +282,7 @@ export default function ImageSelector({
         <div className="flex w-full items-center gap-1 rounded-full bg-slate-100 p-1 text-xs">
           {[
             { key: 'upload', label: '이미지 업로드' },
-            { key: 'blog', label: '본문 이미지' },
+            { key: 'blog', label: '블로그 이미지' },
             { key: 'unsplash', label: '무료 이미지 (Unsplash)' },
             { key: 'pixabay', label: '무료 이미지 (Pixabay)' },
           ].map((tab) => {
@@ -310,6 +329,7 @@ export default function ImageSelector({
             <BlogImageTab
               images={blogImages}
               originalImage={originalImage}
+              thumbnailUrl={thumbnailUrl}
               onSelect={(url: string | null) => {
                 setImageSourceType('url');
                 setSelectedImage(url);

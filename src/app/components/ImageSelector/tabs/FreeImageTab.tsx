@@ -79,18 +79,6 @@ export default function FreeImageTab({
         .filter((img: any) => img.url && !failedImages.has(img.url)),
     ) || [];
 
-  // originalImage가 목록에 없으면 임시로 추가하여 선택 상태 유지
-  if (originalImage && !images.some((img) => img.url === originalImage)) {
-    images = [
-      {
-        url: originalImage,
-        width: undefined,
-        height: undefined,
-      },
-      ...images,
-    ];
-  }
-
   // 이미지가 100개를 넘으면 더 이상 불러오지 않음
   const shouldFetchMore = images.length + PAGE_SIZE < MAX_IMAGES && hasNextPage;
 

@@ -101,6 +101,11 @@ export default function CropperModal({
   };
 
   const handleSave = async () => {
+    if (selectedAspect === '원본') {
+      // 원본 선택 시 크롭하지 않고 원본 이미지 URL 전달
+      onCrop(imageUrl, '원본');
+      return;
+    }
     if (croppedAreaPixels) {
       const croppedImage = await getCroppedImg(imageUrl, croppedAreaPixels);
       onCrop(croppedImage, selectedAspect);

@@ -53,7 +53,6 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
   useEffect(() => {
     fetchModelAvailability()
       .then((res) => {
-        console.log('fetchModelAvailability response:', res);
         const data = res.data;
 
         const fetchedOptions: ModelOption[] = data
@@ -137,10 +136,8 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
         }
         // 기타 에러 표시
         // toast.error(e.serverMsg || e.message);
-        console.error(e.serverMsg || e.message);
       } else {
         // toast.error('알 수 없는 오류가 발생했어요.');
-        console.error('알 수 없는 오류가 발생했어요.');
       }
     },
   });

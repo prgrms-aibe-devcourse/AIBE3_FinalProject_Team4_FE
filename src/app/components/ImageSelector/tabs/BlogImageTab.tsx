@@ -1,6 +1,6 @@
 'use client';
 
-import { Check } from 'lucide-react';
+import { Check, CheckCircle } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
 interface BlogImage {
@@ -13,10 +13,16 @@ interface BlogImage {
 interface BlogImageTabProps {
   images: BlogImage[];
   originalImage: string | null;
+  thumbnailUrl?: string | null;
   onSelect: (url: string | null) => void;
 }
 
-export default function BlogImageTab({ images, originalImage, onSelect }: BlogImageTabProps) {
+export default function BlogImageTab({
+  images,
+  originalImage,
+  thumbnailUrl,
+  onSelect,
+}: BlogImageTabProps) {
   const selectedImageRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -36,20 +42,29 @@ export default function BlogImageTab({ images, originalImage, onSelect }: BlogIm
   if (images.length === 0) {
     return (
       <div className="flex items-center justify-center h-[141px]">
-        <p className="text-xs text-slate-500">블로그 본문에 업로드된 이미지가 아직 없습니다</p>
+        <p className="text-xs text-slate-500">블로그에 업로드된 이미지가 아직 없습니다</p>
       </div>
     );
   }
 
+  // 썸네일만 맨 앞으로
+  const sortedImages = thumbnailUrl
+    ? [
+        ...images.filter((img) => img.url === thumbnailUrl),
+        ...images.filter((img) => img.url !== thumbnailUrl),
+      ]
+    : images;
+
   return (
     <div>
-      <p className="text-xs text-slate-600 mb-4">블로그 본문에 사용된 이미지 {images.length}개</p>
+      <p className="text-xs text-slate-600 mb-4">블로그에 사용된 이미지 {images.length}개</p>
 
       {/* 이미지 목록 */}
       <div ref={scrollContainerRef} className="max-h-[400px] overflow-y-auto pr-2">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pt-2 pl-2 pb-2">
-          {images.map((image) => {
+          {sortedImages.map((image) => {
             const isSelected = originalImage === image.url;
+            const isThumbnail = thumbnailUrl === image.url;
             return (
               <div
                 key={image.imageId}
@@ -73,6 +88,11 @@ export default function BlogImageTab({ images, originalImage, onSelect }: BlogIm
                 {isSelected && (
                   <div className="absolute top-2 right-2 bg-main rounded-full p-1">
                     <Check className="w-4 h-4 text-white" />
+                  </div>
+                )}
+                {isThumbnail && (
+                  <div className="absolute top-2 left-2 bg-yellow-400 text-xs text-white px-2 py-0.5 rounded-full flex items-center gap-1 shadow">
+                    <CheckCircle className="w-3 h-3" /> 썸네일
                   </div>
                 )}
               </div>
