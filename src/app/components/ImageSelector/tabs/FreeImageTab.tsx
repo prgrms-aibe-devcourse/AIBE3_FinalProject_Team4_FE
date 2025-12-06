@@ -82,6 +82,32 @@ export default function FreeImageTab({
   // 이미지가 100개를 넘으면 더 이상 불러오지 않음
   const shouldFetchMore = images.length + PAGE_SIZE < MAX_IMAGES && hasNextPage;
 
+  function distributeMasonry(images: any[], columnCount: number) {
+    const columns = Array.from({ length: columnCount }, () => [] as typeof images);
+    const heights = Array.from({ length: columnCount }, () => 0);
+    let tieBreaker = 0;
+
+    images.forEach((img) => {
+      const ratio = img.width && img.height ? img.height / img.width : 1; // 기본 1 → 0 방지
+      const estimatedHeight = ratio; // 너비 동일 가정이면 비율만 누적해도 충분
+
+      const minHeight = Math.min(...heights);
+      const minCols = heights.map((h, i) => (h === minHeight ? i : -1)).filter((i) => i !== -1);
+
+      // 동률이면 순환 선택
+      const colIndex = minCols[tieBreaker % minCols.length];
+      tieBreaker++;
+
+      columns[colIndex].push(img);
+      heights[colIndex] += estimatedHeight;
+    });
+
+    return columns;
+  }
+
+  const columnCount = 3;
+  const columns = distributeMasonry(images, columnCount);
+
   const onSearch = () => {
     if (keyword.trim()) {
       onSearchKeywordChange(keyword.trim());
@@ -167,57 +193,61 @@ export default function FreeImageTab({
       )}
 
       <div ref={scrollContainerRef} className="max-h-[400px] overflow-y-auto pr-2">
-        {isLoading ? (
-          <div className="columns-2 sm:columns-3 md:columns-4 gap-3 pt-2 pl-2">
-            {Array.from({ length: 12 }).map((_, i) => {
-              const heights = ['aspect-[3/4]', 'aspect-[4/5]', 'aspect-[1/1]', 'aspect-[3/5]'];
-              const randomHeight = heights[i % heights.length];
-              return (
-                <div key={i} className="relative mb-3 break-inside-avoid">
-                  <div className={`w-full ${randomHeight} bg-slate-200 rounded-lg animate-pulse`} />
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <>
-            <div className="columns-2 sm:columns-3 md:columns-4 gap-3 pt-2 pl-2">
-              {images.map((img, i) => {
-                const isSelected = originalImage === img.url;
-                const aspectRatio = img.width && img.height ? img.width / img.height : undefined;
+        <div className="relative w-full">
+          {/* 스켈레톤 로딩 */}
+          <div
+            className={`absolute inset-0 transition-opacity duration-300 
+              ${isLoading ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+          >
+            <div className="flex gap-3 pt-2 pl-2 h-[88px]">
+              {[0, 1, 2].map((i) => {
                 return (
-                  <div
-                    key={`${img.url}-${i}`}
-                    ref={isSelected ? selectedImageRef : null}
-                    className="relative mb-3 break-inside-avoid"
-                  >
-                    <img
-                      src={img.url}
-                      alt={apiEndpoint === 'pixabay' ? 'pixabay' : 'unsplash'}
-                      {...(img.width && img.height ? { width: img.width, height: img.height } : {})}
-                      style={aspectRatio ? { aspectRatio: aspectRatio.toString() } : undefined}
-                      onError={() => {
-                        setFailedImages((prev) => new Set(prev).add(img.url));
-                      }}
-                      onClick={() => {
-                        if (!isSelected) {
-                          onSelect(img.url);
-                        } else {
-                          onSelect(null);
-                        }
-                      }}
-                      className={`w-full rounded-lg cursor-pointer hover:opacity-80 transition-all ${
-                        isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-                      }`}
-                    />
-                    {isSelected && (
-                      <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
-                        <Check className="w-4 h-4" />
-                      </div>
-                    )}
-                  </div>
+                  <div key={i} className={`w-1/3 h-full bg-slate-200 rounded-lg animate-pulse`} />
                 );
               })}
+            </div>
+          </div>
+          {/* 이미지 목록 */}
+          <div
+            className={`transition-opacity duration-300 ${isLoading ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
+          >
+            <div className="flex gap-3 pt-2 pl-2">
+              {columns.map((col, colIdx) => (
+                <div key={colIdx} className="flex-1 flex flex-col gap-3">
+                  {col.map((img, i) => {
+                    const isSelected = originalImage === img.url;
+                    const aspectRatio =
+                      img.width && img.height ? img.width / img.height : undefined;
+
+                    return (
+                      <div
+                        key={`${img.url}-${i}`}
+                        ref={isSelected ? selectedImageRef : null}
+                        className="relative"
+                      >
+                        <img
+                          src={img.url}
+                          alt={apiEndpoint === 'pixabay' ? 'pixabay' : 'unsplash'}
+                          {...(img.width && img.height
+                            ? { width: img.width, height: img.height }
+                            : {})}
+                          style={aspectRatio ? { aspectRatio: aspectRatio.toString() } : undefined}
+                          onError={() => setFailedImages((prev) => new Set(prev).add(img.url))}
+                          onClick={() => onSelect(isSelected ? null : img.url)}
+                          className={`w-full rounded-lg cursor-pointer hover:opacity-80 transition-all ${
+                            isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
+                          }`}
+                        />
+                        {isSelected && (
+                          <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
+                            <Check className="w-4 h-4" />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
 
             {isFetchingNextPage && (
@@ -249,8 +279,8 @@ export default function FreeImageTab({
                 검색 결과가 없습니다
               </div>
             )}
-          </>
-        )}
+          </div>
+        </div>
       </div>
     </div>
   );
