@@ -32,7 +32,8 @@ export default function ImageSelector({
   ensureDraft,
 }: ImageSelectorProps) {
   // UI 탭 상태
-  const [selectedTab, setSelectedTab] = useState('upload');
+  type ImageSelectorTabType = 'upload' | 'blog' | 'unsplash' | 'pixabay';
+  const [selectedTab, setSelectedTab] = useState<ImageSelectorTabType>('upload');
   // ImageSelector 최상단 ref
   const selectorRef = useRef<HTMLDivElement>(null);
 
@@ -156,6 +157,24 @@ export default function ImageSelector({
     }
   };
 
+  // 이미지 선택/해제 핸들러
+  /**
+   * @param url 이미지 url
+   * @param imageType 이미지 타입 (기본값: 'url', 업로드 탭에서만 'file')
+   * @param id id (기본값: url)
+   */
+  const handleSelectImage = (
+    url: string | null,
+    imageType: 'file' | 'url' = 'url',
+    id: string | null = url,
+  ) => {
+    setImageSourceType(imageType);
+    setSelectedImage(url);
+    setOriginalImage(url);
+    setCroppingImage(url);
+    setLastAspect(null);
+  };
+
   return (
     <>
       {/* 크롭 모달 */}
@@ -277,7 +296,7 @@ export default function ImageSelector({
               <button
                 key={tab.key}
                 type="button"
-                onClick={() => setSelectedTab(tab.key)}
+                onClick={() => setSelectedTab(tab.key as ImageSelectorTabType)}
                 className={[
                   'flex-1 rounded-full px-3 py-1.5 font-medium transition truncate',
                   isActive
@@ -301,12 +320,7 @@ export default function ImageSelector({
               setUploadedFile={setUploadedFile}
               setUploadedFileUrl={setUploadedFileUrl}
               setImageSourceType={setImageSourceType}
-              onSelect={(url: string | null) => {
-                setSelectedImage(url);
-                setOriginalImage(url);
-                setCroppingImage(url);
-                setLastAspect(null);
-              }}
+              onSelect={(url: string | null) => handleSelectImage(url, 'file')}
             />
           )}
 
@@ -315,29 +329,17 @@ export default function ImageSelector({
               images={blogImages}
               originalImage={originalImage}
               thumbnailUrl={thumbnailUrl}
-              onSelect={(url: string | null) => {
-                setImageSourceType('url');
-                setSelectedImage(url);
-                setOriginalImage(url);
-                setCroppingImage(url);
-                setLastAspect(null);
-              }}
+              onSelect={handleSelectImage}
             />
           )}
 
-          {selectedTab === 'unsplash' && (
+          {/* {selectedTab === 'unsplash' && (
             <FreeImageTab
               blogContent={blogContent}
               searchKeyword={unsplashSearchKeyword}
               onSearchKeywordChange={setUnsplashSearchKeyword}
               originalImage={originalImage}
-              onSelect={(url: string | null) => {
-                setImageSourceType('url');
-                setSelectedImage(url);
-                setOriginalImage(url);
-                setCroppingImage(url);
-                setLastAspect(null);
-              }}
+              onSelect={handleSelectImage}
             />
           )}
 
@@ -347,16 +349,45 @@ export default function ImageSelector({
               searchKeyword={pixabaySearchKeyword}
               onSearchKeywordChange={setPixabaySearchKeyword}
               originalImage={originalImage}
-              onSelect={(url: string | null) => {
-                setImageSourceType('url');
-                setSelectedImage(url);
-                setOriginalImage(url);
-                setCroppingImage(url);
-                setLastAspect(null);
-              }}
+              onSelect={handleSelectImage}
               apiEndpoint="pixabay"
             />
-          )}
+          )} */}
+
+          {/* <div style={{ display: active ? "block" : "none" }} /> */}
+          <div
+            style={{
+              display: selectedTab === 'unsplash' || selectedTab === 'pixabay' ? 'block' : 'none',
+            }}
+          >
+            <FreeImageTab
+              selectedTab={selectedTab}
+              blogContent={blogContent}
+              searchKeyword={
+                selectedTab === 'pixabay' ? pixabaySearchKeyword : unsplashSearchKeyword
+              }
+              onSearchKeywordChange={
+                selectedTab === 'pixabay' ? setPixabaySearchKeyword : setUnsplashSearchKeyword
+              }
+              originalImage={originalImage}
+              onSelect={handleSelectImage}
+              apiEndpoint={selectedTab === 'pixabay' ? 'pixabay' : 'unsplash'}
+            />
+          </div>
+          {/* {(selectedTab === 'pixabay' || selectedTab === 'unsplash') && (
+            <FreeImageTab
+              blogContent={blogContent}
+              searchKeyword={
+                selectedTab === 'pixabay' ? pixabaySearchKeyword : unsplashSearchKeyword
+              }
+              onSearchKeywordChange={
+                selectedTab === 'pixabay' ? setPixabaySearchKeyword : setUnsplashSearchKeyword
+              }
+              originalImage={originalImage}
+              onSelect={handleSelectImage}
+              apiEndpoint={selectedTab === 'pixabay' ? 'pixabay' : 'unsplash'}
+            />
+          )} */}
         </div>
       </div>
     </>
