@@ -1,8 +1,8 @@
 'use client';
 
 import { uploadBlogImage } from '@/src/api/blogImageApi';
-import Toast from '@/src/app/components/ImageSelector/Toast';
 import { handleApiError } from '@/src/lib/handleApiError';
+import { showGlobalToast } from '@/src/lib/toastStore';
 import type { BlogFileDto, BlogImage, BlogMediaUploadResponse, RsData } from '@/src/types/blog';
 import { CheckCircle, Crop } from 'lucide-react';
 import { SetStateAction, useEffect, useRef, useState } from 'react';
@@ -67,20 +67,9 @@ export default function ImageSelector({
   // 적용 중 상태
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 토스트
-  const [toast, setToast] = useState<{
-    message: string;
-    type: 'success' | 'error' | 'warning';
-  } | null>(null);
-
-  const showToast = (message: string, type: 'success' | 'error' | 'warning') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
-
   const handleSubmit = async () => {
     if (!selectedImage) {
-      showToast('먼저 이미지를 선택해 주세요.', 'warning');
+      showGlobalToast('먼저 이미지를 선택해 주세요.', 'warning');
       return;
     }
 
@@ -92,7 +81,7 @@ export default function ImageSelector({
     } else if (imageSourceType === 'url' && originalImage) {
       formData.append('url', originalImage);
     } else {
-      showToast('업로드할 이미지가 없습니다.', 'warning');
+      showGlobalToast('업로드할 이미지가 없습니다.', 'warning');
       setIsSubmitting(false);
       return;
     }
@@ -117,15 +106,15 @@ export default function ImageSelector({
       // 2) 상태코드 체크
       if (!res.ok) {
         if (res.status === 401) {
-          showToast('로그인이 필요합니다. 다시 로그인해주세요.', 'error');
+          showGlobalToast('로그인이 필요합니다. 다시 로그인해주세요.', 'error');
         } else if (res.status === 403) {
-          showToast('접근 권한이 없습니다.', 'error');
+          showGlobalToast('접근 권한이 없습니다.', 'error');
         } else if (res.status === 404) {
-          showToast('블로그를 찾을 수 없습니다.', 'error');
+          showGlobalToast('블로그를 찾을 수 없습니다.', 'error');
         } else if (res.status >= 500) {
-          showToast('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
+          showGlobalToast('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
         } else {
-          showToast('업로드에 실패했습니다.', 'error');
+          showGlobalToast('업로드에 실패했습니다.', 'error');
         }
         setIsSubmitting(false);
         return;
@@ -135,7 +124,7 @@ export default function ImageSelector({
       const rs: RsData<BlogMediaUploadResponse> = await res.json();
       const dto = rs.data;
       if (!dto) {
-        showToast('업로드 응답이 올바르지 않습니다.', 'error');
+        showGlobalToast('업로드 응답이 올바르지 않습니다.', 'error');
         setIsSubmitting(false);
         return;
       }
@@ -159,7 +148,7 @@ export default function ImageSelector({
       setCroppingImage(null);
       setImageSourceType('file');
 
-      showToast('썸네일이 성공적으로 업로드되었습니다!', 'success');
+      showGlobalToast('썸네일이 성공적으로 업로드되었습니다!', 'success');
     } catch (error) {
       handleApiError(error);
     } finally {
@@ -169,9 +158,6 @@ export default function ImageSelector({
 
   return (
     <>
-      {/* 토스트 메시지 */}
-      {toast && <Toast message={toast.message} type={toast.type} />}
-
       {/* 크롭 모달 */}
       {isCropping && croppingImage && (
         <div
@@ -321,7 +307,6 @@ export default function ImageSelector({
                 setCroppingImage(url);
                 setLastAspect(null);
               }}
-              showToast={showToast}
             />
           )}
 

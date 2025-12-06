@@ -1,3 +1,4 @@
+import { showGlobalToast } from '@/src/lib/toastStore';
 import { Check, FileImage, UploadCloud, X } from 'lucide-react';
 import { ChangeEvent, useEffect, useState } from 'react';
 
@@ -9,7 +10,6 @@ interface UploadTabProps {
   setUploadedFile: (file: File | null) => void;
   setUploadedFileUrl: (url: string | null) => void;
   setImageSourceType: (type: 'file' | 'url') => void;
-  showToast?: (message: string, type: 'success' | 'error' | 'warning') => void;
 }
 
 export default function UploadTab({
@@ -20,7 +20,6 @@ export default function UploadTab({
   setUploadedFile,
   setUploadedFileUrl,
   setImageSourceType,
-  showToast,
 }: UploadTabProps) {
   const [isDragging, setIsDragging] = useState(false);
 
@@ -43,20 +42,20 @@ export default function UploadTab({
   // 이미지 파일 유효성 검사
   function validateImageFile(file: File): boolean {
     if (!file.type.startsWith('image/')) {
-      showToast?.('이미지 파일만 업로드할 수 있습니다.', 'warning');
+      showGlobalToast('이미지 파일만 업로드할 수 있습니다.', 'warning');
       return false;
     }
 
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
-      showToast?.('10MB 이하의 이미지만 업로드할 수 있습니다.', 'warning');
+      showGlobalToast('10MB 이하의 이미지만 업로드할 수 있습니다.', 'warning');
       return false;
     }
 
     const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
     const ext = file.name.split('.').pop()?.toLowerCase();
     if (!ext || !allowedExtensions.includes(ext)) {
-      showToast?.('JPG, JPEG, PNG, WEBP 형식의 파일만 업로드할 수 있습니다.', 'warning');
+      showGlobalToast('JPG, JPEG, PNG, WEBP 형식의 파일만 업로드할 수 있습니다.', 'warning');
       return false;
     }
     return true;
