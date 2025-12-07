@@ -291,7 +291,7 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-sky-50/40 to-slate-50">
+    <>
       <BlogWriteHeader
         onSaveDraft={handleSaveDraft}
         onPublish={handlePublish}
@@ -360,6 +360,6 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
           onCreateNewShorlog={() => router.push(`/shorlog/create?blogId=${publishedBlogId}`)}
         />
       )}
-    </div>
+    </>
   );
 }

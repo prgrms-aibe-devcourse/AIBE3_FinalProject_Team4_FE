@@ -2,11 +2,14 @@
 
 import { uploadBlogImage } from '@/src/api/blogImageApi';
 import { handleApiError } from '@/src/lib/handleApiError';
+import { showGlobalToast } from '@/src/lib/toastStore';
 import type { BlogFileDto, BlogImage, BlogMediaUploadResponse, RsData } from '@/src/types/blog';
-import { SetStateAction, useState } from 'react';
+import { CheckCircle, Crop } from 'lucide-react';
+import { SetStateAction, useEffect, useRef, useState } from 'react';
+import Tooltip from '../ai/Tooltip';
 import Cropper from './Cropper';
 import BlogImageTab from './tabs/BlogImageTab';
-import FreeImagePicker from './tabs/FreeImageTab';
+import FreeImageTab from './tabs/FreeImageTab';
 import UploadTab from './tabs/UploadImageTab';
 
 interface ImageSelectorProps {
@@ -28,33 +31,72 @@ export default function ImageSelector({
   onChangeThumbnail,
   ensureDraft,
 }: ImageSelectorProps) {
-  const [selectedTab, setSelectedTab] = useState('upload');
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [originalImage, setOriginalImage] = useState<string | null>(null);
-  const [croppingImage, setCroppingImage] = useState<string | null>(null);
+  // UI 탭 상태
+  type ImageSelectorTabType = 'upload' | 'blog' | 'unsplash' | 'pixabay';
+  const [selectedTab, setSelectedTab] = useState<ImageSelectorTabType>('upload');
+  // ImageSelector 최상단 ref
+  const selectorRef = useRef<HTMLDivElement>(null);
+
+  // 탭 변경 시 ImageSelector 시작 위치로 스크롤 이동
+  useEffect(() => {
+    if (['blog', 'unsplash', 'pixabay'].includes(selectedTab) && selectorRef.current) {
+      selectorRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [selectedTab]);
+  // 크롭 모달 활성화 여부
   const [isCropping, setIsCropping] = useState(false);
-  const [lastAspect, setLastAspect] = useState<string>('원본');
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
-  const [imageSourceType, setImageSourceType] = useState<'file' | 'url'>('file');
+
+  // 이미지 선택 및 편집 관련 상태
+  const [selectedImage, setSelectedImage] = useState<string | null>(null); // 현재 선택된 이미지 URL
+  const [originalImage, setOriginalImage] = useState<string | null>(null); // 원본 이미지 URL
+  const [originalImageId, setOriginalImageId] = useState<string | null>(null); // 원본 이미지 ID
+  const [croppingImage, setCroppingImage] = useState<string | null>(null); // 크롭 중인 이미지 URL
+  const [lastAspect, setLastAspect] = useState<string | null>(null); // 마지막으로 사용한 크롭 비율
+
+  const [imageSourceType, setImageSourceType] = useState<'file' | 'url'>('file'); // 이미지 소스 타입
+
+  // 업로드 파일 관련 상태
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null); // 업로드된 파일 객체
+  const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null); // 업로드된 파일의 미리보기 URL
+
+  // 무료 이미지 검색 키워드 상태
   const [unsplashSearchKeyword, setUnsplashSearchKeyword] = useState('');
   const [pixabaySearchKeyword, setPixabaySearchKeyword] = useState('');
-  const [toast, setToast] = useState<{
-    message: string;
-    type: 'success' | 'error' | 'warning';
-  } | null>(null);
 
-  const showToast = (message: string, type: 'success' | 'error' | 'warning') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
+  // 이미 썸네일(원본) 상태 여부
+  const isAlreadyThumbnailOriginal =
+    selectedImage === thumbnailUrl && (!lastAspect || lastAspect === '원본');
+
+  // 적용 중 상태
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 이미지 선택/해제 핸들러
+  /**
+   * @param url 이미지 url
+   * @param imageType 이미지 타입 (기본값: 'url', 업로드 탭에서만 'file')
+   * @param id id (기본값: url)
+   */
+  const handleSelectImage = (
+    url: string | null,
+    imageType: 'file' | 'url' = 'url',
+    id: string | null = url,
+  ) => {
+    setImageSourceType(imageType);
+    setSelectedImage(url);
+    setOriginalImage(url);
+    setOriginalImageId(id);
+    setCroppingImage(url);
+    setLastAspect(null);
   };
 
+  // 썸네일 등록하기
   const handleSubmit = async () => {
     if (!selectedImage) {
-      showToast('먼저 이미지를 선택해 주세요.', 'warning');
+      showGlobalToast('먼저 이미지를 선택해 주세요.', 'warning');
       return;
     }
 
+    setIsSubmitting(true);
     const formData = new FormData();
 
     if (imageSourceType === 'file' && uploadedFile) {
@@ -62,19 +104,22 @@ export default function ImageSelector({
     } else if (imageSourceType === 'url' && originalImage) {
       formData.append('url', originalImage);
     } else {
-      showToast('업로드할 이미지가 없습니다.', 'warning');
+      showGlobalToast('업로드할 이미지가 없습니다.', 'warning');
+      setIsSubmitting(false);
       return;
     }
 
     formData.append('type', 'THUMBNAIL');
 
+    // lastAspect가 null이면 '원본'을 기본값으로 사용
     const aspectRatioMap: Record<string, string> = {
       원본: 'original',
       '1:1': '1:1',
       '4:5': '4:5',
       '16:9': '16:9',
     };
-    formData.append('aspectRatios', aspectRatioMap[lastAspect] || 'original');
+    const aspectKey = lastAspect ?? '원본';
+    formData.append('aspectRatios', aspectRatioMap[aspectKey] || 'original');
 
     try {
       const validBlogId = blogId ?? (await ensureDraft());
@@ -84,16 +129,17 @@ export default function ImageSelector({
       // 2) 상태코드 체크
       if (!res.ok) {
         if (res.status === 401) {
-          showToast('로그인이 필요합니다. 다시 로그인해주세요.', 'error');
+          showGlobalToast('로그인이 필요합니다. 다시 로그인해주세요.', 'error');
         } else if (res.status === 403) {
-          showToast('접근 권한이 없습니다.', 'error');
+          showGlobalToast('접근 권한이 없습니다.', 'error');
         } else if (res.status === 404) {
-          showToast('블로그를 찾을 수 없습니다.', 'error');
+          showGlobalToast('블로그를 찾을 수 없습니다.', 'error');
         } else if (res.status >= 500) {
-          showToast('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
+          showGlobalToast('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
         } else {
-          showToast('업로드에 실패했습니다.', 'error');
+          showGlobalToast('업로드에 실패했습니다.', 'error');
         }
+        setIsSubmitting(false);
         return;
       }
 
@@ -101,11 +147,12 @@ export default function ImageSelector({
       const rs: RsData<BlogMediaUploadResponse> = await res.json();
       const dto = rs.data;
       if (!dto) {
-        showToast('업로드 응답이 올바르지 않습니다.', 'error');
+        showGlobalToast('업로드 응답이 올바르지 않습니다.', 'error');
+        setIsSubmitting(false);
         return;
       }
 
-      // 4) 썸네일 URL을 부모에 반영
+      // 4) 섬네일 URL을 부모에 반영
       onChangeThumbnail(dto.url);
       // 필요하면 이미지 리스트에도 추가
       const newImage: BlogFileDto = {
@@ -117,50 +164,33 @@ export default function ImageSelector({
       onChangeImages([...blogImages, newImage]);
 
       // 로컬 선택 상태도 업데이트
-      setUploadedFile(null);
-      setUploadedFileUrl(null);
-      setSelectedImage(null);
-      setOriginalImage(null);
-      setCroppingImage(null);
-      setImageSourceType('file');
+      if (imageSourceType === 'file') {
+        setUploadedFile(null);
+        setUploadedFileUrl(null);
+      }
+      handleSelectImage(null, 'file');
 
-      showToast('썸네일이 성공적으로 업로드되었습니다!', 'success');
+      showGlobalToast('썸네일이 성공적으로 업로드되었습니다!', 'success');
     } catch (error) {
-      console.error('업로드 중 오류 발생:', error);
       handleApiError(error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <>
-      {/* 토스트 메시지 */}
-      {toast && (
-        <div className="fixed top-4 right-4 z-50 animate-fade-in-down">
-          <div
-            className={`px-6 py-3 rounded-lg shadow-lg text-white ${
-              toast.type === 'success'
-                ? 'bg-green-500'
-                : toast.type === 'warning'
-                  ? 'bg-yellow-500'
-                  : 'bg-red-500'
-            }`}
-          >
-            {toast.message}
-          </div>
-        </div>
-      )}
-
       {/* 크롭 모달 */}
       {isCropping && croppingImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4"
           onClick={() => {
             setIsCropping(false);
             setCroppingImage(null);
           }}
         >
           <div
-            className="w-full max-w-4xl rounded-2xl bg-white p-6 shadow-xl"
+            className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <Cropper
@@ -181,11 +211,11 @@ export default function ImageSelector({
         </div>
       )}
 
-      <div className="w-full space-y-4">
+      <div ref={selectorRef} className="w-full space-y-4">
         {/* 블로그 카드 스타일 미리보기 */}
         <article className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
           <div className="flex items-start gap-4">
-            {/* 썸네일 */}
+            {/* 섬네일 */}
             <div className="flex-shrink-0">
               {selectedImage || thumbnailUrl ? (
                 <div className="relative h-20 w-20 overflow-hidden rounded-xl bg-slate-100">
@@ -213,25 +243,44 @@ export default function ImageSelector({
               </div>
 
               <div className="flex items-center gap-2">
-                {selectedImage && (
-                  <>
-                    <button
-                      onClick={() => {
-                        setCroppingImage(originalImage);
-                        setIsCropping(true);
-                      }}
-                      className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 transition hover:bg-slate-50"
-                    >
-                      자르기
-                    </button>
-                    <button
-                      onClick={handleSubmit}
-                      className="rounded-lg bg-[#2979FF] px-4 py-1.5 text-xs text-white shadow-sm transition hover:opacity-90"
-                    >
-                      적용하기
-                    </button>
-                  </>
-                )}
+                <button
+                  onClick={() => {
+                    setCroppingImage(originalImage);
+                    setIsCropping(true);
+                  }}
+                  disabled={!selectedImage}
+                  className={`
+                    rounded-xl border px-3 py-1.5 text-xs transition flex items-center gap-1
+                    ${
+                      selectedImage
+                        ? 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                        : 'border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed opacity-60'
+                    }
+                  `}
+                >
+                  <Crop className="w-4 h-4 mr-1" />
+                  자르기
+                </button>
+                <div className="group relative">
+                  <button
+                    onClick={handleSubmit}
+                    disabled={!selectedImage || isSubmitting || isAlreadyThumbnailOriginal}
+                    className={`
+                      rounded-xl px-3 py-1.5 text-xs text-white shadow-sm transition flex items-center gap-1
+                      ${
+                        selectedImage && !isSubmitting && !isAlreadyThumbnailOriginal
+                          ? 'bg-[#2979FF] hover:opacity-90'
+                          : 'bg-slate-300 cursor-not-allowed opacity-60'
+                      }
+                    `}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    {isSubmitting ? '적용 중...' : '적용하기'}
+                  </button>
+                  {isAlreadyThumbnailOriginal && (
+                    <Tooltip text="이미 썸네일로 등록된 이미지입니다" />
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -241,21 +290,21 @@ export default function ImageSelector({
         <div className="flex w-full items-center gap-1 rounded-full bg-slate-100 p-1 text-xs">
           {[
             { key: 'upload', label: '이미지 업로드' },
-            { key: 'blog', label: '블로그 본문 이미지' },
-            { key: 'unsplash', label: '무료 사진 (Unsplash)' },
-            { key: 'pixabay', label: '무료 사진 (Pixabay)' },
+            { key: 'blog', label: '블로그 이미지' },
+            { key: 'unsplash', label: '무료 이미지 (Unsplash)' },
+            { key: 'pixabay', label: '무료 이미지 (Pixabay)' },
           ].map((tab) => {
             const isActive = selectedTab === tab.key;
             return (
               <button
                 key={tab.key}
                 type="button"
-                onClick={() => setSelectedTab(tab.key)}
+                onClick={() => setSelectedTab(tab.key as ImageSelectorTabType)}
                 className={[
-                  'flex-1 rounded-full px-3 py-1.5 font-medium transition',
+                  'flex-1 rounded-full px-3 py-1.5 font-medium transition truncate',
                   isActive
-                    ? 'bg-white text-[#2979FF] shadow-sm'
-                    : 'text-slate-500 hover:text-[#2979FF]',
+                    ? 'bg-white text-slate-700 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700',
                 ].join(' ')}
               >
                 {tab.label}
@@ -270,61 +319,42 @@ export default function ImageSelector({
             <UploadTab
               uploadedFile={uploadedFile}
               uploadedFileUrl={uploadedFileUrl}
-              selectedImage={selectedImage}
               originalImage={originalImage}
-              setSelectedImage={setSelectedImage}
-              setCroppingImage={setCroppingImage}
-              setOriginalImage={setOriginalImage}
               setUploadedFile={setUploadedFile}
               setUploadedFileUrl={setUploadedFileUrl}
-              setImageSourceType={setImageSourceType}
+              onSelect={(url: string | null) => handleSelectImage(url, 'file')}
             />
           )}
 
           {selectedTab === 'blog' && (
             <BlogImageTab
               images={blogImages}
-              selectedImage={selectedImage}
-              onSelect={(url: string) => {
-                setSelectedImage(url);
-                setCroppingImage(url);
-                setOriginalImage(url);
-                setImageSourceType('url');
-              }}
+              originalImage={originalImage}
+              thumbnailUrl={thumbnailUrl}
+              onSelect={handleSelectImage}
             />
           )}
 
-          {selectedTab === 'unsplash' && (
-            <FreeImagePicker
+          <div
+            style={{
+              display: selectedTab === 'unsplash' || selectedTab === 'pixabay' ? 'block' : 'none',
+            }}
+          >
+            <FreeImageTab
               blogContent={blogContent}
-              searchKeyword={unsplashSearchKeyword}
-              onSearchKeywordChange={setUnsplashSearchKeyword}
-              selectedImage={selectedImage}
-              originalImage={originalImage}
-              onSelect={(url: string) => {
-                setSelectedImage(url);
-                setCroppingImage(url);
-                setOriginalImage(url);
-                setImageSourceType('url');
-              }}
+              selectedTab={selectedTab}
+              searchKeyword={
+                selectedTab === 'pixabay' ? pixabaySearchKeyword : unsplashSearchKeyword
+              }
+              onSearchKeywordChange={
+                selectedTab === 'pixabay' ? setPixabaySearchKeyword : setUnsplashSearchKeyword
+              }
+              originalImageId={originalImageId}
+              onSelect={(url: string | null, id: string | null) =>
+                handleSelectImage(url, 'url', id)
+              }
             />
-          )}
-
-          {selectedTab === 'pixabay' && (
-            <FreeImagePicker
-              blogContent={blogContent}
-              searchKeyword={pixabaySearchKeyword}
-              onSearchKeywordChange={setPixabaySearchKeyword}
-              selectedImage={selectedImage}
-              originalImage={originalImage}
-              onSelect={(url: string) => {
-                setSelectedImage(url);
-                setCroppingImage(url);
-                setOriginalImage(url);
-                setImageSourceType('url');
-              }}
-            />
-          )}
+          </div>
         </div>
       </div>
     </>

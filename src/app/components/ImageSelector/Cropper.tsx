@@ -1,49 +1,57 @@
 'use client';
 
+import { Crop } from 'lucide-react';
+
 import { useCallback, useEffect, useState } from 'react';
 import Cropper, { Area } from 'react-easy-crop';
 
-export default function CropperModal({ imageUrl, initialAspect, onClose, onCrop }: any) {
-  const [aspect, setAspect] = useState<number | undefined>(undefined);
-  const [originalAspect, setOriginalAspect] = useState<number | undefined>(undefined);
-  const [selectedAspect, setSelectedAspect] = useState<string>(initialAspect || '원본');
+const cropOptions = ['원본', '1:1', '4:5', '16:9'];
+
+type AspectInfo = { key: string; ratio: number };
+let aspectMap: Record<string, AspectInfo> = {
+  원본: { key: 'original', ratio: 1 }, // ratio는 이미지 로드 후 변경
+  '1:1': { key: '1:1', ratio: 1 },
+  '4:5': { key: '4:5', ratio: 4 / 5 },
+  '16:9': { key: '16:9', ratio: 16 / 9 },
+};
+
+interface CropperModalProps {
+  imageUrl: string;
+  initialAspect?: string | null;
+  onCrop: (croppedUrl: string, aspect: string) => void;
+  onClose: () => void;
+}
+
+export default function CropperModal({
+  imageUrl,
+  initialAspect,
+  onCrop,
+  onClose,
+}: CropperModalProps) {
+  // 크롭 비율 관련 상태
+  const [aspect, setAspect] = useState<number | undefined>(undefined); // 현재 적용된 비율
+  const initialAspectLabel = initialAspect ?? '원본';
+  const [selectedAspect, setSelectedAspect] = useState<string>(initialAspectLabel); // 선택된 비율 옵션
+
+  // 크롭 영역 픽셀 정보
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   useEffect(() => {
     const img = new Image();
     img.onload = () => {
       const ratio = img.width / img.height;
-      setOriginalAspect(ratio);
+      aspectMap['원본'].ratio = ratio;
 
-      // initialAspect가 있으면 그것을 사용, 없으면 원본 비율
-      if (initialAspect && initialAspect !== '원본') {
-        const aspectMap: Record<string, number> = {
-          '1:1': 1,
-          '4:5': 4 / 5,
-          '16:9': 16 / 9,
-        };
-        setAspect(aspectMap[initialAspect] || ratio);
-      } else {
-        setAspect(ratio);
-      }
+      // initialAspect가 null/undefined면 '원본'을 기본값으로 사용
+      const aspectKey = initialAspect ?? '원본';
+      setAspect(aspectMap[aspectKey]?.ratio || ratio);
     };
     img.src = imageUrl;
   }, [imageUrl, initialAspect]);
 
-  const cropOptions = ['원본', '1:1', '4:5', '16:9'];
-
   const handleAspectChange = (value: string) => {
     setSelectedAspect(value);
-    if (value === '원본') {
-      setAspect(originalAspect);
-    } else {
-      const aspectMap: Record<string, number> = {
-        '1:1': 1,
-        '4:5': 4 / 5,
-        '16:9': 16 / 9,
-      };
-      setAspect(aspectMap[value]);
-    }
+    setAspect(aspectMap[value]?.ratio);
   };
 
   const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
@@ -93,6 +101,11 @@ export default function CropperModal({ imageUrl, initialAspect, onClose, onCrop 
   };
 
   const handleSave = async () => {
+    if (selectedAspect === '원본') {
+      // 원본 선택 시 크롭하지 않고 원본 이미지 URL 전달
+      onCrop(imageUrl, '원본');
+      return;
+    }
     if (croppedAreaPixels) {
       const croppedImage = await getCroppedImg(imageUrl, croppedAreaPixels);
       onCrop(croppedImage, selectedAspect);
@@ -101,19 +114,28 @@ export default function CropperModal({ imageUrl, initialAspect, onClose, onCrop 
 
   return (
     <>
+      <style>{`
+        .reactEasyCrop_CropArea {
+          transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+        }
+      `}</style>
+
       {/* 헤더: 제목 + 버튼 */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-gray-600">이미지 자르기</h3>
+        <h3 className="text-sm font-semibold text-slate-600 flex items-center gap-1">
+          <Crop className="w-4 h-4 mr-1" />
+          이미지 자르기
+        </h3>
         <div className="flex gap-2">
           <button
             onClick={onClose}
-            className="px-2 py-1 text-xs rounded border text-gray-600 hover:bg-gray-100"
+            className="px-3 py-1.5 text-xs rounded-xl border text-slate-600 hover:bg-slate-100"
           >
             취소
           </button>
           <button
             onClick={handleSave}
-            className="px-2 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
+            className="px-3 py-1.5 text-xs rounded-xl bg-main text-white hover:bg-blue-500"
           >
             저장
           </button>
@@ -143,10 +165,10 @@ export default function CropperModal({ imageUrl, initialAspect, onClose, onCrop 
           <button
             key={opt}
             onClick={() => handleAspectChange(opt)}
-            className={`px-4 py-2 rounded-xl border text-sm whitespace-nowrap transition-colors ${
+            className={`px-3 py-1.5 rounded-xl border text-xs whitespace-nowrap transition-colors ${
               selectedAspect === opt
-                ? 'bg-gray-100 border-gray-300 text-gray-600'
-                : 'border-gray-300 text-gray-600 hover:bg-gray-100'
+                ? 'bg-slate-100 border-main text-main'
+                : 'border-slate-300 text-slate-600 hover:bg-slate-50'
             }`}
           >
             {opt}
