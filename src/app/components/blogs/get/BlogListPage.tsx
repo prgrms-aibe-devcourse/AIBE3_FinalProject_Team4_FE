@@ -5,6 +5,7 @@ import type { BlogScope, BlogSliceResponse, BlogSortType, BlogSummary } from '@/
 import { useEffect, useState } from 'react';
 import { BlogEmptyState, BlogErrorState } from './BlogStates';
 import { BlogToolbar } from './BlogToolbar';
+import LoadingSpinner from '../../common/LoadingSpinner';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export function BlogListPage() {
@@ -72,7 +73,8 @@ export function BlogListPage() {
 
       {/* 블로그 리스트 */}
       <div className="space-y-4">
-        {loading && <p className="py-10 text-center text-sm text-slate-500">로딩 중...</p>}
+        {loading && <p className="py-10 text-center text-sm text-slate-500">
+          <LoadingSpinner label='블로그를 불러오는 중입니다'></LoadingSpinner></p>}
 
         {!loading && error && <BlogErrorState onRetry={loadBlogs} />}
 

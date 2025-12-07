@@ -7,7 +7,7 @@ import { useState } from 'react';
 type BlogReactionBarProps = {
   blog: BlogDetailDto;
 
-  /** UI를 제어하는 외부 상태 */
+  /** UI를 제어하는 상태는 부모에서 컨트롤 */
   isLiked: boolean;
   likeCount: number;
   isBookmarked: boolean;
@@ -31,7 +31,6 @@ export function BlogReactionBar({
   onOpenLinkedShorlogs,
   onShare,
 }: BlogReactionBarProps) {
-  const [openComments, setOpenComments] = useState(false);
 
   return (
     <div className="border-t border-slate-100 bg-slate-50/60">

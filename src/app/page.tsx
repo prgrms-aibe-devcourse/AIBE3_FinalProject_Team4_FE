@@ -4,6 +4,7 @@ import { useCurrentUser } from '@/src/hooks/useCurrentUser';
 import { useLoginModal } from '@/src/providers/LoginModalProvider';
 import { useRouter } from 'next/navigation';
 import './MainPage.css';
+import LoadingSpinner from './components/common/LoadingSpinner';
 
 export default function MainPage() {
   const router = useRouter();
@@ -65,7 +66,7 @@ export default function MainPage() {
           <div className="hero-actions">
             {isLoading ? (
               <button className="btn" disabled>
-                <span>로딩중...</span>
+                <LoadingSpinner></LoadingSpinner>
               </button>
             ) : currentUser ? (
               <>

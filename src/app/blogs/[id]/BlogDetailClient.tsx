@@ -42,15 +42,17 @@ export default function BlogDetailClient({
   onDelete,
   onEdit,
 }: Props) {
-  const [blog] = useState<BlogDetailDto>(initialData); // 지금은 수정 안 하니까 그대로 유지
+  const [blog, setBlog] = useState<BlogDetailDto>(initialData);
+  // 리액션 상태
   const [viewCount, setViewCount] = useState(initialData.viewCount ?? 0);
-  const [likeCount, setLikeCount] = useState(initialData.likeCount ?? 0);
-  const [bookmarkCount, setBookmarkCount] = useState(initialData.bookmarkCount ?? 0);
-  const [isLiked, setIsLiked] = useState(initialData.isLiked ?? false);
-  const [isBookmarked, setIsBookmarked] = useState(initialData.isBookmarked ?? false);
+  const [isLiked, setIsLiked] = useState<boolean>(!!initialData.isLiked);
+  const [likeCount, setLikeCount] = useState<number>(initialData.likeCount);
+  const [isBookmarked, setIsBookmarked] = useState<boolean>(!!initialData.isBookmarked);
+  const [bookmarkCount, setBookmarkCount] = useState<number>(initialData.bookmarkCount);
+
   const [likeLoading, setLikeLoading] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
-  // 연결된 숏로그 모달용 상태
+   // 연결된 숏로그 모달용 상태
   const [linkedOpen, setLinkedOpen] = useState(false);
   const [linkedLoading, setLinkedLoading] = useState(false);
   const [linkedItems, setLinkedItems] = useState<LinkedShorlogSummary[]>([]);
@@ -69,10 +71,7 @@ export default function BlogDetailClient({
           setViewCount(dto.viewCount);
         }
       })
-      .catch((e) => {
-        //console.error('조회수 증가 실패', e);
-        // handleApiError(e, '조회수 증가');
-      });
+      .catch((e) => {});
 
     return () => {
       cancelled = true;
@@ -88,7 +87,7 @@ export default function BlogDetailClient({
 
     setLikeLoading(true);
     setIsLiked(!prevLiked);
-    setLikeCount(prevLiked ? prevCount - 1 : prevCount + 1);
+    setLikeCount(prevLiked ? Math.max(prevCount - 1, 0) : prevCount + 1);
 
     try {
       const dto = prevLiked ? await unlikeBlog(blog.id) : await likeBlog(blog.id);
@@ -96,8 +95,6 @@ export default function BlogDetailClient({
       setLikeCount(dto.likeCount);
     } catch (e) {
       handleApiError(e, '좋아요 처리');
-
-      // 낙관적 업데이트 롤백
       setIsLiked(prevLiked);
       setLikeCount(prevCount);
     } finally {
@@ -114,19 +111,15 @@ export default function BlogDetailClient({
 
     setBookmarkLoading(true);
     setIsBookmarked(!prevMarked);
-    setBookmarkCount(prevMarked ? prevCount - 1 : prevCount + 1);
+    setBookmarkCount(prevMarked ? Math.max(prevCount - 1, 0) : prevCount + 1);
 
     try {
-      const dto = prevMarked
-        ? await removeBookmark(initialData.id)
-        : await addBookmark(initialData.id);
+      const dto = prevMarked ? await removeBookmark(blog.id) : await addBookmark(blog.id);
 
       setIsBookmarked(dto.isBookmarked);
       setBookmarkCount(dto.bookmarkCount);
     } catch (e) {
-      //console.error('북마크 토글 실패', e);
       handleApiError(e, '북마크 처리');
-
       setIsBookmarked(prevMarked);
       setBookmarkCount(prevCount);
     } finally {
