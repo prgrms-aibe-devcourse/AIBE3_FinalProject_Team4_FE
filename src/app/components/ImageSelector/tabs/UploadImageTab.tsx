@@ -9,7 +9,6 @@ interface UploadTabProps {
   onSelect: (url: string | null) => void;
   setUploadedFile: (file: File | null) => void;
   setUploadedFileUrl: (url: string | null) => void;
-  setImageSourceType: (type: 'file' | 'url') => void;
 }
 
 export default function UploadTab({
@@ -19,7 +18,6 @@ export default function UploadTab({
   onSelect,
   setUploadedFile,
   setUploadedFileUrl,
-  setImageSourceType,
 }: UploadTabProps) {
   const [isDragging, setIsDragging] = useState(false);
 
@@ -67,7 +65,6 @@ export default function UploadTab({
 
     const url = URL.createObjectURL(file);
 
-    setImageSourceType('file');
     setUploadedFile(file);
     setUploadedFileUrl(url);
 
@@ -121,7 +118,6 @@ export default function UploadTab({
     }
 
     // 선택되지 않은 파일을 클릭하면 선택
-    setImageSourceType('file');
     onSelect(uploadedFileUrl);
   };
 

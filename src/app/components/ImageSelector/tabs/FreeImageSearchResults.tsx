@@ -68,11 +68,20 @@ export default function FreeImageSearchResults({
   const shouldFetchMore = images.length + PAGE_SIZE < MAX_IMAGES && hasNextPage;
 
   function distributeMasonry(images: any[], columnCount: number) {
+    // --- 중복 제거 ---
+    const seen = new Set<string | number>();
+    const dedupedImages = images.filter((img) => {
+      const key = img.id ?? img.url; // id 없으면 url로
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
     const columns = Array.from({ length: columnCount }, () => [] as typeof images);
     const heights = Array.from({ length: columnCount }, () => 0);
     let tieBreaker = 0;
 
-    images.forEach((img) => {
+    dedupedImages.forEach((img) => {
       const ratio = img.width && img.height ? img.height / img.width : 1; // 기본 1 → 0 방지
       const estimatedHeight = ratio; // 너비 동일 가정이면 비율만 누적해도 충분
 
@@ -189,7 +198,9 @@ export default function FreeImageSearchResults({
                               aspectRatio ? { aspectRatio: aspectRatio.toString() } : undefined
                             }
                             onError={() => setFailedImages((prev) => new Set(prev).add(img.url))}
-                            onClick={() => onSelect(isSelected ? null : img.url, isSelected ? null : img.id)}
+                            onClick={() =>
+                              onSelect(isSelected ? null : img.url, isSelected ? null : img.id)
+                            }
                             className={`w-full rounded-lg cursor-pointer hover:opacity-80 transition-all ${
                               isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
                             }`}

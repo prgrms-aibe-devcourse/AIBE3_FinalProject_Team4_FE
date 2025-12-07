@@ -164,8 +164,10 @@ export default function ImageSelector({
       onChangeImages([...blogImages, newImage]);
 
       // 로컬 선택 상태도 업데이트
-      setUploadedFile(null);
-      setUploadedFileUrl(null);
+      if (imageSourceType === 'file') {
+        setUploadedFile(null);
+        setUploadedFileUrl(null);
+      }
       handleSelectImage(null, 'file');
 
       showGlobalToast('썸네일이 성공적으로 업로드되었습니다!', 'success');
@@ -320,7 +322,6 @@ export default function ImageSelector({
               originalImage={originalImage}
               setUploadedFile={setUploadedFile}
               setUploadedFileUrl={setUploadedFileUrl}
-              setImageSourceType={setImageSourceType}
               onSelect={(url: string | null) => handleSelectImage(url, 'file')}
             />
           )}
