@@ -221,7 +221,8 @@ export default function AiGeneration({
               ? 'opacity-100 scale-100'
               : 'opacity-0 scale-90 translate-x-1 pointer-events-none ' +
                 'group-hover/ai:opacity-100 group-hover/ai:scale-100 group-hover/ai:translate-x-0 group-hover/ai:pointer-events-auto ' +
-                'transition-all duration-200 ease-out group-hover/ai:animate-[pulse_1.5s_ease-in-out_2]'
+                // 'transition-all duration-200 ease-out group-hover/ai:animate-[pulse_1.5s_ease-in-out_2]'
+                'transition-all duration-500 ease-out'
             : '',
         ].join(' ')}
       >
@@ -233,11 +234,10 @@ export default function AiGeneration({
           }}
           className={[
             'relative group inline-flex',
-            // 기본은 동그라미(최소폭만)
-            'group inline-flex h-7 items-center rounded-2xl border border-slate-200 bg-white font-medium text-main shadow-sm',
+            'group inline-flex h-7 items-center rounded-2xl border bg-white font-medium text-main shadow-sm',
             'transition-all duration-200 ease-out hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]',
-            // 폭 자동으로 늘어나게 padding을 기본/hover로 다르게
             isLoading ? 'px-1.5 cursor-default' : 'pl-2 pr-1 hover:w-auto',
+            'border-slate-200',
           ].join(' ')}
         >
           {isLoading ? (
@@ -253,6 +253,7 @@ export default function AiGeneration({
                   'max-w-0 opacity-0',
                   'transition-all duration-200 ease-out',
                   'group-hover:max-w-[160px] group-hover:opacity-100 group-hover:mr-2',
+                  'group-hover/ai:max-w-[160px] group-hover/ai:opacity-100 group-hover/ai:mr-2',
                 ].join(' ')}
               >
                 {tooltipText}

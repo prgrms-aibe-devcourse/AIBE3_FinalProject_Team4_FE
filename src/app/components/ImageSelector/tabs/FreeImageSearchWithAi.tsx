@@ -21,7 +21,7 @@ export default function FreeImageSearchWithAi({
   };
 
   return (
-    <div className="mb-4 flex items-center gap-4">
+    <div className="group/ai mb-4 flex items-center gap-4">
       <SearchField
         id="image-search"
         value={keyword}
