@@ -5,6 +5,7 @@ import { createDraft, deleteBlog, fetchDrafts, updateBlog } from '@/src/api/blog
 import apiClient from '@/src/api/clientForRs';
 import { handleApiError } from '@/src/lib/handleApiError';
 import { showGlobalToast } from '@/src/lib/toastStore';
+import { useLoginModal } from '@/src/providers/LoginModalProvider';
 import type {
   BlogDraftDto,
   BlogFileDto,
@@ -44,6 +45,7 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
     visibility: 'PRIVATE',
   });
   const { setChatPanel } = useChatPanelSlot();
+  const { open: openLoginModal } = useLoginModal();
 
   // AI 채팅 패널
   useEffect(() => {
@@ -343,8 +345,7 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
         open={showLoginModal && !isLoggedIn}
         onClose={() => router.push(`/blogs`)}
         onConfirmLogin={() => {
-          // TODO: 배포 환경에서는 바꾸기
-          router.push(`/auth/login`);
+          openLoginModal();
         }}
       />
       {publishedBlogId != null && (

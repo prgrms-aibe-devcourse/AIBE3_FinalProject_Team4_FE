@@ -1,11 +1,14 @@
 'use client';
 
+import { fetchMe } from '@/src/api/user';
 import { BlogCard } from '@/src/app/components/blogs/get/BlogCard';
+import { showGlobalToast } from '@/src/lib/toastStore';
+import { useLoginModal } from '@/src/providers/LoginModalProvider';
 import type { BlogScope, BlogSliceResponse, BlogSortType, BlogSummary } from '@/src/types/blog';
 import { useEffect, useState } from 'react';
+import LoadingSpinner from '../../common/LoadingSpinner';
 import { BlogEmptyState, BlogErrorState } from './BlogStates';
 import { BlogToolbar } from './BlogToolbar';
-import LoadingSpinner from '../../common/LoadingSpinner';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export function BlogListPage() {
@@ -16,6 +19,29 @@ export function BlogListPage() {
   const [loading, setLoading] = useState(true);
   const [scope, setScope] = useState<BlogScope>('ALL');
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { open: openLoginModal } = useLoginModal();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        await fetchMe(); // 성공하면 로그인 상태
+        setIsLoggedIn(true);
+      } catch {
+        setIsLoggedIn(false); // 401 등 → 비로그인
+      }
+    };
+    checkAuth();
+  }, []);
+  // 로그인 안했는데 팔로잉탭 클릭시 로그인 모달
+  const handleScopeChange = (next: BlogScope) => {
+    if (next === 'FOLLOWING' && !isLoggedIn) {
+      showGlobalToast('팔로잉 피드는 로그인 후 이용할 수 있어요.', 'warning');
+      openLoginModal();
+      return;
+    }
+    setScope(next);
+  };
   async function loadBlogs() {
     try {
       setLoading(true);
@@ -41,8 +67,8 @@ export function BlogListPage() {
   }, [sortType, keyword, scope]);
 
   // 로딩
-  if (loading) return <p>로딩 중...</p>;
- 
+  if (loading) return <LoadingSpinner label="블로그 페이지 로딩중입니다"></LoadingSpinner>;
+
   return (
     <section className="space-y-8">
       <header className="mb-6 space-y-4 md:mb-8">
@@ -66,15 +92,18 @@ export function BlogListPage() {
             sortType={sortType}
             onSortChange={setSortType}
             scope={scope}
-            onScopeChange={setScope}
+            onScopeChange={handleScopeChange}
           />
         </div>
       </header>
 
       {/* 블로그 리스트 */}
       <div className="space-y-4">
-        {loading && <p className="py-10 text-center text-sm text-slate-500">
-          <LoadingSpinner label='블로그를 불러오는 중입니다'></LoadingSpinner></p>}
+        {loading && (
+          <p className="py-10 text-center text-sm text-slate-500">
+            <LoadingSpinner label="블로그를 불러오는 중입니다"></LoadingSpinner>
+          </p>
+        )}
 
         {!loading && error && <BlogErrorState onRetry={loadBlogs} />}
 
