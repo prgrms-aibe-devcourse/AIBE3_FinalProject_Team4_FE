@@ -49,13 +49,15 @@ export default function ImageSelector({
   // 이미지 선택 및 편집 관련 상태
   const [selectedImage, setSelectedImage] = useState<string | null>(null); // 현재 선택된 이미지 URL
   const [originalImage, setOriginalImage] = useState<string | null>(null); // 원본 이미지 URL
+  const [originalImageId, setOriginalImageId] = useState<string | null>(null); // 원본 이미지 ID
   const [croppingImage, setCroppingImage] = useState<string | null>(null); // 크롭 중인 이미지 URL
   const [lastAspect, setLastAspect] = useState<string | null>(null); // 마지막으로 사용한 크롭 비율
+
+  const [imageSourceType, setImageSourceType] = useState<'file' | 'url'>('file'); // 이미지 소스 타입
 
   // 업로드 파일 관련 상태
   const [uploadedFile, setUploadedFile] = useState<File | null>(null); // 업로드된 파일 객체
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null); // 업로드된 파일의 미리보기 URL
-  const [imageSourceType, setImageSourceType] = useState<'file' | 'url'>('file'); // 이미지 소스 타입
 
   // 무료 이미지 검색 키워드 상태
   const [unsplashSearchKeyword, setUnsplashSearchKeyword] = useState('');
@@ -68,6 +70,26 @@ export default function ImageSelector({
   // 적용 중 상태
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // 이미지 선택/해제 핸들러
+  /**
+   * @param url 이미지 url
+   * @param imageType 이미지 타입 (기본값: 'url', 업로드 탭에서만 'file')
+   * @param id id (기본값: url)
+   */
+  const handleSelectImage = (
+    url: string | null,
+    imageType: 'file' | 'url' = 'url',
+    id: string | null = url,
+  ) => {
+    setImageSourceType(imageType);
+    setSelectedImage(url);
+    setOriginalImage(url);
+    setOriginalImageId(id);
+    setCroppingImage(url);
+    setLastAspect(null);
+  };
+
+  // 썸네일 등록하기
   const handleSubmit = async () => {
     if (!selectedImage) {
       showGlobalToast('먼저 이미지를 선택해 주세요.', 'warning');
@@ -144,10 +166,7 @@ export default function ImageSelector({
       // 로컬 선택 상태도 업데이트
       setUploadedFile(null);
       setUploadedFileUrl(null);
-      setSelectedImage(null);
-      setOriginalImage(null);
-      setCroppingImage(null);
-      setImageSourceType('file');
+      handleSelectImage(null, 'file');
 
       showGlobalToast('썸네일이 성공적으로 업로드되었습니다!', 'success');
     } catch (error) {
@@ -155,24 +174,6 @@ export default function ImageSelector({
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // 이미지 선택/해제 핸들러
-  /**
-   * @param url 이미지 url
-   * @param imageType 이미지 타입 (기본값: 'url', 업로드 탭에서만 'file')
-   * @param id id (기본값: url)
-   */
-  const handleSelectImage = (
-    url: string | null,
-    imageType: 'file' | 'url' = 'url',
-    id: string | null = url,
-  ) => {
-    setImageSourceType(imageType);
-    setSelectedImage(url);
-    setOriginalImage(url);
-    setCroppingImage(url);
-    setLastAspect(null);
   };
 
   return (
@@ -347,8 +348,10 @@ export default function ImageSelector({
               onSearchKeywordChange={
                 selectedTab === 'pixabay' ? setPixabaySearchKeyword : setUnsplashSearchKeyword
               }
-              originalImage={originalImage}
-              onSelect={handleSelectImage}
+              originalImageId={originalImageId}
+              onSelect={(url: string | null, id: string | null) =>
+                handleSelectImage(url, 'url', id)
+              }
             />
           </div>
         </div>

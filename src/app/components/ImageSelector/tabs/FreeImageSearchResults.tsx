@@ -9,14 +9,14 @@ const MAX_IMAGES = 200;
 interface FreeImageSearchResultsProps {
   apiEndpoint: 'unsplash' | 'pixabay';
   searchKeyword: string;
-  originalImage: string | null;
-  onSelect: (url: string | null) => void;
+  originalImageId: string | null;
+  onSelect: (url: string | null, id: string | null) => void;
 }
 
 export default function FreeImageSearchResults({
   apiEndpoint = 'pixabay',
   searchKeyword,
-  originalImage,
+  originalImageId,
   onSelect,
 }: FreeImageSearchResultsProps) {
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
@@ -56,6 +56,7 @@ export default function FreeImageSearchResults({
     data?.pages.flatMap((page) =>
       page.content
         .map((c: any) => ({
+          id: c?.id,
           url: c?.url,
           width: c?.width,
           height: c?.height,
@@ -114,7 +115,7 @@ export default function FreeImageSearchResults({
 
       container.scrollTo({ top: offset, behavior: 'smooth' });
     }
-  }, [originalImage]);
+  }, [originalImageId]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -168,13 +169,13 @@ export default function FreeImageSearchResults({
                 {columns.map((col, colIdx) => (
                   <div key={colIdx} className="flex-1 flex flex-col gap-3">
                     {col.map((img, i) => {
-                      const isSelected = originalImage === img.url;
+                      const isSelected = originalImageId === img.id;
                       const aspectRatio =
                         img.width && img.height ? img.width / img.height : undefined;
 
                       return (
                         <div
-                          key={`${img.url}-${i}`}
+                          key={`${img.id}-${i}`}
                           ref={isSelected ? selectedImageRef : null}
                           className="relative"
                         >
@@ -188,7 +189,7 @@ export default function FreeImageSearchResults({
                               aspectRatio ? { aspectRatio: aspectRatio.toString() } : undefined
                             }
                             onError={() => setFailedImages((prev) => new Set(prev).add(img.url))}
-                            onClick={() => onSelect(isSelected ? null : img.url)}
+                            onClick={() => onSelect(isSelected ? null : img.url, isSelected ? null : img.id)}
                             className={`w-full rounded-lg cursor-pointer hover:opacity-80 transition-all ${
                               isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
                             }`}

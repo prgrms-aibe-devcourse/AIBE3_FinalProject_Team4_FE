@@ -9,8 +9,8 @@ interface FreeImageTabProps {
   selectedTab: 'upload' | 'blog' | 'unsplash' | 'pixabay';
   searchKeyword: string;
   onSearchKeywordChange: (keyword: string) => void;
-  originalImage: string | null;
-  onSelect: (url: string | null) => void;
+  originalImageId: string | null;
+  onSelect: (url: string | null, id: string | null) => void;
 }
 
 export default function FreeImageTab({
@@ -18,7 +18,7 @@ export default function FreeImageTab({
   selectedTab,
   searchKeyword,
   onSearchKeywordChange,
-  originalImage,
+  originalImageId,
   onSelect,
 }: FreeImageTabProps) {
   // keyword: 입력값, searchKeyword: 검색값(엔터 시 반영)
@@ -42,7 +42,7 @@ export default function FreeImageTab({
         <FreeImageSearchResults
           apiEndpoint="unsplash"
           searchKeyword={searchKeyword}
-          originalImage={originalImage}
+          originalImageId={originalImageId}
           onSelect={onSelect}
         />
       )}
@@ -51,7 +51,7 @@ export default function FreeImageTab({
         <FreeImageSearchResults
           apiEndpoint="pixabay"
           searchKeyword={searchKeyword}
-          originalImage={originalImage}
+          originalImageId={originalImageId}
           onSelect={onSelect}
         />
       )}
