@@ -137,8 +137,24 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
 
   // Web Speech API로 재생
   const playWebSpeech = () => {
-    const { estimatedDuration } = webSpeech.speak(content);
-    setDuration(estimatedDuration);
+    try {
+      if (!('speechSynthesis' in window)) {
+        setError('브라우저에서 음성 재생을 지원하지 않습니다.');
+        return;
+      }
+
+      if (!content || content.trim().length === 0) {
+        setError('재생할 내용이 없습니다.');
+        return;
+      }
+
+      setError(null); // 기존 에러 초기화
+      const { estimatedDuration } = webSpeech.speak(content);
+      setDuration(estimatedDuration);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '음성 재생 초기화에 실패했습니다.';
+      setError(errorMessage);
+    }
   };
 
   // 재생/일시정지 토글
@@ -183,6 +199,16 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
     setCurrentTime(0);
   };
 
+  const cleanup = () => {
+    audioPlayer.cleanup();
+    webSpeech.cancel();
+
+    setIsPlaying(false);
+    setProgress(0);
+    setCurrentTime(0);
+    setMode('none');
+  };
+
   // 특정 위치로 이동
   const seekTo = (position: number) => {
     if (mode === 'ai') {
@@ -218,13 +244,10 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
   // 초기화
   useEffect(() => {
     const initialize = async () => {
-      // shorlogId 변경 시 상태 초기화
+      cleanup();
+
       setTtsUrl(null);
       setCachedShorlogId(null);
-      setMode('none');
-      setIsPlaying(false);
-      setProgress(0);
-      setCurrentTime(0);
       setError(null);
 
       const { fetchMe } = await import('@/src/api/user');
@@ -245,8 +268,7 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
   // 컴포넌트 언마운트 시 정리
   useEffect(() => {
     return () => {
-      audioPlayer.stop();
-      webSpeech.cancel();
+      cleanup();
     };
   }, []);
 
@@ -270,5 +292,6 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
     skip,
     download,
     fetchTokens,
+    cleanup,
   };
 }

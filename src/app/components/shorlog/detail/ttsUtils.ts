@@ -32,9 +32,8 @@ export class TtsAudioPlayer {
 
   // 오디오 파일 재생
   play(url: string) {
-    if (this.audioRef.current) {
-      this.audioRef.current.pause();
-    }
+    // 기존 오디오가 있으면 완전히 정리
+    this.cleanup();
 
     const audio = new Audio(url);
     this.audioRef.current = audio;
@@ -65,20 +64,24 @@ export class TtsAudioPlayer {
       this.onError?.('오디오 재생에 실패했습니다.');
     };
 
-    audio.play();
+    audio.play().catch((_error) => {
+      this.onError?.('오디오 재생에 실패했습니다.');
+    });
   }
 
   // 일시정지
   pause() {
-    if (this.audioRef.current) {
+    if (this.audioRef.current && !this.audioRef.current.paused) {
       this.audioRef.current.pause();
     }
   }
 
   // 재생 재개
   resume() {
-    if (this.audioRef.current) {
-      this.audioRef.current.play();
+    if (this.audioRef.current && this.audioRef.current.paused) {
+      this.audioRef.current.play().catch((_error) => {
+        this.onError?.('오디오 재생에 실패했습니다.');
+      });
     }
   }
 
@@ -87,6 +90,15 @@ export class TtsAudioPlayer {
     if (this.audioRef.current) {
       this.audioRef.current.pause();
       this.audioRef.current.currentTime = 0;
+    }
+  }
+
+  cleanup() {
+    if (this.audioRef.current) {
+      this.audioRef.current.pause();
+      this.audioRef.current.src = '';
+      this.audioRef.current.load();
+      this.audioRef.current = null;
     }
   }
 
@@ -108,6 +120,7 @@ export class TtsAudioPlayer {
 // Web Speech API 관련 유틸리티 함수들
 export class TtsWebSpeech {
   private speechRef: React.MutableRefObject<SpeechSynthesisUtterance | null>;
+  private progressInterval: NodeJS.Timeout | null = null;
   private onStart?: () => void;
   private onEnd?: () => void;
   private onError?: (error: string) => void;
@@ -131,10 +144,18 @@ export class TtsWebSpeech {
 
   // Web Speech API로 재생
   speak(content: string) {
-    if (speechSynthesis.speaking) {
-      speechSynthesis.cancel();
+    if (speechSynthesis.speaking || speechSynthesis.pending) {
+      this.cancel();
+      setTimeout(() => this.startSpeaking(content), 50);
+    } else {
+      this.startSpeaking(content);
     }
 
+    const estimatedDuration = content.length * 100;
+    return { estimatedDuration, interval: this.progressInterval };
+  }
+
+  private startSpeaking(content: string) {
     const utterance = new SpeechSynthesisUtterance(content);
     utterance.lang = 'ko-KR';
     utterance.rate = 0.9;
@@ -145,37 +166,49 @@ export class TtsWebSpeech {
     };
 
     utterance.onend = () => {
+      this.clearProgressTimer();
       this.onEnd?.();
     };
 
     utterance.onerror = (event) => {
+      this.clearProgressTimer();
+      console.error('Web Speech API 오류:', event);
       this.onError?.('음성 재생에 실패했습니다.');
     };
 
     this.speechRef.current = utterance;
-    speechSynthesis.speak(utterance);
+
+    if (speechSynthesis.getVoices().length === 0) {
+      speechSynthesis.addEventListener('voiceschanged', () => {
+        speechSynthesis.speak(utterance);
+      }, { once: true });
+    } else {
+      speechSynthesis.speak(utterance);
+    }
 
     // 진행률 추적을 위한 타이머
     const estimatedDuration = content.length * 100;
     let currentTime = 0;
 
-    const interval = setInterval(() => {
+    this.progressInterval = setInterval(() => {
       if (!speechSynthesis.speaking) {
-        clearInterval(interval);
+        this.clearProgressTimer();
         return;
       }
 
-      currentTime += 100;
-      const progress = Math.min(currentTime / estimatedDuration, 1);
-      this.onProgress?.(progress);
+      if (!speechSynthesis.paused) {
+        currentTime += 100;
+        const progress = Math.min(currentTime / estimatedDuration, 1);
+        this.onProgress?.(progress);
+      }
     }, 100);
-
-    return { estimatedDuration, interval };
   }
 
   // 일시정지
   pause() {
-    speechSynthesis.pause();
+    if (speechSynthesis.speaking && !speechSynthesis.paused) {
+      speechSynthesis.pause();
+    }
   }
 
   // 재생 재개
@@ -185,9 +218,23 @@ export class TtsWebSpeech {
     }
   }
 
-  // 정지
+  // 정지 및 정리
   cancel() {
-    speechSynthesis.cancel();
+    this.clearProgressTimer();
+
+    if (speechSynthesis.speaking || speechSynthesis.pending) {
+      speechSynthesis.cancel();
+    }
+
+    this.speechRef.current = null;
+  }
+
+  // 진행률 타이머 정리
+  private clearProgressTimer() {
+    if (this.progressInterval) {
+      clearInterval(this.progressInterval);
+      this.progressInterval = null;
+    }
   }
 }
 
