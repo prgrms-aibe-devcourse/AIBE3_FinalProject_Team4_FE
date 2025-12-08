@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 interface Props {
@@ -9,30 +9,9 @@ interface Props {
 
 export default function ProfileShorlogModalWrapper({ children }: Props) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
 
   const closeModal = () => {
-    // URL 쿼리에서 profileId 가져오기
-    let profileId = searchParams.get('profileId');
-
-    // pathname에서 프로필 ID 추출
-    if (!profileId) {
-      const match = pathname.match(/\/profile\/(\d+)/);
-      profileId = match ? match[1] : null;
-    }
-
-    // sessionStorage에서 가져오기
-    if (!profileId && typeof window !== 'undefined') {
-      profileId = sessionStorage.getItem('shorlog_profile_user_id');
-    }
-
-    if (profileId) {
-      // 새로고침 형태로 프로필 페이지 이동
-      window.location.href = `/profile/${profileId}`;
-    } else {
-      router.back();
-    }
+    router.back();
   };
 
   useEffect(() => {
