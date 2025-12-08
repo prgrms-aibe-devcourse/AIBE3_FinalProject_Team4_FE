@@ -207,14 +207,6 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
       {/* 플로팅 모드 */}
       {isOpen && mode === 'floating' && (
         <div
-          // className="
-          //   fixed bottom-6 right-6
-          //   w-[min(28rem,100vw-3rem)]  /* 작은 화면 대응 */
-          //   h-[min(600px,100dvh-3rem)]
-          //   bg-white rounded-t-[20px] rounded-b-[40px] border border-gray-200
-          //   shadow-[0_4px_12px_0_rgba(0,0,0,0.06),0_1.5px_4px_0_rgba(0,0,0,0.03)]
-          //   z-30 flex flex-col
-          // "
           style={{
             width: `min(28rem, calc(100vw - ${leftSidebarWidth}px - 3rem))`,
           }}
