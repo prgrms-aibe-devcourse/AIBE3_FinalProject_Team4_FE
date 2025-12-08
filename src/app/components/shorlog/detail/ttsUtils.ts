@@ -144,12 +144,12 @@ export class TtsWebSpeech {
 
   // Web Speech API로 재생
   speak(content: string) {
-    if (speechSynthesis.speaking || speechSynthesis.pending) {
-      this.cancel();
-      setTimeout(() => this.startSpeaking(content), 50);
-    } else {
-      this.startSpeaking(content);
-    }
+    this.cancel();
+    setTimeout(() => {
+      if (!speechSynthesis.speaking && !speechSynthesis.pending) {
+        this.startSpeaking(content);
+      }
+    }, 100);
 
     const estimatedDuration = content.length * 100;
     return { estimatedDuration, interval: this.progressInterval };
@@ -222,8 +222,20 @@ export class TtsWebSpeech {
   cancel() {
     this.clearProgressTimer();
 
-    if (speechSynthesis.speaking || speechSynthesis.pending) {
-      speechSynthesis.cancel();
+    // speechSynthesis를 여러 번 cancel 호출하여 확실히 정지
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      try {
+        if (speechSynthesis.speaking || speechSynthesis.pending) {
+          speechSynthesis.cancel();
+        }
+        setTimeout(() => {
+          if (speechSynthesis.speaking || speechSynthesis.pending) {
+            speechSynthesis.cancel();
+          }
+        }, 50);
+      } catch (error) {
+        console.error('Speech synthesis cancel error:', error);
+      }
     }
 
     this.speechRef.current = null;

@@ -182,7 +182,9 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
     if (mode === 'ai') {
       audioPlayer.pause();
     } else if (mode === 'web') {
-      webSpeech.pause();
+      webSpeech.cancel();
+      setIsPlaying(false);
+      setProgress(0);
     }
   };
 

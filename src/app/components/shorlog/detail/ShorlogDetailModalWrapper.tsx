@@ -10,13 +10,20 @@ interface Props {
 
 export default function ShorlogDetailModalWrapper({ children, onRequestClose }: Props) {
   const closeModal = () => {
-    // 페이지 전체를 리로드하여 모달 확실히 닫기
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+
     window.location.href = '/shorlog/feed';
   };
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        if (typeof window !== 'undefined' && window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+        }
+
         if (onRequestClose) {
           onRequestClose();
         } else {
@@ -37,6 +44,10 @@ export default function ShorlogDetailModalWrapper({ children, onRequestClose }: 
   }, [onRequestClose]);
 
   const handleOverlayClick = () => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+
     if (onRequestClose) {
       onRequestClose();
     } else {
