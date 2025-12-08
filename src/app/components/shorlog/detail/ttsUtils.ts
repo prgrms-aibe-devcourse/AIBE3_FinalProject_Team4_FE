@@ -158,7 +158,7 @@ export class TtsWebSpeech {
       }
     }, 100);
 
-    const estimatedDuration = content.length * 100;
+    const estimatedDuration = content.length * (200 / 0.9);
     return { estimatedDuration, interval: this.progressInterval };
   }
 
@@ -194,7 +194,7 @@ export class TtsWebSpeech {
     }
 
     // 진행률 추적을 위한 타이머
-    const estimatedDuration = content.length * 100;
+    const estimatedDuration = content.length * (200 / 0.9);
     let currentTime = 0;
 
     this.progressInterval = setInterval(() => {

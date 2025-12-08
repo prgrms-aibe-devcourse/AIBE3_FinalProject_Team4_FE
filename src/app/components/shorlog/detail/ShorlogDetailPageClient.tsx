@@ -43,7 +43,7 @@ function HighlightedContent({ content, progress }: { content: string; progress: 
   if (highlightLength >= totalLength) {
     return (
       <p className="whitespace-pre-line text-[15px] md:text-base leading-relaxed text-slate-900">
-        <span className="bg-sky-50">{content}</span>
+        <span className="bg-blue-100 transition-colors duration-300">{content}</span>
       </p>
     );
   }
@@ -53,7 +53,7 @@ function HighlightedContent({ content, progress }: { content: string; progress: 
 
   return (
     <p className="whitespace-pre-line text-[15px] md:text-base leading-relaxed text-slate-900">
-      <span className="bg-sky-50">{highlighted}</span>
+      <span className="bg-blue-100 transition-colors duration-300">{highlighted}</span>
       <span>{remaining}</span>
     </p>
   );
