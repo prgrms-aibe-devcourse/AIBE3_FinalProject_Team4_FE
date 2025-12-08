@@ -65,7 +65,6 @@ export default function ShorlogAuthorHeader({
 
     setIsDeleting(true);
     try {
-      await deleteShorlog(shorlogId.toString());
       showGlobalToast('숏로그가 삭제되었습니다.', 'success');
 
       setShowDeleteModal(false);
@@ -74,6 +73,7 @@ export default function ShorlogAuthorHeader({
       // React Query 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['shorlog-detail'] });
 
       setTimeout(() => {
         router.back();

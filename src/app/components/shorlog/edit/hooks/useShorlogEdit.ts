@@ -154,9 +154,12 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
       // React Query 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['shorlog-detail', shorlogId] });
 
-      // 이전 페이지로 돌아가기
       router.back();
+      setTimeout(() => {
+        router.back();
+      }, 50);
     } catch (e) {
       setError(e instanceof Error ? e.message : '숏로그 수정 중 오류가 발생했습니다.');
     } finally {

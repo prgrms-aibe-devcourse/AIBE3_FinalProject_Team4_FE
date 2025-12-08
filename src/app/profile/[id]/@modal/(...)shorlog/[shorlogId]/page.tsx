@@ -5,7 +5,7 @@ import ProfileShorlogModalWrapper from '@/src/app/components/profile/ProfileShor
 import type { ShorlogDetail } from '@/src/app/components/shorlog/detail/types';
 import { fetchMe } from '@/src/api/user';
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import LoadingSpinner from '@/src/app/components/common/LoadingSpinner';
 
 async function fetchShorlogDetail(id: string): Promise<ShorlogDetail> {
@@ -48,45 +48,20 @@ async function fetchShorlogDetail(id: string): Promise<ShorlogDetail> {
 export default function ProfileShorlogModalPage() {
   const params = useParams();
   const shorlogId = String(params.shorlogId);
+  
+  const { data: detail, isLoading, error } = useQuery({
+    queryKey: ['shorlog-detail', shorlogId],
+    queryFn: () => fetchShorlogDetail(shorlogId),
+    staleTime: 0, // 항상 최신 데이터 확인
+  });
 
-  const [detail, setDetail] = useState<ShorlogDetail | null>(null);
-  const [me, setMe] = useState<{ id: number } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<Error | null>(null);
+  const { data: me } = useQuery({
+    queryKey: ['user-me'],
+    queryFn: () => fetchMe().catch(() => null),
+    staleTime: 5 * 60 * 1000, // 5분간 캐시
+  });
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const [shorlogData, meData] = await Promise.all([
-          fetchShorlogDetail(shorlogId),
-          fetchMe().catch(() => null), // 비로그인 → null
-        ]);
-
-        if (!cancelled) {
-          setDetail(shorlogData);
-          setMe(meData);
-        }
-      } catch (e: any) {
-        if (!cancelled) {
-          setLoadError(e);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [shorlogId]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <ProfileShorlogModalWrapper>
         <div className="flex h-full w-full items-center justify-center">
@@ -96,7 +71,7 @@ export default function ProfileShorlogModalPage() {
     );
   }
 
-  if (loadError) {
+  if (error) {
     return (
       <ProfileShorlogModalWrapper>
         <div className="flex h-full w-full items-center justify-center">

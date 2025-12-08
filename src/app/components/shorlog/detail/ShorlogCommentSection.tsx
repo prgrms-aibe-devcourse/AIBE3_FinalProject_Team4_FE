@@ -140,8 +140,18 @@ export default function ShorlogCommentSection({
       showGlobalToast('댓글이 등록되었습니다.', 'success');
 
       // React Query 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({
+        queryKey: ['shorlog-feed'],
+        exact: false
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['profile'],
+        exact: false
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['shorlog-detail'],
+        exact: false
+      });
     } catch (err: any) {
       showGlobalToast(err.message || '댓글 등록 실패', 'error');
     }
@@ -157,9 +167,19 @@ export default function ShorlogCommentSection({
       await fetchComments();
       showGlobalToast('답글이 등록되었습니다.', 'success');
 
-      // React Query 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      // React Query 캐시 무효화 (exact: false로 모든 하위 쿼리도 무효화)
+      queryClient.invalidateQueries({
+        queryKey: ['shorlog-feed'],
+        exact: false
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['profile'],
+        exact: false
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['shorlog-detail'],
+        exact: false
+      });
     } catch (err: any) {
       showGlobalToast(err.message || '답글 등록 실패', 'error');
     }
@@ -236,6 +256,7 @@ export default function ShorlogCommentSection({
       // React Query 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['shorlog-detail'] });
     } catch (err: any) {
       showGlobalToast(err.message || '댓글 수정 실패', 'error');
     }
@@ -253,6 +274,7 @@ export default function ShorlogCommentSection({
       // React Query 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['shorlog-detail'] });
     } catch (err: any) {
       showGlobalToast(err.message || '댓글 삭제 실패', 'error');
     }
