@@ -65,6 +65,7 @@ export default function ShorlogAuthorHeader({
 
     setIsDeleting(true);
     try {
+      await deleteShorlog(shorlogId.toString());
       showGlobalToast('숏로그가 삭제되었습니다.', 'success');
 
       setShowDeleteModal(false);
