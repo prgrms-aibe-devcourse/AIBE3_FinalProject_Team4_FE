@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+import { useMessagesUnreadStore } from '@/src/stores/useMessagesUnreadStore';
 import { useNotificationStore } from '@/src/stores/useNotificationsStore';
 import NotificationDropdown from '../notifications/NotificationDropDown';
 import MorePanel from './panel/MorePanel';
@@ -19,6 +20,7 @@ export default function Sidebar() {
   const { open } = useLoginModal();
 
   const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const unreadMessagesCount = useMessagesUnreadStore((s) => s.unreadCount);
 
   const [openNotification, setOpenNotification] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -100,7 +102,6 @@ export default function Sidebar() {
       setSidebarKeyword('');
     }
   }, [pathname]);
-
   return (
     <aside
       className={`
@@ -314,9 +315,9 @@ export default function Sidebar() {
               >
                 <div
                   className={`
-      flex items-center justify-center flex-shrink-0
-      ${isCollapsed ? 'w-6 h-6' : 'w-7 h-7'}
-    `}
+    relative flex items-center justify-center flex-shrink-0
+    ${isCollapsed ? 'w-6 h-6' : 'w-7 h-7'}
+  `}
                 >
                   {isProfile && isLogin ? (
                     <img
@@ -325,16 +326,25 @@ export default function Sidebar() {
                       className="w-7 h-7 rounded-full object-cover"
                     />
                   ) : (
-                    <>
+                    <div
+                      className={`
+                        relative flex items-center justify-center flex-shrink-0
+                        ${isCollapsed ? 'w-6 h-6' : 'w-7 h-7'}
+                      `}
+                    >
                       <item.icon size={20} />
 
-                      {/* 알림 메뉴에 unreadCount > 0 이면 빨간 점 */}
-                      {item.label === '알림' && unreadCount > 0 && (
-                        <span className="absolute -top-1.5 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                      {item.label === '메시지' && unreadMessagesCount > 0 && (
+                        <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
                       )}
-                    </>
+
+                      {item.label === '알림' && unreadCount > 0 && (
+                        <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
+                      )}
+                    </div>
                   )}
                 </div>
+
                 {/* 라벨 */}
                 <span
                   className={`

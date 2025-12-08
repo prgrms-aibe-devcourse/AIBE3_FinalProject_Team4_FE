@@ -10,6 +10,7 @@ import { useMessageThread } from '@/src/hooks/useMessageThread';
 import { useMessageThreads } from '@/src/hooks/useMessageThreads';
 import { createStompClient } from '@/src/lib/wsClient';
 import { useAuth } from '@/src/providers/AuthProvider';
+import { useMessagesUnreadStore } from '@/src/stores/useMessagesUnreadStore';
 import type { MessageThreadResponseDto } from '@/src/types/messageApi';
 import type { ChatMessage, MessageThread } from '@/src/types/messages';
 import { mapDetailMessages } from '@/src/utils/messagesMapper';
@@ -133,6 +134,17 @@ export default function MessagesShell() {
       })),
     [followingDtos],
   );
+
+  const setUnreadCount = useMessagesUnreadStore((s) => s.setUnreadCount);
+
+  React.useEffect(() => {
+    const totalUnread = (threadsFromServer ?? []).reduce((acc, t) => {
+      const per = t.id === activeId ? 0 : (t.unreadCount ?? 0);
+      return acc + per;
+    }, 0);
+
+    setUnreadCount(totalUnread);
+  }, [threadsFromServer, activeId, setUnreadCount]);
 
   // ---------------------------------------------------------------------------
   // 4) Derived list
