@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import ShorlogEditWizard from './steps/ShorlogEditWizard';
 import type { ShorlogDetail } from '../detail/types';
 
@@ -10,12 +11,12 @@ interface ShorlogEditModalProps {
 }
 
 export default function ShorlogEditModal({ shorlogId, initialData }: ShorlogEditModalProps) {
+  const router = useRouter();
   const [showConfirmExit, setShowConfirmExit] = useState(false);
 
   const handleRequestClose = () => setShowConfirmExit(true);
   const handleConfirmExit = () => {
-    // 모든 모달 상태를 정리하기 위해 새로고침 방식으로 피드로 이동
-    window.location.href = '/shorlog/feed';
+    router.back();
   };
   const handleCancelExit = () => setShowConfirmExit(false);
 

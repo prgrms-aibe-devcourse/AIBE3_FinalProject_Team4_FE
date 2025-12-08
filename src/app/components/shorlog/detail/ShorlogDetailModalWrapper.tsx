@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface Props {
   children: React.ReactNode;
@@ -9,21 +10,15 @@ interface Props {
 }
 
 export default function ShorlogDetailModalWrapper({ children, onRequestClose }: Props) {
-  const closeModal = () => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-    }
+  const router = useRouter();
 
-    window.location.href = '/shorlog/feed';
+  const closeModal = () => {
+    router.back();
   };
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        if (typeof window !== 'undefined' && window.speechSynthesis) {
-          window.speechSynthesis.cancel();
-        }
-
         if (onRequestClose) {
           onRequestClose();
         } else {
@@ -44,10 +39,6 @@ export default function ShorlogDetailModalWrapper({ children, onRequestClose }: 
   }, [onRequestClose]);
 
   const handleOverlayClick = () => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-    }
-
     if (onRequestClose) {
       onRequestClose();
     } else {
