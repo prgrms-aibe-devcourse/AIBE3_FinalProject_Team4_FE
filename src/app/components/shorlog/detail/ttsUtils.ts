@@ -125,6 +125,9 @@ export class TtsWebSpeech {
   private onEnd?: () => void;
   private onError?: (error: string) => void;
   private onProgress?: (progress: number) => void;
+  private isPaused: boolean = false;
+  private currentContent: string = '';
+  private currentProgress: number = 0;
 
   constructor(
     speechRef: React.MutableRefObject<SpeechSynthesisUtterance | null>,
@@ -144,6 +147,10 @@ export class TtsWebSpeech {
 
   // Web Speech API로 재생
   speak(content: string) {
+    this.currentContent = content;
+    this.currentProgress = 0;
+    this.isPaused = false;
+
     this.cancel();
     setTimeout(() => {
       if (!speechSynthesis.speaking && !speechSynthesis.pending) {
@@ -199,6 +206,7 @@ export class TtsWebSpeech {
       if (!speechSynthesis.paused) {
         currentTime += 100;
         const progress = Math.min(currentTime / estimatedDuration, 1);
+        this.currentProgress = progress;
         this.onProgress?.(progress);
       }
     }, 100);
@@ -206,23 +214,49 @@ export class TtsWebSpeech {
 
   // 일시정지
   pause() {
-    if (speechSynthesis.speaking && !speechSynthesis.paused) {
-      speechSynthesis.pause();
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      if (speechSynthesis.speaking && !speechSynthesis.paused) {
+        try {
+          this.isPaused = true;
+          speechSynthesis.pause();
+        } catch (error) {
+          console.error('Speech synthesis pause error:', error);
+        }
+      }
     }
   }
 
   // 재생 재개
   resume() {
-    if (speechSynthesis.paused) {
-      speechSynthesis.resume();
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      if (speechSynthesis.paused) {
+        try {
+          this.isPaused = false;
+          speechSynthesis.resume();
+        } catch (error) {
+          console.error('Speech synthesis resume error:', error);
+          setTimeout(() => {
+            if (speechSynthesis.paused) {
+              try {
+                speechSynthesis.resume();
+              } catch (retryError) {
+                console.error('Speech synthesis resume retry failed:', retryError);
+              }
+            }
+          }, 100);
+        }
+      } else if (this.isPaused && !speechSynthesis.speaking) {
+        this.isPaused = false;
+      }
     }
   }
 
   // 정지 및 정리
   cancel() {
     this.clearProgressTimer();
+    this.isPaused = false;
+    this.currentProgress = 0;
 
-    // speechSynthesis를 여러 번 cancel 호출하여 확실히 정지
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       try {
         if (speechSynthesis.speaking || speechSynthesis.pending) {
