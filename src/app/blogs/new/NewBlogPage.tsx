@@ -278,8 +278,7 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
   const handleCloseConnectModal = () => {
     setShowConnectModal(false);
     if (publishedBlogId != null) {
-      // 연결 여부랑 상관 없이 디테일 페이지
-      window.location.href = `/blogs/${publishedBlogId}`;
+      router.push(`/blogs/${publishedBlogId}`);
     }
   };
 

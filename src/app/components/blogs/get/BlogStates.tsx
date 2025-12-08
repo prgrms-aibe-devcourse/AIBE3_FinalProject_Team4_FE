@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 type BlogErrorStateProps = {
   onRetry: () => void;
 };
@@ -31,12 +32,12 @@ export function BlogEmptyState() {
       <p className="mt-1 text-xs text-slate-500">
         첫 글을 작성해 보거나, 더 많은 작가를 팔로우해 보세요.
       </p>
-      <a
+      <Link
         href="/blogs/new"
         className="mt-4 inline-flex items-center rounded-full bg-[#2979FF] px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-sky-50"
       >
         새 블로그 쓰기
-      </a>
+      </Link>
     </div>
   );
 }
