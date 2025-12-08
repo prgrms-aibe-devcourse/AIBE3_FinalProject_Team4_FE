@@ -58,26 +58,25 @@ export default function RegisterStep2Page() {
      Step2 모드 자동 결정
      ========================================================= */
   useEffect(() => {
-    const saved = sessionStorage.getItem('register_step1');
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
 
-    // 👉 일반 회원가입 Step2
+    // ✅ 소셜 토큰이 있으면 무조건 social 우선
+    if (token) {
+      setTempToken(token);
+      setMode('social');
+      // 선택: 소셜 가입 흐름에서 일반가입 찌꺼기 제거
+      sessionStorage.removeItem('register_step1');
+      return;
+    }
+
+    const saved = sessionStorage.getItem('register_step1');
     if (saved) {
       setStep1Data(JSON.parse(saved));
       setMode('normal');
       return;
     }
 
-    // 👉 소셜 로그인 Step2
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
-
-    if (token) {
-      setTempToken(token);
-      setMode('social');
-      return;
-    }
-
-    // 둘 다 아니면 Step1로 리다이렉트
     router.replace('/auth/register');
   }, [router]);
 
