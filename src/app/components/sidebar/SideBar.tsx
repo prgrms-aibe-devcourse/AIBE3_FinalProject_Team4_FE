@@ -297,12 +297,12 @@ export default function Sidebar() {
                     return;
                   }
 
-                  // 숏피드 버튼 클릭 시 강제 새로고침 (숏피드/프로필 페이지에서)
-                  if (
-                    item.href === '/shorlog/feed' &&
-                    (pathname.startsWith('/shorlog') || pathname.startsWith('/profile'))
-                  ) {
-                    window.location.href = '/shorlog/feed';
+                  if (item.href === '/shorlog/feed') {
+                    if (pathname === '/shorlog/feed') {
+                      router.refresh();
+                    } else {
+                      router.push('/shorlog/feed');
+                    }
                     return;
                   }
 

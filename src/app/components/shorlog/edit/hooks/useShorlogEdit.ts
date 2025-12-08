@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   LocalImage,
   MAX_CONTENT_LENGTH,
@@ -14,8 +15,9 @@ import { showGlobalToast } from '@/src/lib/toastStore';
 import type { ShorlogDetail } from '../../detail/types';
 
 export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
+  const router = useRouter();
 
-  // 기존 이미지를 LocalImage 형태로 변환 (모두 재업로드할 예정)
+  // 기존 이미지를 LocalImage 형태로 변환
   const initialImages: LocalImage[] = initialData.thumbnailUrls.map((url, index) => ({
     id: `existing-${index}`,
     sourceType: 'URL' as const,
@@ -114,7 +116,7 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
     }
   };
 
-  const handleSubmit = async (content: string, hashtags: string[]) => {
+  const handleSubmit = useCallback(async (content: string, hashtags: string[]) => {
     const trimmed = content.trim();
 
     if (!trimmed) {
@@ -138,7 +140,7 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
         return;
       }
 
-      const result = await updateShorlog(shorlogId, {
+      await updateShorlog(shorlogId, {
         content: trimmed,
         imageIds: allImageIds,
         hashtags,
@@ -146,14 +148,13 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
       });
 
       showGlobalToast('숏로그가 성공적으로 수정되었습니다!', 'success');
-      // 기존 모달 상태를 정리하기 위해 새로고침 방식으로 이동
-      window.location.href = `/profile/${result.userId || initialData.userId}`;
+      router.back();
     } catch (e) {
       setError(e instanceof Error ? e.message : '숏로그 수정 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [uploadedImages, shorlogId, router]);
 
   const changeAspectRatio = (id: string, ratio: AspectRatio) => {
     setImages((prev) =>

@@ -53,7 +53,6 @@ function HighlightedContent({ content, progress }: { content: string; progress: 
     );
   }
 
-  const highlighted = content.slice(0, highlightLength);
   const remaining = content.slice(highlightLength);
 
   const fadeStartLength = Math.max(0, highlightLength - Math.floor(totalLength * 0.03));
@@ -235,12 +234,20 @@ export default function ShorlogDetailPageClient({
   isOwner = false,
   hideNavArrows = false,
 }: Props) {
+  if (!detail || !detail.content) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <p className="text-slate-600">숏로그를 불러오는 중입니다...</p>
+      </div>
+    );
+  }
+
   const [ttsProgress, setTtsProgress] = useState(0);
   const [linkedBlogs, setLinkedBlogs] = useState<LinkedBlogDetail[]>([]);
   const [linkedBlogCount, setLinkedBlogCount] = useState(0);
   const [showLinkedBlogsModal, setShowLinkedBlogsModal] = useState(false);
   const [currentCommentCount, setCurrentCommentCount] = useState(detail.commentCount);
-  const firstLineForAlt = detail.content.split('\n')[0]?.slice(0, 40) ?? '';
+  const firstLineForAlt = (detail.content || '').split('\n')[0]?.slice(0, 40) ?? '';
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '';
