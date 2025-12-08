@@ -13,6 +13,7 @@ import { useAuth } from '@/src/providers/AuthProvider';
 import type { BlogSummary } from '@/src/types/blog';
 import { useEffect, useState } from 'react';
 import { BlogListView, ShorlogListView, SortButtons } from './ProfileContentFeed';
+import { ProfileEmptyState } from './ProfileEmptyState';
 
 type SortKey = 'latest' | 'popular' | 'oldest';
 type PrimaryTab = 'mine' | 'bookmark';
@@ -77,6 +78,7 @@ export default function ProfileContent({ userId, isMyPage }: ProfileContentProps
 
   const shortCount = shorlogs.length;
   const longCount = blogs.length;
+  const isEmpty = secondaryTab === 'short' ? shorlogs.length === 0 : blogs.length === 0;
 
   return (
     <section className="space-y-4">
@@ -172,9 +174,14 @@ export default function ProfileContent({ userId, isMyPage }: ProfileContentProps
         </div>
       )}
 
-      {/* 리스트 */}
       {loading ? (
         <div className="mt-8 text-center text-sm text-slate-600">불러오는 중…</div>
+      ) : isEmpty ? (
+        <ProfileEmptyState
+          isMyPage={isMyPage}
+          primaryTab={primaryTab}
+          secondaryTab={secondaryTab}
+        />
       ) : secondaryTab === 'short' ? (
         <ShorlogListView items={shorlogs} profileUserId={userId} />
       ) : (

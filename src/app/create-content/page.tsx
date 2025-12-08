@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { FileText, Image as ImageIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -70,9 +69,7 @@ export default function CreateContentPage() {
                 </div>
                 <div className="flex items-center justify-center gap-2 text-base font-semibold text-[#2979FF] group-hover:gap-3 transition-all">
                   <span>숏로그 작성하기</span>
-                  <span className="text-lg transition-transform group-hover:translate-x-1">
-                    →
-                  </span>
+                  <span className="text-lg transition-transform group-hover:translate-x-1">→</span>
                 </div>
               </div>
             </button>
@@ -109,9 +106,7 @@ export default function CreateContentPage() {
                 </div>
                 <div className="flex items-center justify-center gap-2 text-base font-semibold text-emerald-600 group-hover:gap-3 transition-all">
                   <span>블로그 작성하기</span>
-                  <span className="text-lg transition-transform group-hover:translate-x-1">
-                    →
-                  </span>
+                  <span className="text-lg transition-transform group-hover:translate-x-1">→</span>
                 </div>
               </div>
             </button>
