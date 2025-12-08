@@ -43,7 +43,12 @@ function HighlightedContent({ content, progress }: { content: string; progress: 
   if (highlightLength >= totalLength) {
     return (
       <p className="whitespace-pre-line text-[15px] md:text-base leading-relaxed text-slate-900">
-        <span className="bg-blue-100 transition-colors duration-300">{content}</span>
+        <span
+          className="bg-gradient-to-r from-blue-50 to-blue-100 transition-all duration-500 ease-out"
+          style={{ willChange: 'background-color' }}
+        >
+          {content}
+        </span>
       </p>
     );
   }
@@ -51,10 +56,27 @@ function HighlightedContent({ content, progress }: { content: string; progress: 
   const highlighted = content.slice(0, highlightLength);
   const remaining = content.slice(highlightLength);
 
+  const fadeStartLength = Math.max(0, highlightLength - Math.floor(totalLength * 0.03));
+  const alreadyRead = content.slice(0, fadeStartLength);
+  const currentlyReading = content.slice(fadeStartLength, highlightLength);
+
   return (
     <p className="whitespace-pre-line text-[15px] md:text-base leading-relaxed text-slate-900">
-      <span className="bg-blue-100 transition-colors duration-300">{highlighted}</span>
-      <span>{remaining}</span>
+      {fadeStartLength > 0 && (
+        <span
+          className="bg-blue-50 transition-all duration-500 ease-out"
+          style={{ willChange: 'background-color' }}
+        >
+          {alreadyRead}
+        </span>
+      )}
+      <span
+        className="bg-gradient-to-r from-blue-100 to-blue-200 transition-all duration-200 ease-linear"
+        style={{ willChange: 'background-color' }}
+      >
+        {currentlyReading}
+      </span>
+      <span className="transition-all duration-200 ease-out">{remaining}</span>
     </p>
   );
 }

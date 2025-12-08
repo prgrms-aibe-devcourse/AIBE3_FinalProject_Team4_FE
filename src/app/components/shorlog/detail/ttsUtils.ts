@@ -124,10 +124,13 @@ export class TtsWebSpeech {
   private onStart?: () => void;
   private onEnd?: () => void;
   private onError?: (error: string) => void;
-  private onProgress?: (progress: number) => void;
+  private onProgress?: (progress: number, currentTime: number, duration: number) => void;
+  private onPause?: () => void;
+  private onResume?: () => void;
   private isPaused: boolean = false;
   private currentContent: string = '';
   private currentProgress: number = 0;
+  private estimatedDuration: number = 0;
 
   constructor(
     speechRef: React.MutableRefObject<SpeechSynthesisUtterance | null>,
@@ -135,7 +138,9 @@ export class TtsWebSpeech {
       onStart?: () => void;
       onEnd?: () => void;
       onError?: (error: string) => void;
-      onProgress?: (progress: number) => void;
+      onProgress?: (progress: number, currentTime: number, duration: number) => void;
+      onPause?: () => void;
+      onResume?: () => void;
     } = {}
   ) {
     this.speechRef = speechRef;
@@ -143,6 +148,8 @@ export class TtsWebSpeech {
     this.onEnd = callbacks.onEnd;
     this.onError = callbacks.onError;
     this.onProgress = callbacks.onProgress;
+    this.onPause = callbacks.onPause;
+    this.onResume = callbacks.onResume;
   }
 
   // Web Speech API로 재생
@@ -151,6 +158,8 @@ export class TtsWebSpeech {
     this.currentProgress = 0;
     this.isPaused = false;
 
+    this.estimatedDuration = content.length * (130 / 0.9);
+
     this.cancel();
     setTimeout(() => {
       if (!speechSynthesis.speaking && !speechSynthesis.pending) {
@@ -158,8 +167,7 @@ export class TtsWebSpeech {
       }
     }, 100);
 
-    const estimatedDuration = content.length * (200 / 0.9);
-    return { estimatedDuration, interval: this.progressInterval };
+    return { estimatedDuration: this.estimatedDuration, interval: this.progressInterval };
   }
 
   private startSpeaking(content: string) {
@@ -193,8 +201,7 @@ export class TtsWebSpeech {
       speechSynthesis.speak(utterance);
     }
 
-    // 진행률 추적을 위한 타이머
-    const estimatedDuration = content.length * (200 / 0.9);
+    const estimatedDuration = this.estimatedDuration;
     let currentTime = 0;
 
     this.progressInterval = setInterval(() => {
@@ -203,13 +210,13 @@ export class TtsWebSpeech {
         return;
       }
 
-      if (!speechSynthesis.paused) {
-        currentTime += 100;
+      if (!speechSynthesis.paused && !this.isPaused) {
+        currentTime += 50;
         const progress = Math.min(currentTime / estimatedDuration, 1);
         this.currentProgress = progress;
-        this.onProgress?.(progress);
+        this.onProgress?.(progress, currentTime, estimatedDuration);
       }
-    }, 100);
+    }, 50);
   }
 
   // 일시정지
@@ -218,6 +225,7 @@ export class TtsWebSpeech {
       if (speechSynthesis.speaking && !speechSynthesis.paused) {
         try {
           this.isPaused = true;
+          this.onPause?.();
           speechSynthesis.pause();
         } catch (error) {
           console.error('Speech synthesis pause error:', error);
@@ -233,12 +241,14 @@ export class TtsWebSpeech {
         try {
           this.isPaused = false;
           speechSynthesis.resume();
+          this.onResume?.();
         } catch (error) {
           console.error('Speech synthesis resume error:', error);
           setTimeout(() => {
             if (speechSynthesis.paused) {
               try {
                 speechSynthesis.resume();
+                this.onResume?.();
               } catch (retryError) {
                 console.error('Speech synthesis resume retry failed:', retryError);
               }

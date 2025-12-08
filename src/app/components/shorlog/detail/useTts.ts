@@ -49,6 +49,7 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
       setIsPlaying(true);
       setMode('web');
       setProgress(0);
+      setCurrentTime(0);
     },
     onEnd: () => {
       setIsPlaying(false);
@@ -58,7 +59,17 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
       setIsPlaying(false);
       setError(error);
     },
-    onProgress: (prog) => setProgress(prog)
+    onProgress: (prog, currentTimeMs, durationMs) => {
+      setProgress(prog);
+      setCurrentTime(currentTimeMs);
+      setDuration(durationMs);
+    },
+    onPause: () => {
+      setIsPlaying(false);
+    },
+    onResume: () => {
+      setIsPlaying(true);
+    }
   });
 
   // 토큰 조회
