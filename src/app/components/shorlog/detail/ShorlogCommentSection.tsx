@@ -11,6 +11,7 @@ import {
 import CommentList from '@/src/app/components/comments/ShorlogCommentList';
 import { useRequireAuth } from '@/src/hooks/userRequireAuth';
 import { showGlobalToast } from '@/src/lib/toastStore';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 interface Props {
@@ -22,13 +23,18 @@ interface Props {
 export default function ShorlogCommentSection({
   shorlogId,
   initialCommentCount,
-  onCommentCountChange
+  onCommentCountChange,
 }: Props) {
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   const requireAuth = useRequireAuth();
+  const searchParams = useSearchParams();
+
+  const highlightCommentId = searchParams.get('commentId')
+    ? Number(searchParams.get('commentId'))
+    : null;
 
   /** 최신순 정렬 함수 */
   const sortCommentsLatest = (list: any[]): any[] => {
@@ -44,18 +50,46 @@ export default function ShorlogCommentSection({
       }));
   };
 
+  const applyHighlightAndExpand = (list: any[], targetId: number): any[] => {
+    const clone = JSON.parse(JSON.stringify(list));
+
+    const walk = (items: any[]): boolean => {
+      for (const item of items) {
+        if (item.id === targetId) {
+          item._highlight = true;
+          return true; // 찾음
+        }
+        if (item.children?.length) {
+          const found = walk(item.children);
+          if (found) {
+            // 부모는 자동 펼침
+            item._forceOpen = true;
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    walk(clone);
+    return clone;
+  };
+
   /** 댓글 목록 불러오기 */
   const fetchComments = async () => {
     setLoading(true);
     try {
       let data = await getComments(shorlogId);
 
-      // 🔥 최신순 정렬 적용
       data = sortCommentsLatest(data);
+
+      if (highlightCommentId) {
+        data = applyHighlightAndExpand(data, highlightCommentId);
+      }
 
       setComments(data);
     } catch (err) {
-      // 에러 무시
+      //
     } finally {
       setLoading(false);
     }
@@ -65,13 +99,7 @@ export default function ShorlogCommentSection({
     fetchComments();
   }, [shorlogId]);
 
-  // 댓글 수 변경 감지 및 부모에게 전달
-  useEffect(() => {
-    const totalCount = countAllComments(comments);
-    onCommentCountChange?.(totalCount);
-  }, [comments, onCommentCountChange]);
-
-  /** 트리 전체 댓글 수 계산 (대댓글 포함) */
+  /** 댓글 수 계산 */
   const countAllComments = (list: any[]): number => {
     let count = 0;
 
@@ -82,6 +110,11 @@ export default function ShorlogCommentSection({
 
     return count;
   };
+
+  /** 부모에게 댓글 수 전달 */
+  useEffect(() => {
+    onCommentCountChange?.(countAllComments(comments));
+  }, [comments, onCommentCountChange]);
 
   /** 댓글 입력창 포커스 */
   const handleCommentFocus = async () => {
@@ -105,7 +138,7 @@ export default function ShorlogCommentSection({
       await fetchComments();
       showGlobalToast('댓글이 등록되었습니다.', 'success');
     } catch (err: any) {
-      showGlobalToast(err.message || '댓글 등록에 실패했습니다.', 'error');
+      showGlobalToast(err.message || '댓글 등록 실패', 'error');
     }
   };
 
@@ -119,7 +152,7 @@ export default function ShorlogCommentSection({
       await fetchComments();
       showGlobalToast('답글이 등록되었습니다.', 'success');
     } catch (err: any) {
-      showGlobalToast(err.message || '답글 등록에 실패했습니다.', 'error');
+      showGlobalToast(err.message || '답글 등록 실패', 'error');
     }
   };
 
@@ -132,43 +165,42 @@ export default function ShorlogCommentSection({
 
     const nextLiked = !target.isLiked;
 
-    // UI 선반영
     updateCommentLikeState(commentId, nextLiked);
 
     try {
       nextLiked ? await likeComment(commentId) : await unlikeComment(commentId);
     } catch (err: any) {
       updateCommentLikeState(commentId, !nextLiked);
-      showGlobalToast(err.message || '좋아요 처리 중 오류가 발생했습니다.', 'error');
+      showGlobalToast(err.message || '좋아요 실패', 'error');
     }
   };
 
   /** 댓글 찾기 */
   const findComment = (commentId: number) => {
-    for (const comment of comments) {
-      if (comment.id === commentId) return comment;
-      const child = comment.children?.find((c: any) => c.id === commentId);
+    for (const c of comments) {
+      if (c.id === commentId) return c;
+      const child = c.children?.find((x: any) => x.id === commentId);
       if (child) return child;
     }
     return null;
   };
 
-  /** 좋아요 UI 업데이트 */
+  /** 좋아요 UI 적용 */
   const updateCommentLikeState = (id: number, isLiked: boolean) => {
     setComments((prev) =>
       sortCommentsLatest(
-        prev.map((comment) => {
-          if (comment.id === id) {
+        prev.map((c) => {
+          if (c.id === id) {
             return {
-              ...comment,
+              ...c,
               isLiked,
-              likeCount: isLiked ? comment.likeCount + 1 : comment.likeCount - 1,
+              likeCount: isLiked ? c.likeCount + 1 : c.likeCount - 1,
             };
           }
 
           return {
-            ...comment,
-            children: comment.children?.map((child: any) =>
+            ...c,
+            children: c.children?.map((child: any) =>
               child.id === id
                 ? {
                     ...child,
@@ -192,7 +224,7 @@ export default function ShorlogCommentSection({
       await fetchComments();
       showGlobalToast('댓글이 수정되었습니다.', 'success');
     } catch (err: any) {
-      showGlobalToast(err.message || '댓글 수정에 실패했습니다.', 'error');
+      showGlobalToast(err.message || '댓글 수정 실패', 'error');
     }
   };
 
@@ -205,7 +237,7 @@ export default function ShorlogCommentSection({
       await fetchComments();
       showGlobalToast('댓글이 삭제되었습니다.', 'success');
     } catch (err: any) {
-      showGlobalToast(err.message || '댓글 삭제에 실패했습니다.', 'error');
+      showGlobalToast(err.message || '댓글 삭제 실패', 'error');
     }
   };
 

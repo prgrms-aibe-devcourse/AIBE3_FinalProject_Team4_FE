@@ -13,7 +13,8 @@ import { useRequireAuth } from '@/src/hooks/userRequireAuth';
 import { handleApiError } from '@/src/lib/handleApiError';
 import { showGlobalToast } from '@/src/lib/toastStore';
 import { MessageCircle } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 
 interface Props {
   blogId: number;
@@ -27,12 +28,21 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
   const [loading, setLoading] = useState(true);
 
   const requireAuth = useRequireAuth();
+  const searchParams = useSearchParams();
+
+  /** 🔥 highlight가 적용될 댓글 DOM 참조 */
+  const highlightRef = useRef<HTMLDivElement | null>(null);
+
+  /** URL 파라미터: /blog/3?commentId=10 */
+  const highlightCommentId = searchParams.get('commentId')
+    ? Number(searchParams.get('commentId'))
+    : null;
 
   /** =============================
-   *  공통: 최신순 정렬 함수
+   *  정렬 (오래된 댓글 → 최신순)
    * ============================= */
   const sortCommentsOldest = (list: any[]): any[] => {
-    const sorted = [...list]
+    return [...list]
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
       .map((c) => ({
         ...c,
@@ -42,11 +52,9 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
             )
           : [],
       }));
-
-    return sorted;
   };
 
-  /** 트리 전체 댓글 수 계산 */
+  /** 전체 댓글 수 계산 */
   const countAllComments = (list: any[]): number => {
     let count = 0;
     for (const c of list) {
@@ -57,13 +65,50 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
   };
 
   /** =============================
-   *  최초 댓글 불러오기 (한 번만)
+   *  highlight + 자동 펼침 처리
+   * ============================= */
+  const applyHighlightAndExpand = (list: any[], targetId: number) => {
+    let found = false;
+
+    const dfs = (nodeList: any[]): any[] =>
+      nodeList.map((node) => {
+        let newNode = { ...node };
+
+        if (node.children && node.children.length > 0) {
+          const updatedChildren = dfs(node.children);
+          newNode.children = updatedChildren;
+
+          if (updatedChildren.some((c: any) => c._highlight || c._forceOpen)) {
+            newNode._forceOpen = true;
+            found = true;
+          }
+        }
+
+        if (node.id === targetId) {
+          newNode._highlight = true;
+          newNode._forceOpen = true;
+          found = true;
+        }
+
+        return newNode;
+      });
+
+    const updated = dfs(list);
+    return found ? updated : list;
+  };
+
+  /** =============================
+   *  최초 로딩
    * ============================= */
   useEffect(() => {
     const fetch = async () => {
       try {
         let data = await getBlogComments(blogId);
         data = sortCommentsOldest(data);
+
+        if (highlightCommentId) {
+          data = applyHighlightAndExpand(data, highlightCommentId);
+        }
 
         setComments(data);
         setTotalCount(countAllComments(data));
@@ -75,10 +120,10 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
     };
 
     fetch();
-  }, [blogId]);
+  }, [blogId, highlightCommentId]);
 
   /** =============================
-   *  최상위 댓글 작성 (Optimistic)
+   *  댓글 작성
    * ============================= */
   const handleCommentSubmit = async () => {
     if (!requireAuth('댓글 작성')) return;
@@ -104,7 +149,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
   };
 
   /** =============================
-   *  대댓글 작성 (Optimistic)
+   *  답글 작성
    * ============================= */
   const handleReply = async (parentId: number, replyText: string) => {
     if (!requireAuth('답글 작성')) return;
@@ -119,6 +164,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
             ? {
                 ...c,
                 children: sortCommentsOldest([...(c.children ?? []), newReply]),
+                _forceOpen: true,
               }
             : c,
         ),
@@ -131,68 +177,38 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
   };
 
   /** =============================
-   *  좋아요 토글 (Optimistic)
+   *  좋아요
    * ============================= */
   const handleLike = async (commentId: number) => {
     if (!requireAuth('좋아요')) return;
 
-    const target = findComment(commentId);
-    if (!target) return;
+    const optimistic = (list: any[]): any[] =>
+      list.map((c) => {
+        if (c.id === commentId) {
+          return {
+            ...c,
+            isLiked: !c.isLiked,
+            likeCount: c.isLiked ? c.likeCount - 1 : c.likeCount + 1,
+          };
+        }
+        return {
+          ...c,
+          children: optimistic(c.children || []),
+        };
+      });
 
-    const optimisticNext = !target.isLiked;
-
-    updateCommentLikeState(commentId, optimisticNext);
+    setComments((prev) => optimistic(prev));
 
     try {
-      optimisticNext ? await likeBlogComment(commentId) : await unlikeBlogComment(commentId);
+      const target = comments.find((c) => c.id === commentId);
+      target?.isLiked ? await unlikeBlogComment(commentId) : await likeBlogComment(commentId);
     } catch (err: any) {
-      updateCommentLikeState(commentId, !optimisticNext);
-      handleApiError(err);
+      showGlobalToast('좋아요 처리 실패', 'error');
     }
-  };
-
-  const findComment = (id: number): any | null => {
-    for (const c of comments) {
-      if (c.id === id) return c;
-      const child = c.children?.find((cc: any) => cc.id === id);
-      if (child) return child;
-    }
-    return null;
-  };
-
-  const updateCommentLikeState = (id: number, isLiked: boolean) => {
-    setComments((prev) =>
-      prev.map((comment) => {
-        if (comment.id === id) {
-          return {
-            ...comment,
-            isLiked,
-            likeCount: isLiked ? comment.likeCount + 1 : comment.likeCount - 1,
-          };
-        }
-
-        if (comment.children) {
-          return {
-            ...comment,
-            children: comment.children.map((child: any) =>
-              child.id === id
-                ? {
-                    ...child,
-                    isLiked,
-                    likeCount: isLiked ? child.likeCount + 1 : child.likeCount - 1,
-                  }
-                : child,
-            ),
-          };
-        }
-
-        return comment;
-      }),
-    );
   };
 
   /** =============================
-   *  댓글 수정 (Optimistic)
+   *  댓글 수정
    * ============================= */
   const handleEdit = async (commentId: number, newContent: string) => {
     if (!requireAuth('댓글 수정')) return;
@@ -200,26 +216,24 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
     try {
       const updated = await editBlogComment(commentId, newContent);
 
-      setComments((prev) =>
-        sortCommentsOldest(
-          prev.map((comment) => {
-            if (comment.id === commentId) return updated;
-            return {
-              ...comment,
-              children: comment.children?.map((child: any) =>
-                child.id === commentId ? updated : child,
-              ),
-            };
-          }),
-        ),
-      );
+      const updateTree = (list: any[]): any[] =>
+        list.map((c) =>
+          c.id === commentId
+            ? updated
+            : {
+                ...c,
+                children: updateTree(c.children || []),
+              },
+        );
+
+      setComments((prev) => updateTree(prev));
     } catch (err: any) {
       handleApiError(err.message);
     }
   };
 
   /** =============================
-   *  댓글 삭제 (Optimistic)
+   *  댓글 삭제
    * ============================= */
   const handleDelete = async (commentId: number) => {
     if (!requireAuth('댓글 삭제')) return;
@@ -227,17 +241,15 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
     try {
       await deleteBlogComment(commentId);
 
-      setComments((prev) =>
-        sortCommentsOldest(
-          prev
-            .map((comment) => ({
-              ...comment,
-              children: comment.children?.filter((c: any) => c.id !== commentId) ?? [],
-            }))
-            .filter((comment) => comment.id !== commentId),
-        ),
-      );
+      const removeTree = (list: any[]): any[] =>
+        list
+          .filter((c) => c.id !== commentId)
+          .map((c) => ({
+            ...c,
+            children: removeTree(c.children || []),
+          }));
 
+      setComments((prev) => removeTree(prev));
       setTotalCount((prev) => prev - 1);
     } catch (err: any) {
       handleApiError(err.message);
@@ -245,11 +257,11 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
   };
 
   /** =============================
-   *  렌더
+   * 렌더
    * ============================= */
   return (
     <section className="border-slate-100 px-3 py-1 sm:px-1">
-      {/* 댓글 헤더 */}
+      {/* 헤더 */}
       <div className="flex items-center gap-1 mb-4">
         <div className="flex h-6 w-6 items-center justify-center rounded-full text-slate-500">
           <MessageCircle className="h-3.5 w-3.5" />
@@ -263,11 +275,6 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
       {/* 입력창 */}
       <div className="rounded-2xl border border-slate-100 bg-slate-50/80 px-3 py-7 sm:px-0.5 sm:py-2">
         <div className="flex items-center gap-2">
-          {/* 프로필 자리 (지금은 간단한 플레이스홀더) */}
-          {/* <div className="hidden h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-[11px] font-semibold text-slate-600 sm:flex">
-            나
-          </div> */}
-
           <input
             type="text"
             className="flex-1 rounded-full bg-white px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-[#2979FF]/40"
@@ -302,6 +309,7 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
             onLike={handleLike}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            highlightRef={highlightRef}
           />
         )}
       </div>

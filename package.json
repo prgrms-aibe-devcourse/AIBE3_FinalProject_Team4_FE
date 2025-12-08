@@ -36,6 +36,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/remove-markdown": "^0.3.4",
     "@types/sockjs-client": "^1.5.4",
     "autoprefixer": "^10.4.22",
     "eslint": "^9.38.0",

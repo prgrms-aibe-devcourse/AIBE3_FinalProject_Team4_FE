@@ -5,15 +5,19 @@ import { showGlobalToast } from '@/src/lib/toastStore';
 import { CommentType } from '@/src/types/comment';
 import { timeAgo } from '@/src/utils/timeAgo';
 import { EllipsisVertical, Heart } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface BlogCommentItemProps {
-  comment: CommentType;
+  comment: CommentType & {
+    _highlight?: boolean;
+    _forceOpen?: boolean;
+  };
   onReply: (parentId: number, content: string) => Promise<void>;
   onLike: (commentId: number) => Promise<void>;
   onEdit: (commentId: number, newContent: string) => Promise<void>;
   onDelete: (commentId: number) => Promise<void>;
   depth?: number;
+  highlightRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export default function BlogCommentItem({
@@ -24,81 +28,94 @@ export default function BlogCommentItem({
   onDelete,
   depth = 0,
 }: BlogCommentItemProps) {
+  const requireAuth = useRequireAuth();
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editText, setEditText] = useState(comment.content);
-
   const [replyMode, setReplyMode] = useState(false);
   const [replyText, setReplyText] = useState('');
+  const [openReplies, setOpenReplies] = useState(comment._forceOpen ?? false);
 
-  const [openReplies, setOpenReplies] = useState(false); // 🔥 답글 접기/펼치기
-  const requireAuth = useRequireAuth();
+  /** ✨ 실제 DOM 참조 */
+  const ref = useRef<HTMLDivElement>(null);
 
-  /** 좋아요 */
+  /** ✨ 댓글 자동 스크롤 + 하이라이트 효과 */
+  useEffect(() => {
+    if (comment._highlight && ref.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      ref.current.classList.add('bg-yellow-100');
+      setTimeout(() => {
+        ref.current?.classList.remove('bg-yellow-100');
+      }, 1800);
+    }
+  }, [comment._highlight]);
+
+  /** ❤️ 좋아요 */
   const handleLike = async () => {
     if (!requireAuth('좋아요')) return;
-    if (comment.isMine) {
-      showGlobalToast('내 댓글에는 좋아요를 누를 수 없습니다.', 'warning');
-      return;
-    }
+    if (comment.isMine) return showGlobalToast('내 댓글은 좋아요 불가', 'warning');
 
     try {
       await onLike(comment.id);
     } catch (err: any) {
-      showGlobalToast(err.message, 'warning');
+      showGlobalToast(err.message, 'error');
     }
   };
 
-  /** 수정 */
-  const handleEditSubmit = async () => {
-    if (!editText.trim()) return showGlobalToast('내용을 입력해주세요', 'warning');
-    await onEdit(comment.id, editText.trim());
-    setEditMode(false);
-  };
-
-  /** 삭제 */
-  const handleDelete = async () => {
-    if (!confirm('정말 삭제하시겠습니까?')) return;
-    await onDelete(comment.id);
-  };
-
-  /** 답글 작성 */
+  /** ↩️ 답글 등록 */
   const handleReplySubmit = async () => {
     if (!requireAuth('댓글 작성')) return;
-    if (!replyText.trim()) return showGlobalToast('내용을 입력해주세요.', 'warning');
+    if (!replyText.trim()) return showGlobalToast('내용을 입력해주세요.');
 
     await onReply(comment.id, replyText.trim());
     setReplyText('');
     setReplyMode(false);
-    setOpenReplies(true); // 🔥 답글 작성 뒤 자동으로 펼치기
+    setOpenReplies(true); // 자동 펼침
+  };
+
+  /** ✏️ 수정 */
+  const handleEditSubmit = async () => {
+    if (!editText.trim()) return;
+    await onEdit(comment.id, editText.trim());
+    setEditMode(false);
+  };
+
+  /** 🗑 삭제 */
+  const handleDelete = async () => {
+    if (!confirm('삭제하시겠습니까?')) return;
+    await onDelete(comment.id);
   };
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white/90 px-4 py-3 shadow-xs">
+    <div
+      ref={ref}
+      className={`
+        rounded-2xl border border-slate-100 bg-white px-4 py-3 shadow-sm transition
+        ${comment._highlight ? 'bg-yellow-100' : ''}
+      `}
+    >
       <div className="flex gap-3">
-        {/* 프로필 */}
-        <div className="h-9 w-9 overflow-hidden rounded-full bg-slate-200 flex-shrink-0">
-          <img
-            src={comment.userProfileImgUrl || '/tmpProfile.png'}
-            alt="profile"
-            className="h-full w-full object-cover"
-          />
-        </div>
+        {/* 프로필 이미지 */}
+        <img
+          src={comment.userProfileImgUrl || '/tmpProfile.png'}
+          alt="profile"
+          className="w-9 h-9 rounded-full object-cover"
+        />
 
-        <div className="relative flex-1">
-          {/* 닉네임 + 시간 + 메뉴 */}
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-slate-900">{comment.nickname}</span>
-                <span className="text-[11px] text-slate-400">{timeAgo(comment.createdAt)}</span>
-              </div>
+        <div className="flex-1 relative">
+          {/* 상단: 닉네임 + 시간 + 메뉴 */}
+          <div className="flex justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold">{comment.nickname}</span>
+              <span className="text-[11px] text-slate-400">{timeAgo(comment.createdAt)}</span>
             </div>
 
             {comment.isMine && (
               <button
+                className="p-1 rounded-full hover:bg-slate-100"
                 onClick={() => setMenuOpen((prev) => !prev)}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700"
               >
                 <EllipsisVertical size={16} />
               </button>
@@ -107,114 +124,84 @@ export default function BlogCommentItem({
 
           {/* 메뉴 */}
           {menuOpen && (
-            <div className="absolute right-0 top-7 z-10 w-28 overflow-hidden rounded-xl border border-slate-100 bg-white text-xs shadow-lg">
+            <div className="absolute right-0 top-6 w-28 rounded-md border bg-white shadow-lg text-xs z-10">
               <button
+                className="block w-full px-3 py-2 hover:bg-slate-50"
                 onClick={() => {
                   setEditMode(true);
                   setMenuOpen(false);
                 }}
-                className="block w-full px-3 py-2 text-left text-slate-700 hover:bg-slate-50"
               >
                 수정
               </button>
               <button
+                className="block w-full px-3 py-2 text-red-500 hover:bg-red-50"
                 onClick={handleDelete}
-                className="block w-full px-3 py-2 text-left text-rose-500 hover:bg-rose-50"
               >
                 삭제
               </button>
             </div>
           )}
 
-          {/* 내용 / 수정 모드 */}
+          {/* 댓글 내용 or 수정폼 */}
           {!editMode ? (
-            <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-700">
-              {comment.content}
-            </p>
+            <p className="text-sm mt-1 whitespace-pre-line">{comment.content}</p>
           ) : (
-            <div className="mt-2 space-y-2">
+            <div className="mt-2 flex gap-2">
               <input
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#2979FF] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2979FF]/20"
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
+                className="flex-1 border rounded px-2 text-sm"
               />
-              <div className="flex items-center gap-2 text-xs">
-                <button
-                  className="rounded-full bg-[#2979FF] px-3 py-1 font-medium text-white hover:bg-[#1f5ecc]"
-                  onClick={handleEditSubmit}
-                >
-                  저장
-                </button>
-                <button
-                  className="rounded-full px-3 py-1 font-medium text-slate-500 hover:bg-slate-100"
-                  onClick={() => setEditMode(false)}
-                >
-                  취소
-                </button>
-              </div>
+              <button onClick={handleEditSubmit} className="text-blue-600 text-sm">
+                저장
+              </button>
             </div>
           )}
 
-          {/* 좋아요 / 답글 */}
-          <div className="mt-3 flex items-center gap-4 text-[11px] text-slate-500">
-            <button
-              onClick={handleLike}
-              className="inline-flex items-center gap-1 rounded-full px-2 py-1 hover:bg-rose-50 hover:text-rose-500"
-            >
+          {/* 좋아요 + 답글 */}
+          <div className="mt-2 flex items-center gap-4 text-xs text-slate-600">
+            <button className="flex items-center gap-1" onClick={handleLike}>
               <Heart
                 size={14}
-                className={comment.isLiked ? 'text-rose-500' : 'text-slate-400'}
                 fill={comment.isLiked ? '#f97373' : 'none'}
+                className={comment.isLiked ? 'text-rose-500' : 'text-slate-400'}
               />
-              <span className="font-medium">{comment.likeCount}</span>
+              {comment.likeCount}
             </button>
 
             {depth === 0 && (
-              <button
-                onClick={() => setReplyMode((prev) => !prev)}
-                className="inline-flex items-center gap-1 rounded-full px-2 py-1 hover:bg-slate-100 hover:text-slate-800"
-              >
-                <span>답글 달기</span>
-              </button>
+              <button onClick={() => setReplyMode((prev) => !prev)}>답글 달기</button>
             )}
           </div>
 
           {/* 답글 입력창 */}
           {replyMode && (
-            <div className="mt-5 ml-3 flex gap-1">
+            <div className="mt-3 flex gap-2">
               <input
-                className="flex-1 rounded-full bg-white px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-[#2979FF]/40"
+                className="border rounded px-2 flex-1"
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
-                placeholder="답글을 입력해 주세요"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault(); // Enter 시 줄바꿈 방지
-                    handleReplySubmit();
-                  }
-                }}
+                placeholder="답글 입력…"
               />
-              <button
-                className="shrink-0 rounded-full bg-[#2979FF] px-3.5 py-1.0 text-xs font-medium text-white shadow-sm hover:bg-[#1f5ecc] transition-colors"
-                onClick={handleReplySubmit}
-              >
+              <button onClick={handleReplySubmit} className="text-blue-600 text-sm font-semibold">
                 등록
               </button>
             </div>
           )}
 
-          {/* 대댓글 접기/펼치기 */}
-          {comment.children.length > 0 && (
-            <div className="mt-3">
+          {/* 대댓글 */}
+          {comment.children?.length > 0 && (
+            <div className="mt-2">
               <button
+                className="text-xs text-slate-500"
                 onClick={() => setOpenReplies((prev) => !prev)}
-                className="text-[11px] text-slate-500 hover:text-slate-700"
               >
                 {openReplies ? '답글 숨기기' : `답글 ${comment.children.length}개 보기`}
               </button>
 
               {openReplies && (
-                <div className="mt-1 space-y-3   pl-4">
+                <div className="mt-2 pl-4 border-l space-y-3">
                   {comment.children.map((child) => (
                     <BlogCommentItem
                       key={child.id}
