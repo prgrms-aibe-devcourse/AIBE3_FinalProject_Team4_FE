@@ -12,7 +12,13 @@ import ChatBotButton from './ChatBotButton';
 
 type DisplayMode = 'sidebar' | 'floating';
 
-export default function AiChatPanel({ title, content }: { title?: string; content?: string }) {
+type AiChatPanelProps = {
+  title?: string;
+  content?: string;
+  children?: React.ReactNode;
+};
+
+export default function AiChatPanel({ title, content, children }: AiChatPanelProps) {
   const DEFAULT_OPTIONS: ModelOption[] = [
     { label: 'GPT-4o mini', value: 'gpt-4o-mini', enabled: false },
     { label: 'GPT-4.1 mini', value: 'gpt-4.1-mini', enabled: false },
@@ -20,6 +26,8 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
   ];
 
   const DEFAULT_MODEL: ModelOption['value'] = 'gpt-4o-mini';
+
+  const [leftSidebarWidth, setLeftSidebarWidth] = useState(240);
 
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<DisplayMode>('sidebar');
@@ -49,6 +57,16 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
         return 'GPT-4o mini';
     }
   };
+
+  useEffect(() => {
+    const updateLeftSidebarWidth = () => {
+      setLeftSidebarWidth(window.innerWidth < 1280 ? 80 : 240);
+    };
+
+    updateLeftSidebarWidth();
+    window.addEventListener('resize', updateLeftSidebarWidth);
+    return () => window.removeEventListener('resize', updateLeftSidebarWidth);
+  }, []);
 
   useEffect(() => {
     fetchModelAvailability()
@@ -154,7 +172,9 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
   };
 
   return (
-    <>
+    <div className="min-h-screen">
+      {children}
+
       {/* 열기 버튼 */}
       {!isOpen && (
         <div className="fixed bottom-6 right-6 z-30 group">
@@ -187,10 +207,22 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
       {/* 플로팅 모드 */}
       {isOpen && mode === 'floating' && (
         <div
+          // className="
+          //   fixed bottom-6 right-6
+          //   w-[min(28rem,100vw-3rem)]  /* 작은 화면 대응 */
+          //   h-[min(600px,100dvh-3rem)]
+          //   bg-white rounded-t-[20px] rounded-b-[40px] border border-gray-200
+          //   shadow-[0_4px_12px_0_rgba(0,0,0,0.06),0_1.5px_4px_0_rgba(0,0,0,0.03)]
+          //   z-30 flex flex-col
+          // "
+          style={{
+            width: `min(28rem, calc(100vw - ${leftSidebarWidth}px - 3rem))`,
+          }}
           className="
             fixed bottom-6 right-6
-            w-[min(28rem,100vw-3rem)]  /* 작은 화면 대응 */
-            h-[min(600px,100dvh-3rem)]
+
+            h-[min(650px,100dvh-3rem)]
+
             bg-white rounded-t-[20px] rounded-b-[40px] border border-gray-200
             shadow-[0_4px_12px_0_rgba(0,0,0,0.06),0_1.5px_4px_0_rgba(0,0,0,0.03)]
             z-30 flex flex-col
@@ -213,6 +245,6 @@ export default function AiChatPanel({ title, content }: { title?: string; conten
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
