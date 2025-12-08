@@ -2,7 +2,7 @@ import ShorlogFeedPageClient from '../../components/shorlog/feed/ShorlogFeedPage
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: '숏 피드 - TexTok',
+  title: 'TexTok',
 };
 
 export default function ShorlogFeedPage() {
