@@ -111,6 +111,7 @@ export default function BookmarkButton({
       // React Query 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['shorlog-detail'] }); // 상세 페이지도 갱신
     } catch (error) {
       handleApiError(error, '북마크 처리');
     } finally {

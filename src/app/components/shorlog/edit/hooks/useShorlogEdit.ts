@@ -154,6 +154,7 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
       // React Query 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['shorlog-detail', shorlogId] }); // 상세 페이지도 갱신
 
       // 이전 페이지로 돌아가기
       router.back();

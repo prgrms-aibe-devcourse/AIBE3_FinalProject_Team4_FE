@@ -236,6 +236,7 @@ export default function ShorlogCommentSection({
       // React Query 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['shorlog-detail'] }); // 상세 페이지도 갱신
     } catch (err: any) {
       showGlobalToast(err.message || '댓글 수정 실패', 'error');
     }
@@ -250,9 +251,9 @@ export default function ShorlogCommentSection({
       await fetchComments();
       showGlobalToast('댓글이 삭제되었습니다.', 'success');
 
-      // React Query 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['shorlog-detail'] }); // 상세 페이지도 갱신
     } catch (err: any) {
       showGlobalToast(err.message || '댓글 삭제 실패', 'error');
     }

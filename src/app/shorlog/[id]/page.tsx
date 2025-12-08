@@ -4,7 +4,7 @@ import ShorlogDetailPageClient from '../../components/shorlog/detail/ShorlogDeta
 import ShorlogDetailModalWrapper from '../../components/shorlog/detail/ShorlogDetailModalWrapper';
 import type { ShorlogDetail } from '../../components/shorlog/detail/types';
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { fetchMe } from '@/src/api/user';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
@@ -49,51 +49,25 @@ async function fetchShorlogDetail(id: string): Promise<ShorlogDetail> {
 export default function ShorlogDetailPage() {
   const params = useParams();
   const shorlogId = String(params.id);
+  const { data: detail, isLoading, error } = useQuery({
+    queryKey: ['shorlog-detail', shorlogId],
+    queryFn: () => fetchShorlogDetail(shorlogId),
+    staleTime: 0, // 항상 최신 데이터 확인
+  });
 
-  const [detail, setDetail] = useState<ShorlogDetail | null>(null);
-  const [me, setMe] = useState<{ id: number } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const [shorlogData, meData] = await Promise.all([
-          fetchShorlogDetail(shorlogId),
-          fetchMe().catch(() => null), // 비로그인 → null
-        ]);
-
-        if (!cancelled) {
-          setDetail(shorlogData);
-          setMe(meData);
-        }
-      } catch (e: any) {
-        if (!cancelled) {
-          setLoadError(e);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [shorlogId]);
+  const { data: me } = useQuery({
+    queryKey: ['user-me'],
+    queryFn: () => fetchMe().catch(() => null),
+    staleTime: 5 * 60 * 1000, // 5분간 캐시
+  });
 
   return (
     <ShorlogDetailModalWrapper>
-      {loading && !detail ? (
+      {isLoading && !detail ? (
         <div className="flex h-full w-full items-center justify-center">
           <LoadingSpinner label="숏로그를 불러오는 중입니다" />
         </div>
-      ) : loadError ? (
+      ) : error ? (
         <div className="flex h-full w-full items-center justify-center">
           <p className="text-slate-600">숏로그를 불러오는 중 오류가 발생했습니다.</p>
         </div>
