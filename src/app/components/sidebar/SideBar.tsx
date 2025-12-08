@@ -282,7 +282,9 @@ export default function Sidebar() {
           return (
             <div key={item.label} className="relative group">
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
+
                   if (item.label === '알림') {
                     setOpenNotification((prev) => !prev);
                     return;
@@ -300,6 +302,8 @@ export default function Sidebar() {
                   if (item.href === '/shorlog/feed') {
                     if (pathname === '/shorlog/feed') {
                       router.refresh();
+                    } else if (pathname.startsWith('/shorlog/') || pathname.startsWith('/profile/')) {
+                      window.location.href = '/shorlog/feed';
                     } else {
                       router.push('/shorlog/feed');
                     }

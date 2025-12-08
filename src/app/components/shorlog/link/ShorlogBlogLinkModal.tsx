@@ -5,6 +5,7 @@ import { handleApiError } from '@/src/lib/handleApiError';
 import { showGlobalToast } from '@/src/lib/toastStore';
 import type { ShorlogBlogLinkResponse, MyBlogSummary } from '@/src/types/blog';
 import { formatRelativeTime } from '@/src/utils/time';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
 type ShorlogBlogLinkModalProps = {
@@ -20,6 +21,7 @@ export default function ShorlogBlogLinkModal({
   onClose,
   onLinked,
 }: ShorlogBlogLinkModalProps) {
+  const queryClient = useQueryClient();
   const [recentBlogs, setRecentBlogs] = useState<MyBlogSummary[]>([]);
   const [selectedBlogId, setSelectedBlogId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -63,6 +65,11 @@ export default function ShorlogBlogLinkModal({
     try {
       setLinking(true);
       const res = await linkShorlogToBlog(shorlogId, blogId);
+
+      // React Query 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+
       onLinked?.(res);
       onClose();
     } catch (e) {

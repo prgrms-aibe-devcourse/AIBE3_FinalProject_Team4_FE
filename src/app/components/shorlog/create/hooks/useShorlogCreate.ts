@@ -1,5 +1,6 @@
 import { showGlobalToast } from '@/src/lib/toastStore';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { createShorlog, uploadImagesBatch } from '../api';
 import {
@@ -14,6 +15,7 @@ import {
 
 export function useShorlogCreate() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [images, setImages] = useState<LocalImage[]>([]);
   const [uploadedImages, setUploadedImages] = useState<UploadImageResponse[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -179,6 +181,11 @@ export function useShorlogCreate() {
 
       const shorlogId = result.data?.id;
       const userId = result.data?.userId;
+
+      // React Query 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+
       if (shorlogId) {
         setCreatedShorlogId(shorlogId);
         setCreatedUserId(userId);

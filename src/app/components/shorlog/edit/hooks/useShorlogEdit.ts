@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   LocalImage,
   MAX_CONTENT_LENGTH,
@@ -16,6 +17,7 @@ import type { ShorlogDetail } from '../../detail/types';
 
 export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   // 기존 이미지를 LocalImage 형태로 변환
   const initialImages: LocalImage[] = initialData.thumbnailUrls.map((url, index) => ({
@@ -148,13 +150,19 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
       });
 
       showGlobalToast('숏로그가 성공적으로 수정되었습니다!', 'success');
+
+      // React Query 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+
+      // 이전 페이지로 돌아가기
       router.back();
     } catch (e) {
       setError(e instanceof Error ? e.message : '숏로그 수정 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
     }
-  }, [uploadedImages, shorlogId, router]);
+  }, [uploadedImages, shorlogId, router, queryClient]);
 
   const changeAspectRatio = (id: string, ratio: AspectRatio) => {
     setImages((prev) =>

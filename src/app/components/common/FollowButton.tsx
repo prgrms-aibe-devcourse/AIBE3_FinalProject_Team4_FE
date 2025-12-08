@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCurrentUser } from '@/src/hooks/useCurrentUser';
 import { useFollowStatus, useFollowMutation } from '@/src/hooks/useFollow';
 import { showGlobalToast } from '@/src/lib/toastStore';
@@ -19,7 +20,7 @@ export default function FollowButton({
   onFollowChange,
   variant = 'default',
 }: FollowButtonProps) {
-  const router = useRouter();
+  const queryClient = useQueryClient();
 
   // 현재 사용자 정보 가져오기
   const { data: currentUser, isLoading: isUserLoading } = useCurrentUser();
@@ -58,6 +59,10 @@ export default function FollowButton({
         await followMutation.mutateAsync();
         onFollowChange?.(true);
       }
+
+      // React Query 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
     } catch (error) {
       // 에러는 뮤테이션 훅에서 처리되지만 추가 로깅
       console.error('팔로우 토글 실패:', {

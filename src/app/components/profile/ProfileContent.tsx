@@ -12,6 +12,7 @@ import type { ShorlogItem } from '@/src/app/components/shorlog/feed/ShorlogFeedP
 import { useAuth } from '@/src/providers/AuthProvider';
 import type { BlogSummary } from '@/src/types/blog';
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { BlogListView, ShorlogListView, SortButtons } from './ProfileContentFeed';
 import { ProfileEmptyState } from './ProfileEmptyState';
 
@@ -27,6 +28,8 @@ interface ProfileContentProps {
 export default function ProfileContent({ userId, isMyPage }: ProfileContentProps) {
   const { loginUser, isLogin } = useAuth();
   const isMe = isLogin && loginUser?.id === Number(userId);
+  const searchParams = useSearchParams();
+  const refreshParam = searchParams.get('refresh'); // 새로고침 트리거
 
   const [primaryTab, setPrimaryTab] = useState<PrimaryTab>('mine');
   const [secondaryTab, setSecondaryTab] = useState<SecondaryTab>('short');
@@ -74,7 +77,7 @@ export default function ProfileContent({ userId, isMyPage }: ProfileContentProps
     }
 
     load();
-  }, [userId, isMyPage, primaryTab, sortKey]);
+  }, [userId, isMyPage, primaryTab, sortKey, refreshParam]); 
 
   const shortCount = shorlogs.length;
   const longCount = blogs.length;

@@ -23,6 +23,10 @@ interface Props {
 }
 
 function HighlightedContent({ content, progress }: { content: string; progress: number }) {
+  if (!content || typeof content !== 'string') {
+    return <p className="text-sm leading-relaxed text-slate-400">아직 내용이 없습니다.</p>;
+  }
+
   const totalLength = content.length;
 
   if (totalLength === 0) {
@@ -53,6 +57,7 @@ function HighlightedContent({ content, progress }: { content: string; progress: 
     );
   }
 
+  const highlighted = content.slice(0, highlightLength);
   const remaining = content.slice(highlightLength);
 
   const fadeStartLength = Math.max(0, highlightLength - Math.floor(totalLength * 0.03));
@@ -234,7 +239,7 @@ export default function ShorlogDetailPageClient({
   isOwner = false,
   hideNavArrows = false,
 }: Props) {
-  if (!detail || !detail.content) {
+  if (!detail || !detail.content || typeof detail.content !== 'string') {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <p className="text-slate-600">숏로그를 불러오는 중입니다...</p>
@@ -247,7 +252,7 @@ export default function ShorlogDetailPageClient({
   const [linkedBlogCount, setLinkedBlogCount] = useState(0);
   const [showLinkedBlogsModal, setShowLinkedBlogsModal] = useState(false);
   const [currentCommentCount, setCurrentCommentCount] = useState(detail.commentCount);
-  const firstLineForAlt = (detail.content || '').split('\n')[0]?.slice(0, 40) ?? '';
+  const firstLineForAlt = detail.content.split('\n')[0]?.slice(0, 40) ?? '';
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '';
@@ -370,7 +375,7 @@ export default function ShorlogDetailPageClient({
                 commentCount={currentCommentCount}
                 bookmarkCount={detail.bookmarkCount}
                 title={`${detail.nickname}님의 숏로그`}
-                description={detail.content.split('\n')[0].trim() || '숏로그를 확인해보세요!'}
+                description={(detail.content || '').split('\n')[0]?.trim() || '숏로그를 확인해보세요!'}
                 imageUrl={detail.thumbnailUrls.length > 0 ? detail.thumbnailUrls[0] : null}
                 author={detail.nickname}
               />
