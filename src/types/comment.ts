@@ -1,4 +1,6 @@
 export interface CommentType {
+  _forceOpen: boolean | undefined;
+  _highlight: boolean | undefined;
   id: number;
   content: string;
   nickname: string;
