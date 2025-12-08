@@ -40,7 +40,7 @@ export default function MorePanel({
         "
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-10 h-16">
+        <div className="flex items-center justify-between px-6 py-8 h-16">
           <h2 className="text-xl font-semibold">더보기</h2>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100">
             <X size={22} />
@@ -48,7 +48,7 @@ export default function MorePanel({
         </div>
 
         {/* List */}
-        <div className="p-3 space-y-1 text-[15px]">
+        <div className="px-3 py-1 space-y-1 text-[15px]">
           <button
             className="
               w-full text-left font-semibold 
