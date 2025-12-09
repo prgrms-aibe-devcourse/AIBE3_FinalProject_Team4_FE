@@ -1,111 +1,54 @@
-'use client';
-
-import { deleteBlog, fetchBlogDetail } from '@/src/api/blogDetail';
+import { fetchBlogDetail } from '@/src/api/blogDetail';
 import { fetchIsFollowing } from '@/src/api/follow';
 import { fetchMe } from '@/src/api/user';
+import { BlogDetailClientWrapper } from '@/src/app/blogs/[id]/BlogDetailClientWrapper';
 import type { BlogDetailDto } from '@/src/types/blog';
-import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import BlogDetailClient from './BlogDetailClient';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
 
-export default function BlogDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const blogId = Number(params.id);
 
-  const [blog, setBlog] = useState<BlogDetailDto | null>(null);
-  const [me, setMe] = useState<{ id: number } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<Error | null>(null);
-  const [initialIsFollowing, setInitialIsFollowing] = useState(false);
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
 
-  useEffect(() => {
-    let cancelled = false;
+export default async function BlogDetailPage({ params }: PageProps) {
+  const { id } = await params;
+  const blogId = Number(id);
+  
+  //  서버에서 바로 데이터 로드
+  const [blogData, meData] = await Promise.all([
+    fetchBlogDetail(blogId),
+    fetchMe().catch(() => null), // 비로그인 -> null
+  ]);
 
-    async function load() {
-      try {
-        const [blogData, meData] = await Promise.all([
-          fetchBlogDetail(blogId),
-          fetchMe().catch(() => null), // 비로그인 → null
-        ]);
-        let following = false;
-        if (meData && blogData.userId !== meData.id) {
-          try {
-            following = await fetchIsFollowing(blogData.userId);
-          } catch (err) {
-            console.error('팔로우 여부 조회 실패', err);
-          }
-        }
-        if (!cancelled) {
-          setBlog(blogData);
-          setMe(meData);
-          setInitialIsFollowing(following);
-        }
-      } catch (e: any) {
-        console.error('블로그 단건 조회 실패', e);
-        if (!cancelled) {
-          setLoadError(e);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [blogId]);
-if (loading)
-  return (
-    <div className="p-8">
-      <LoadingSpinner label="블로그 페이지 로딩중입니다"/>
-    </div>
-  );
-if (!blog) return <div className="p-8">존재하지 않는 게시글입니다.</div>;
-
-  const handleDelete = async () => {
-    if (!confirm('정말 삭제하시겠습니까?')) return;
-    try {
-      await deleteBlog(blogId);
-      router.replace('/blogs');
-    } catch (e) {
-      console.error('삭제 실패', e);
-      alert('삭제 중 오류가 발생했습니다.');
-    }
-  };
-
-  const handleEdit = () => {
-    router.push(`/blogs/${blogId}/edit`);
-  };
-
-  if (loading) return (
-    <div className="p-8">
-      <LoadingSpinner label="게시글을 불러오는 중입니다" />
-    </div>
-  );
-
-  if (loadError) {
-    return <p className="p-8">게시글을 불러오는 중 오류가 발생했습니다.</p>;
+  if (!blogData) {
+    // 404 페이지로 리다이렉트/ 간단한 메시지
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-slate-50 via-sky-50/40 to-slate-50">
+        <div className="mx-auto max-w-5xl px-4 pb-16 pt-10">
+          <p className="p-8 text-sm text-slate-500">존재하지 않는 게시글입니다.</p>
+        </div>
+      </main>
+    );
   }
 
-  if (!blog) return <p className="p-8">존재하지 않는 게시글입니다.</p>;
+  let initialIsFollowing = false;
+  if (meData && blogData.userId !== meData.id) {
+    try {
+      // 이건 서버에서 호출해도 되고, client에서만 해도 됨 (선택)
+      initialIsFollowing = await fetchIsFollowing(blogData.userId);
+    } catch (err) {
+      console.error('팔로우 여부 조회 실패', err);
+    }
+  }
 
-  const isOwner = me?.id === blog.userId;
+  const isOwner = meData?.id === blogData.userId;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-50 via-sky-50/40 to-slate-50">
       <div className="mx-auto max-w-5xl px-4 pb-16 pt-10">
-        <BlogDetailClient
-          initialData={blog}
+        <BlogDetailClientWrapper
+          initialData={blogData as BlogDetailDto}
           isOwner={isOwner}
           initialIsFollowing={initialIsFollowing}
-          onDelete={handleDelete}
-          onEdit={handleEdit}
         />
       </div>
     </main>
