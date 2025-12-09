@@ -108,10 +108,10 @@ export default function LikeButton({
         showGlobalToast('좋아요를 취소했습니다.', 'success');
       }
 
-      // React Query 캐시 무효화 (실무 권장 방식)
+      // React Query 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
-      queryClient.invalidateQueries({ queryKey: ['shorlog-detail'] }); // 상세 페이지도 갱신
+      queryClient.invalidateQueries({ queryKey: ['shorlog-detail'] });
 
       // 애니메이션 완료 후 상태 초기화
       setTimeout(() => setIsAnimating(false), 300);

@@ -74,7 +74,7 @@ export default function ShorlogAuthorHeader({
       // React Query 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
-      queryClient.invalidateQueries({ queryKey: ['shorlog-detail'] }); // 모든 상세 페이지 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ['shorlog-detail'] });
 
       setTimeout(() => {
         router.back();

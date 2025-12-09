@@ -156,8 +156,10 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       queryClient.invalidateQueries({ queryKey: ['shorlog-detail', shorlogId] }); // 상세 페이지도 갱신
 
-      // 이전 페이지로 돌아가기
       router.back();
+      setTimeout(() => {
+        router.back();
+      }, 50);
     } catch (e) {
       setError(e instanceof Error ? e.message : '숏로그 수정 중 오류가 발생했습니다.');
     } finally {
