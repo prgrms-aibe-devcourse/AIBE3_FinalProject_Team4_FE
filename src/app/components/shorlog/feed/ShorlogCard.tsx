@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { ShorlogItem } from './ShorlogFeedPageClient';
-import { Bookmark, Heart, MessageCircle } from 'lucide-react';
+import { Heart, MessageCircle } from 'lucide-react';
 
 interface ShorlogCardProps {
   item: ShorlogItem;
@@ -30,11 +30,12 @@ export default function ShorlogCard({ item, index, allItems }: ShorlogCardProps)
     <Link
       href={href}
       onClick={handleClick}
-      className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-sky-50"
+      className="group flex flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200 transition-all duration-200 hover:shadow-md hover:ring-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
       aria-label={`${item.nickname}의 숏로그: ${item.firstLine}`}
     >
+      {/* 섬네일 영역 - 1:1 정사각형 */}
       <div className="relative w-full bg-slate-100">
-        <div className="aspect-[3/4] w-full overflow-hidden">
+        <div className="aspect-square w-full overflow-hidden">
           <img
             src={item.thumbnailUrl || '/images/default-thumbnail.jpg'}
             alt={`${item.nickname}의 숏로그 썸네일 이미지`}
@@ -44,40 +45,54 @@ export default function ShorlogCard({ item, index, allItems }: ShorlogCardProps)
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col px-4 pb-4 pt-3">
-        <div className="flex flex-col items-center text-center">
-          <div className="h-12 w-12 overflow-hidden rounded-full bg-slate-200">
+      {/* 정보 영역 - 중앙 정렬 */}
+      <div className="flex flex-col items-center text-center px-3 py-2.5 gap-1.5">
+        {/* 프로필 & 닉네임 */}
+        <div className="flex flex-col items-center gap-1">
+          <div className="h-8 w-8 overflow-hidden rounded-full bg-slate-200">
             <img
               src={item.profileImgUrl || '/tmpProfile.png'}
-              alt={`${item.nickname} 프로필 이미지`}
+              alt={`${item.nickname} 프로필`}
               className="h-full w-full object-cover"
               loading="lazy"
             />
           </div>
-          <p className="mt-2 text-sm font-semibold text-slate-900">{item.nickname}</p>
+          <span className="text-xs font-semibold text-slate-900">
+            {item.nickname}
+          </span>
+        </div>
 
-          <div className="mt-1 flex flex-wrap justify-center gap-1">
+        {/* 해시태그 */}
+        {item.hashtags.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-1">
             {item.hashtags.slice(0, 3).map((tag) => (
-              <span key={tag} className="inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-700">
+              <span
+                key={tag}
+                className="inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-medium text-sky-700"
+              >
                 {tag}
               </span>
             ))}
           </div>
-        </div>
+        )}
 
-        <div className="mt-3 flex items-center justify-center gap-4 text-xs text-slate-500">
-          <div className="inline-flex items-center gap-1.5">
-            <Heart className="h-4 w-4" />
+        {/* 통계 */}
+        <div className="flex items-center justify-center gap-3 text-[11px] text-slate-500">
+          <div className="inline-flex items-center gap-1">
+            <Heart className="h-3.5 w-3.5" />
             <span className="font-medium">{item.likeCount}</span>
           </div>
-          <div className="inline-flex items-center gap-1.5">
-            <MessageCircle className="h-4 w-4" />
+          <div className="inline-flex items-center gap-1">
+            <MessageCircle className="h-3.5 w-3.5" />
             <span className="font-medium">{item.commentCount}</span>
           </div>
         </div>
 
-        <div className="mt-3 border-t border-slate-100 pt-3">
-          <p className="line-clamp-2 text-sm leading-relaxed text-slate-900">{item.firstLine}</p>
+        {/* 첫 문장 */}
+        <div className="border-t border-slate-100 pt-2 w-full">
+          <p className="line-clamp-2 text-xs leading-relaxed text-slate-700">
+            {item.firstLine}
+          </p>
         </div>
       </div>
     </Link>
