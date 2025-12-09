@@ -1,6 +1,5 @@
-import { fetchBlogDetail } from '@/src/api/blogDetail';
-import { fetchIsFollowing } from '@/src/api/follow';
-import { fetchMe } from '@/src/api/user';
+import { fetchBlogDetailServer, fetchIsFollowingServer ,fetchMeServer} from '@/src/api/blogDetail.server';
+
 import { BlogDetailClientWrapper } from '@/src/app/blogs/[id]/BlogDetailClientWrapper';
 import type { BlogDetailDto } from '@/src/types/blog';
 
@@ -15,8 +14,8 @@ export default async function BlogDetailPage({ params }: PageProps) {
   
   //  서버에서 바로 데이터 로드
   const [blogData, meData] = await Promise.all([
-    fetchBlogDetail(blogId),
-    fetchMe().catch(() => null), // 비로그인 -> null
+    fetchBlogDetailServer(blogId),
+    fetchMeServer().catch(() => null), // 비로그인 -> null
   ]);
 
   if (!blogData) {
@@ -34,7 +33,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
   if (meData && blogData.userId !== meData.id) {
     try {
       // 이건 서버에서 호출해도 되고, client에서만 해도 됨 (선택)
-      initialIsFollowing = await fetchIsFollowing(blogData.userId);
+      initialIsFollowing = await fetchIsFollowingServer(blogData.userId);
     } catch (err) {
       console.error('팔로우 여부 조회 실패', err);
     }
