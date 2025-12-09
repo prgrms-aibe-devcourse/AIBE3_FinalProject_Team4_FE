@@ -34,52 +34,57 @@ export default function ShorlogCommentItem({
   const [editMode, setEditMode] = useState(false);
   const [editText, setEditText] = useState(comment.content);
 
+  // 답글 자동 펼침
   const [openReplies, setOpenReplies] = useState(comment._forceOpen || false);
 
+  // comment._forceOpen 값이 업데이트되면 자동 반영
+  useEffect(() => {
+    if (comment._forceOpen) {
+      setOpenReplies(true);
+    }
+  }, [comment._forceOpen]);
+
+  // DOM 참조
   const ref = useRef<HTMLDivElement>(null);
+
+  // 자동 스크롤 + 하이라이트 효과
   useEffect(() => {
     if (comment._highlight && ref.current) {
       ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
       ref.current.classList.add('bg-yellow-100', 'transition');
-
       setTimeout(() => {
         ref.current?.classList.remove('bg-yellow-100');
       }, 1800);
     }
   }, [comment._highlight]);
 
-  /** 좋아요 */
+  // 좋아요
   const handleLike = async () => {
     if (!requireAuth('좋아요')) return;
-
     if (comment.isMine) return alert('내 댓글에는 좋아요를 누를 수 없습니다.');
-
     await onLike(comment.id);
   };
 
-  /** 답글 */
+  // 답글 입력 처리
   const handleReplySubmit = async () => {
     if (!requireAuth('댓글 작성')) return;
     if (!replyText.trim()) return alert('내용을 입력해주세요.');
 
     await onReply(comment.id, replyText.trim());
+
     setReplyMode(false);
     setReplyText('');
-
-    // 답글 작성 시 자동 펼침
-    setOpenReplies(true);
+    setOpenReplies(true); // 답글 작성 시 자동 펼침
   };
 
-  /** 수정 */
+  // 수정 저장
   const handleEditSubmit = async () => {
     if (!editText.trim()) return alert('내용을 입력해주세요.');
-
     await onEdit(comment.id, editText.trim());
     setEditMode(false);
   };
 
-  /** 삭제 */
+  // 삭제
   const handleDelete = async () => {
     if (!confirm('정말 삭제하시겠습니까?')) return;
     await onDelete(comment.id);
@@ -88,8 +93,9 @@ export default function ShorlogCommentItem({
   return (
     <div
       ref={ref}
+      id={`comment-${comment.id}`}
       className={`
-        py-4 border-b flex gap-3 transition 
+        py-4 border-b flex gap-3 transition
         ${comment._highlight ? 'bg-yellow-50 border-yellow-300' : ''}
       `}
     >
@@ -101,7 +107,7 @@ export default function ShorlogCommentItem({
       />
 
       <div className="flex-1 relative">
-        {/* 상단: 작성자 / 시간 / 메뉴 */}
+        {/* 작성자 + 시간 + 메뉴 */}
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold">{comment.nickname}</span>
@@ -140,7 +146,7 @@ export default function ShorlogCommentItem({
           </div>
         )}
 
-        {/* 내용 or 수정 */}
+        {/* 내용 or 수정 UI */}
         {!editMode ? (
           <p className="text-sm whitespace-pre-line mt-1">{comment.content}</p>
         ) : (

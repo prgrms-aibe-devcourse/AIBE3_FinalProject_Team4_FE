@@ -11,8 +11,8 @@ import {
 import CommentList from '@/src/app/components/comments/ShorlogCommentList';
 import { useRequireAuth } from '@/src/hooks/userRequireAuth';
 import { showGlobalToast } from '@/src/lib/toastStore';
-import { useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 interface Props {
@@ -34,11 +34,12 @@ export default function ShorlogCommentSection({
   const requireAuth = useRequireAuth();
   const searchParams = useSearchParams();
 
+  // URL query: /shorlog/13?commentId=77
   const highlightCommentId = searchParams.get('commentId')
     ? Number(searchParams.get('commentId'))
     : null;
 
-  /** 최신순 정렬 함수 */
+  // 최신순 정렬
   const sortCommentsLatest = (list: any[]): any[] => {
     return [...list]
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -52,6 +53,7 @@ export default function ShorlogCommentSection({
       }));
   };
 
+  // 자동 펼침 및 하이라이트 적용
   const applyHighlightAndExpand = (list: any[], targetId: number): any[] => {
     const clone = JSON.parse(JSON.stringify(list));
 
@@ -59,8 +61,9 @@ export default function ShorlogCommentSection({
       for (const item of items) {
         if (item.id === targetId) {
           item._highlight = true;
-          return true;
+          return true; // 찾음
         }
+
         if (item.children?.length) {
           const found = walk(item.children);
           if (found) {
@@ -76,12 +79,12 @@ export default function ShorlogCommentSection({
     return clone;
   };
 
-  /** 댓글 목록 불러오기 */
+  // 댓글 불러오기
   const fetchComments = async () => {
     setLoading(true);
+
     try {
       let data = await getComments(shorlogId);
-
       data = sortCommentsLatest(data);
 
       if (highlightCommentId) {
@@ -89,6 +92,18 @@ export default function ShorlogCommentSection({
       }
 
       setComments(data);
+
+      // 스크롤 이동
+      if (highlightCommentId) {
+        setTimeout(() => {
+          const el = document.getElementById(`comment-${highlightCommentId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('bg-yellow-100');
+            setTimeout(() => el.classList.remove('bg-yellow-100'), 1800);
+          }
+        }, 300);
+      }
     } catch (err) {
       //
     } finally {
@@ -98,40 +113,34 @@ export default function ShorlogCommentSection({
 
   useEffect(() => {
     fetchComments();
-  }, [shorlogId]);
+  }, [shorlogId, highlightCommentId]);
 
-  /** 댓글 수 계산 */
+  // 전체 댓글 count 계산
   const countAllComments = (list: any[]): number => {
     let count = 0;
-
     for (const c of list) {
       count += 1;
       if (c.children?.length) count += countAllComments(c.children);
     }
-
     return count;
   };
 
-  /** 부모에게 댓글 수 전달 */
+  // 부모에게 댓글 수 전달
   useEffect(() => {
     onCommentCountChange?.(countAllComments(comments));
   }, [comments, onCommentCountChange]);
 
-  /** 댓글 입력창 포커스 */
+  // 댓글 입력창 포커스
   const handleCommentFocus = async () => {
     if (!requireAuth('댓글 작성')) {
       (document.activeElement as HTMLElement)?.blur();
     }
   };
 
-  /** 최상위 댓글 작성 */
+  // 최상위 댓글 작성
   const handleCommentSubmit = async () => {
     if (!requireAuth('댓글 작성')) return;
-
-    if (!commentText.trim()) {
-      showGlobalToast('댓글 내용을 입력해주세요.', 'warning');
-      return;
-    }
+    if (!commentText.trim()) return showGlobalToast('댓글 내용을 입력해주세요.', 'warning');
 
     try {
       await createComment(shorlogId, commentText.trim(), undefined);
@@ -142,22 +151,22 @@ export default function ShorlogCommentSection({
       // React Query 캐시 무효화
       queryClient.invalidateQueries({
         queryKey: ['shorlog-feed'],
-        exact: false
+        exact: false,
       });
       queryClient.invalidateQueries({
         queryKey: ['profile'],
-        exact: false
+        exact: false,
       });
       queryClient.invalidateQueries({
         queryKey: ['shorlog-detail'],
-        exact: false
+        exact: false,
       });
     } catch (err: any) {
       showGlobalToast(err.message || '댓글 등록 실패', 'error');
     }
   };
 
-  /** 대댓글 작성 */
+  // 대댓글 작성
   const handleReply = async (parentId: number, replyText: string) => {
     if (!requireAuth('댓글 답글 작성')) return;
     if (!replyText.trim()) return;
@@ -170,22 +179,22 @@ export default function ShorlogCommentSection({
       // React Query 캐시 무효화 (exact: false로 모든 하위 쿼리도 무효화)
       queryClient.invalidateQueries({
         queryKey: ['shorlog-feed'],
-        exact: false
+        exact: false,
       });
       queryClient.invalidateQueries({
         queryKey: ['profile'],
-        exact: false
+        exact: false,
       });
       queryClient.invalidateQueries({
         queryKey: ['shorlog-detail'],
-        exact: false
+        exact: false,
       });
     } catch (err: any) {
       showGlobalToast(err.message || '답글 등록 실패', 'error');
     }
   };
 
-  /** 좋아요 / 취소 */
+  // 좋아요 처리
   const handleLike = async (commentId: number) => {
     if (!requireAuth('댓글 좋아요')) return;
 
@@ -193,7 +202,6 @@ export default function ShorlogCommentSection({
     if (!target) return;
 
     const nextLiked = !target.isLiked;
-
     updateCommentLikeState(commentId, nextLiked);
 
     try {
@@ -204,7 +212,7 @@ export default function ShorlogCommentSection({
     }
   };
 
-  /** 댓글 찾기 */
+  // 특정 댓글 찾기
   const findComment = (commentId: number) => {
     for (const c of comments) {
       if (c.id === commentId) return c;
@@ -214,7 +222,7 @@ export default function ShorlogCommentSection({
     return null;
   };
 
-  /** 좋아요 UI 적용 */
+  // 좋아요 UI 업데이트
   const updateCommentLikeState = (id: number, isLiked: boolean) => {
     setComments((prev) =>
       sortCommentsLatest(
@@ -226,7 +234,6 @@ export default function ShorlogCommentSection({
               likeCount: isLiked ? c.likeCount + 1 : c.likeCount - 1,
             };
           }
-
           return {
             ...c,
             children: c.children?.map((child: any) =>
@@ -244,7 +251,7 @@ export default function ShorlogCommentSection({
     );
   };
 
-  /** 댓글 수정 */
+  // 댓글 수정
   const handleEdit = async (commentId: number, newContent: string) => {
     if (!requireAuth('댓글 수정')) return;
 
@@ -262,7 +269,7 @@ export default function ShorlogCommentSection({
     }
   };
 
-  /** 댓글 삭제 */
+  // 댓글 삭제
   const handleDelete = async (commentId: number) => {
     if (!requireAuth('댓글 삭제')) return;
 
@@ -321,4 +328,3 @@ export default function ShorlogCommentSection({
     </div>
   );
 }
-

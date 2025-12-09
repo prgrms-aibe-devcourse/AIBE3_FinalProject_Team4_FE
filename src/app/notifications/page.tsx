@@ -8,28 +8,36 @@ import {
 } from '@/src/api/notifications';
 import { useNotificationStore } from '@/src/stores/useNotificationsStore';
 import { Trash2, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import NotificationItem from '../components/notifications/NotificationItem';
 
 export default function NotificationsPage() {
   const { notifications, setNotifications, setUnreadCount } = useNotificationStore();
+  const router = useRouter();
 
-  /* ===========================
-     초기 알림 불러오기 + 모두 읽음 처리
-     =========================== */
+  // 초기 알림 로드 + 읽음 처리
   useEffect(() => {
+    let mounted = true;
+
     (async () => {
       const list = await getRecentNotifications();
+      if (!mounted) return;
+
       setNotifications(list);
 
       await markAllAsRead();
+      if (!mounted) return;
+
       setUnreadCount(0);
     })();
+
+    return () => {
+      mounted = false;
+    };
   }, [setNotifications, setUnreadCount]);
 
-  /* ===========================
-     개별 삭제
-     =========================== */
+  // 개별 삭제
   const handleRemove = async (id: number) => {
     try {
       await deleteNotification(id);
@@ -39,15 +47,14 @@ export default function NotificationsPage() {
     }
   };
 
-  /* ===========================
-     전체 삭제
-     =========================== */
+  // 전체 삭제
   const handleRemoveAll = async () => {
     if (!confirm('모든 알림을 삭제하시겠습니까?')) return;
 
     try {
       await deleteAllNotifications();
       setNotifications([]);
+      setUnreadCount(0);
     } catch (error) {
       console.error('전체 알림 삭제 실패:', error);
     }
@@ -76,24 +83,25 @@ export default function NotificationsPage() {
       ) : (
         <ul className="flex flex-col gap-3">
           {notifications.map((n) => (
-            <li key={n.id} className="relative">
-              {/* 🔵 알림 카드 */}
+            <li
+              key={n.id}
+              className="relative cursor-pointer"
+              onClick={() => router.push(n.redirectUrl)}
+            >
               <NotificationItem n={n} />
 
-              {/* 삭제 버튼 (반드시 stopPropagation 필요) */}
+              {/* 삭제 버튼 */}
               <button
                 onClick={(e) => {
-                  e.stopPropagation(); // 알림 클릭 이벤트 막기
+                  e.stopPropagation();
                   handleRemove(n.id);
                 }}
                 className="
                   absolute top-2 right-2
                   p-1 rounded-md bg-white
-                  opacity-50 hover:opacity-100
-                  shadow-sm
-                  transition
+                  opacity-60 hover:opacity-100
+                  shadow-sm transition
                 "
-                aria-label="알림 삭제"
               >
                 <X size={14} />
               </button>

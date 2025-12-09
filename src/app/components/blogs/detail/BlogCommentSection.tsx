@@ -14,7 +14,7 @@ import { handleApiError } from '@/src/lib/handleApiError';
 import { showGlobalToast } from '@/src/lib/toastStore';
 import { MessageCircle } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface Props {
   blogId: number;
@@ -30,17 +30,14 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
   const requireAuth = useRequireAuth();
   const searchParams = useSearchParams();
 
-  /** 🔥 highlight가 적용될 댓글 DOM 참조 */
-  const highlightRef = useRef<HTMLDivElement | null>(null);
-
-  /** URL 파라미터: /blog/3?commentId=10 */
+  /** URL 파라미터: /blogs/3?commentId=10 */
   const highlightCommentId = searchParams.get('commentId')
     ? Number(searchParams.get('commentId'))
     : null;
 
-  /** =============================
+  /** ---------------------------------
    *  정렬 (오래된 댓글 → 최신순)
-   * ============================= */
+   * --------------------------------- */
   const sortCommentsOldest = (list: any[]): any[] => {
     return [...list]
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
@@ -54,7 +51,9 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
       }));
   };
 
-  /** 전체 댓글 수 계산 */
+  /** ---------------------------------
+   *  전체 댓글 count 계산
+   * --------------------------------- */
   const countAllComments = (list: any[]): number => {
     let count = 0;
     for (const c of list) {
@@ -64,9 +63,9 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
     return count;
   };
 
-  /** =============================
-   *  highlight + 자동 펼침 처리
-   * ============================= */
+  /** ---------------------------------
+   *  댓글 자동 펼침 + 하이라이트
+   * --------------------------------- */
   const applyHighlightAndExpand = (list: any[], targetId: number) => {
     let found = false;
 
@@ -75,15 +74,17 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
         let newNode = { ...node };
 
         if (node.children && node.children.length > 0) {
-          const updatedChildren = dfs(node.children);
-          newNode.children = updatedChildren;
+          const childResult = dfs(node.children);
+          newNode.children = childResult;
 
-          if (updatedChildren.some((c: any) => c._highlight || c._forceOpen)) {
+          // 자식 중 highlight가 있다면 부모도 자동 펼침
+          if (childResult.some((c: any) => c._highlight || c._forceOpen)) {
             newNode._forceOpen = true;
             found = true;
           }
         }
 
+        // 대상 댓글이면 highlight & forceOpen
         if (node.id === targetId) {
           newNode._highlight = true;
           newNode._forceOpen = true;
@@ -97,9 +98,9 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
     return found ? updated : list;
   };
 
-  /** =============================
-   *  최초 로딩
-   * ============================= */
+  /** ---------------------------------
+   *  첫 로딩 시 댓글 불러오기 + 자동 하이라이트
+   * --------------------------------- */
   useEffect(() => {
     const fetch = async () => {
       try {
@@ -112,6 +113,21 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
 
         setComments(data);
         setTotalCount(countAllComments(data));
+
+        // 스크롤 이동
+        if (highlightCommentId) {
+          setTimeout(() => {
+            const el = document.getElementById(`comment-${highlightCommentId}`);
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              el.classList.add('highlight-comment');
+
+              setTimeout(() => {
+                el.classList.remove('highlight-comment');
+              }, 2000);
+            }
+          }, 300);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -122,9 +138,9 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
     fetch();
   }, [blogId, highlightCommentId]);
 
-  /** =============================
+  /** ---------------------------------
    *  댓글 작성
-   * ============================= */
+   * --------------------------------- */
   const handleCommentSubmit = async () => {
     if (!requireAuth('댓글 작성')) return;
     if (!commentText.trim()) return showGlobalToast('내용을 입력해주세요.', 'warning');
@@ -134,7 +150,6 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
 
     try {
       const newComment = await createBlogComment(blogId, content, undefined);
-
       setComments((prev) => sortCommentsOldest([newComment, ...prev]));
       setTotalCount((prev) => prev + 1);
     } catch (err: any) {
@@ -148,9 +163,9 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
     }
   };
 
-  /** =============================
+  /** ---------------------------------
    *  답글 작성
-   * ============================= */
+   * --------------------------------- */
   const handleReply = async (parentId: number, replyText: string) => {
     if (!requireAuth('답글 작성')) return;
     if (!replyText.trim()) return showGlobalToast('내용을 입력해주세요.');
@@ -176,9 +191,9 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
     }
   };
 
-  /** =============================
+  /** ---------------------------------
    *  좋아요
-   * ============================= */
+   * --------------------------------- */
   const handleLike = async (commentId: number) => {
     if (!requireAuth('좋아요')) return;
 
@@ -207,9 +222,9 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
     }
   };
 
-  /** =============================
+  /** ---------------------------------
    *  댓글 수정
-   * ============================= */
+   * --------------------------------- */
   const handleEdit = async (commentId: number, newContent: string) => {
     if (!requireAuth('댓글 수정')) return;
 
@@ -232,9 +247,9 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
     }
   };
 
-  /** =============================
+  /** ---------------------------------
    *  댓글 삭제
-   * ============================= */
+   * --------------------------------- */
   const handleDelete = async (commentId: number) => {
     if (!requireAuth('댓글 삭제')) return;
 
@@ -256,9 +271,9 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
     }
   };
 
-  /** =============================
-   * 렌더
-   * ============================= */
+  /** ---------------------------------
+   *  렌더링
+   * --------------------------------- */
   return (
     <section className="border-slate-100 px-3 py-1 sm:px-1">
       {/* 헤더 */}
@@ -309,7 +324,6 @@ export default function BlogCommentSection({ blogId, initialCommentCount }: Prop
             onLike={handleLike}
             onEdit={handleEdit}
             onDelete={handleDelete}
-            highlightRef={highlightRef}
           />
         )}
       </div>

@@ -17,7 +17,6 @@ interface BlogCommentItemProps {
   onEdit: (commentId: number, newContent: string) => Promise<void>;
   onDelete: (commentId: number) => Promise<void>;
   depth?: number;
-  highlightRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export default function BlogCommentItem({
@@ -35,12 +34,19 @@ export default function BlogCommentItem({
   const [editText, setEditText] = useState(comment.content);
   const [replyMode, setReplyMode] = useState(false);
   const [replyText, setReplyText] = useState('');
+
   const [openReplies, setOpenReplies] = useState(comment._forceOpen ?? false);
 
-  /** ✨ 실제 DOM 참조 */
+  useEffect(() => {
+    if (comment._forceOpen) {
+      setOpenReplies(true);
+    }
+  }, [comment._forceOpen]);
+
+  /** 댓글 DOM 참조 */
   const ref = useRef<HTMLDivElement>(null);
 
-  /** ✨ 댓글 자동 스크롤 + 하이라이트 효과 */
+  /** 자동 스크롤 + 하이라이트 효과 */
   useEffect(() => {
     if (comment._highlight && ref.current) {
       ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -52,30 +58,23 @@ export default function BlogCommentItem({
     }
   }, [comment._highlight]);
 
-  /** ❤️ 좋아요 */
+  /** 좋아요 */
   const handleLike = async () => {
     if (!requireAuth('좋아요')) return;
     if (comment.isMine) return showGlobalToast('내 댓글은 좋아요 불가', 'warning');
-
-    try {
-      await onLike(comment.id);
-    } catch (err: any) {
-      showGlobalToast(err.message, 'error');
-    }
+    await onLike(comment.id);
   };
 
-  /** ↩️ 답글 등록 */
+  /** ↩답글 작성 */
   const handleReplySubmit = async () => {
-    if (!requireAuth('댓글 작성')) return;
     if (!replyText.trim()) return showGlobalToast('내용을 입력해주세요.');
-
     await onReply(comment.id, replyText.trim());
     setReplyText('');
     setReplyMode(false);
-    setOpenReplies(true); // 자동 펼침
+    setOpenReplies(true); // 답글 작성 후 자동 펼침
   };
 
-  /** ✏️ 수정 */
+  /** 수정 */
   const handleEditSubmit = async () => {
     if (!editText.trim()) return;
     await onEdit(comment.id, editText.trim());
@@ -91,13 +90,14 @@ export default function BlogCommentItem({
   return (
     <div
       ref={ref}
+      id={`comment-${comment.id}`}
       className={`
         rounded-2xl border border-slate-100 bg-white px-4 py-3 shadow-sm transition
         ${comment._highlight ? 'bg-yellow-100' : ''}
       `}
     >
       <div className="flex gap-3">
-        {/* 프로필 이미지 */}
+        {/* 프로필 */}
         <img
           src={comment.userProfileImgUrl || '/tmpProfile.png'}
           alt="profile"
@@ -105,7 +105,7 @@ export default function BlogCommentItem({
         />
 
         <div className="flex-1 relative">
-          {/* 상단: 닉네임 + 시간 + 메뉴 */}
+          {/* 상단 우측 메뉴 */}
           <div className="flex justify-between">
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold">{comment.nickname}</span>
@@ -122,7 +122,6 @@ export default function BlogCommentItem({
             )}
           </div>
 
-          {/* 메뉴 */}
           {menuOpen && (
             <div className="absolute right-0 top-6 w-28 rounded-md border bg-white shadow-lg text-xs z-10">
               <button
@@ -143,7 +142,7 @@ export default function BlogCommentItem({
             </div>
           )}
 
-          {/* 댓글 내용 or 수정폼 */}
+          {/* 댓글 내용 */}
           {!editMode ? (
             <p className="text-sm mt-1 whitespace-pre-line">{comment.content}</p>
           ) : (
@@ -175,7 +174,7 @@ export default function BlogCommentItem({
             )}
           </div>
 
-          {/* 답글 입력창 */}
+          {/* 답글 입력 */}
           {replyMode && (
             <div className="mt-3 flex gap-2">
               <input
@@ -190,7 +189,7 @@ export default function BlogCommentItem({
             </div>
           )}
 
-          {/* 대댓글 */}
+          {/* 대댓글 렌더링 */}
           {comment.children?.length > 0 && (
             <div className="mt-2">
               <button
