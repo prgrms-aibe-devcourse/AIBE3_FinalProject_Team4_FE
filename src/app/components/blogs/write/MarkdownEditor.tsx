@@ -288,112 +288,112 @@ export function MarkdownEditor({
   // ---------------------------
   // 8) PREVIEW 렌더링 스타일
   // ---------------------------
- const markdownComponents = {
-   // <p> 안에 <pre> 들어가는 문제 방지 + 기본 문단 스타일
-   p: ({ children }: any) => {
-     const hasPre = React.Children.toArray(children).some((child: any) => child?.type === 'pre');
+  const markdownComponents = {
+    // <p> 안에 <pre> 들어가는 문제 방지 + 기본 문단 스타일
+    p: ({ children }: any) => {
+      const hasPre = React.Children.toArray(children).some((child: any) => child?.type === 'pre');
 
-     if (hasPre) {
-       return <div className="my-2 leading-relaxed text-slate-800">{children}</div>;
-     }
+      if (hasPre) {
+        return <div className="my-2 leading-relaxed text-slate-800">{children}</div>;
+      }
 
-     return <p className="my-2 leading-relaxed text-slate-800">{children}</p>;
-   },
+      return <p className="my-2 leading-relaxed text-slate-800">{children}</p>;
+    },
 
-   // 헤딩 1
-   h1: ({ children }: any) => (
-     <h1 className="mt-4 mb-2 text-xl font-bold text-slate-900">{children}</h1>
-   ),
+    // 헤딩 1
+    h1: ({ children }: any) => (
+      <h1 className="mt-4 mb-2 text-xl font-bold text-slate-900">{children}</h1>
+    ),
 
-   // 헤딩 2
-   h2: ({ children }: any) => (
-     <h2 className="mt-3 mb-1 text-lg font-semibold text-slate-900">{children}</h2>
-   ),
+    // 헤딩 2
+    h2: ({ children }: any) => (
+      <h2 className="mt-3 mb-1 text-lg font-semibold text-slate-900">{children}</h2>
+    ),
 
-   strong: ({ children }: any) => (
-     <strong className="font-semibold text-slate-900">{children}</strong>
-   ),
+    strong: ({ children }: any) => (
+      <strong className="font-semibold text-slate-900">{children}</strong>
+    ),
 
-   em: ({ children }: any) => <em className="italic text-slate-700">{children}</em>,
+    em: ({ children }: any) => <em className="italic text-slate-700">{children}</em>,
 
-   // 코드: 인라인 / 블록
-   code: ({ inline, children, ...props }: any) => {
-     if (inline) {
-       return (
-         <code
-           className="rounded bg-slate-100 px-1 py-0.5 text-[12px] font-mono text-slate-800"
-           {...props}
-         >
-           {children}
-         </code>
-       );
-     }
+    // 코드: 인라인 / 블록
+    code: ({ inline, children, ...props }: any) => {
+      if (inline) {
+        return (
+          <code
+            className="rounded bg-slate-100 px-1 py-0.5 text-[12px] font-mono text-slate-800"
+            {...props}
+          >
+            {children}
+          </code>
+        );
+      }
 
-     return (
-       <pre className="mt-2 overflow-x-auto rounded-lg bg-slate-900 p-3 text-[12px] text-slate-50">
-         <code className="font-mono" {...props}>
-           {children}
-         </code>
-       </pre>
-     );
-   },
+      return (
+        <pre className="mt-2 overflow-x-auto rounded-lg bg-slate-900 p-3 text-[12px] text-slate-50">
+          <code className="font-mono" {...props}>
+            {children}
+          </code>
+        </pre>
+      );
+    },
 
-   blockquote: ({ children }: any) => (
-     <blockquote className="mt-2 border-l-4 border-slate-300 pl-3 text-[13px] italic text-slate-600">
-       {children}
-     </blockquote>
-   ),
+    blockquote: ({ children }: any) => (
+      <blockquote className="mt-2 border-l-4 border-slate-300 pl-3 text-[13px] italic text-slate-600">
+        {children}
+      </blockquote>
+    ),
 
-   a: ({ href, children }: any) => (
-     <a
-       href={href}
-       target="_blank"
-       rel="noreferrer"
-       className="text-sky-600 underline underline-offset-2 hover:text-sky-700"
-     >
-       {children}
-     </a>
-   ),
+    a: ({ href, children }: any) => (
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        className="text-sky-600 underline underline-offset-2 hover:text-sky-700"
+      >
+        {children}
+      </a>
+    ),
 
-   // UL: 기본 리스트 스타일
-   ul: ({ children, ...props }: any) => (
-     <ul className="mt-2 space-y-1 pl-5 text-[13px] text-slate-800" {...props}>
-       {children}
-     </ul>
-   ),
+    // UL: 기본 리스트 스타일
+    ul: ({ children, ...props }: any) => (
+      <ul className="mt-2 space-y-1 pl-5 text-[13px] text-slate-800" {...props}>
+        {children}
+      </ul>
+    ),
 
-   // OL: 번호 리스트
-   ol: ({ children, ...props }: any) => (
-     <ol className="mt-2 list-decimal space-y-1 pl-5 text-[13px] text-slate-800" {...props}>
-       {children}
-     </ol>
-   ),
+    // OL: 번호 리스트
+    ol: ({ children, ...props }: any) => (
+      <ol className="mt-2 list-decimal space-y-1 pl-5 text-[13px] text-slate-800" {...props}>
+        {children}
+      </ol>
+    ),
 
-   // LI: 일반/체크박스 리스트 구분
-   li: ({ children, checked, ...props }: any) => {
-     const isTask = typeof checked === 'boolean';
+    // LI: 일반/체크박스 리스트 구분
+    li: ({ children, checked, ...props }: any) => {
+      const isTask = typeof checked === 'boolean';
 
-     if (isTask) {
-       // - [ ] 형태: 불릿 제거 + 체크박스 스타일
-       return (
-         <li
-           style={{ listStyleType: 'none' }}
-           className="flex items-start gap-2 text-[13px] text-slate-800"
-           {...props}
-         >
-           {children}
-         </li>
-       );
-     }
+      if (isTask) {
+        // - [ ] 형태: 불릿 제거 + 체크박스 스타일
+        return (
+          <li
+            style={{ listStyleType: 'none' }}
+            className="flex items-start gap-2 text-[13px] text-slate-800"
+            {...props}
+          >
+            {children}
+          </li>
+        );
+      }
 
-     // 일반 리스트
-     return (
-       <li className="list-disc leading-relaxed" {...props}>
-         {children}
-       </li>
-     );
-   },
- };
+      // 일반 리스트
+      return (
+        <li className="list-disc leading-relaxed" {...props}>
+          {children}
+        </li>
+      );
+    },
+  };
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -469,7 +469,9 @@ export function MarkdownEditor({
       {mode === 'write' ? (
         <textarea
           ref={textareaRef}
-          className="h-[260px] w-full resize-none bg-white px-3 py-2 text-sm text-slate-800 outline-none"
+          className=" min-h-[300px]
+      max-h-[70vh] w-full resize-none bg-white px-3 py-2 text-sm text-slate-800 outline-none  overflow-y-auto
+      overflow-x-hidden whitespace-pre-wrap break-words"
           value={value}
           onChange={(e) => {
             onChange(e.target.value);
@@ -482,7 +484,7 @@ export function MarkdownEditor({
           placeholder={placeholder ?? '마크다운 형식으로 내용을 작성해 주세요.'}
         />
       ) : (
-        <div className="prose prose-sm max-w-none px-3 py-2 text-sm text-slate-800">
+        <div className="prose prose-sm max-w-none px-3 py-2 text-sm text-slate-800 overflow-x-hidden break-words">
           {value ? (
             <MarkdownViewer markdown={value} />
           ) : (
