@@ -13,7 +13,7 @@ export function ShorlogListView({
   profileUserId: string;
 }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 gap-y-4">
       {items.map((item, index) => (
         <ShorlogCardProfile
           key={item.id}
@@ -62,25 +62,29 @@ export function ShorlogCardProfile({
     <Link
       href={href}
       onClick={handleClick}
-      className="group flex flex-col overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-slate-100 hover:-translate-y-1 hover:shadow-md transition-all"
+      className="
+        group flex flex-col overflow-hidden rounded-xl bg-white
+        ring-1 ring-slate-100 shadow-sm
+        transition-all hover:-translate-y-0.5 hover:shadow-md
+      "
     >
-      {/* 이미지 영역: 3:4 비율 유지 */}
-      <div className="relative w-full overflow-hidden bg-slate-100 aspect-[3/4]">
+      {/* ✅ 이미지 영역: 높이(비중) 조금 줄임 */}
+      <div className="relative w-full overflow-hidden bg-slate-100 aspect-square">
         {item.thumbnailUrl ? (
           <img
             src={item.thumbnailUrl}
             alt={item.firstLine}
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
         ) : (
           <div className="absolute inset-0 bg-slate-200" />
         )}
 
-        {/* 오버레이 */}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/25 via-black/10 to-transparent px-4 pb-3 pt-10 text-white text-[13px]">
-          <div className="flex items-center gap-4">
+        {/* ✅ 좋아요/댓글: 이미지 좌측 하단 유지 (더 타이트하게) */}
+        <div className="absolute inset-x-0 bottom-0 px-2.5 pb-2 pt-10">
+          <div className="inline-flex items-center gap-3 rounded-full bg-black/35 px-2.5 py-1 text-white text-[12px] backdrop-blur-[2px]">
             <span className="flex items-center gap-1">
-              <Heart className="h-4 w-4 text-white" /> {item.likeCount}
+              <Heart className="h-3.5 w-3.5 text-white" /> {item.likeCount}
             </span>
             <span className="flex items-center gap-1">
               <MessageCircle className="h-3.5 w-3.5 text-white" /> {item.commentCount}
@@ -89,8 +93,8 @@ export function ShorlogCardProfile({
         </div>
       </div>
 
-      {/* 텍스트 영역: 연한 회색 background */}
-      <div className="px-2 py-1.5 bg-slate-50 flex-1">
+      {/* ✅ 텍스트 영역: flex-1 제거 + 최소 높이로 ‘내용 비중’ 확보 */}
+      <div className="bg-slate-50 px-2.5 py-2 min-h-[52px]">
         <p className="line-clamp-2 text-[13px] leading-snug text-slate-800">{item.firstLine}</p>
       </div>
     </Link>
