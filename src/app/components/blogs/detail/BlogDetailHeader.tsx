@@ -2,10 +2,10 @@
 
 import type { BlogDetailDto } from '@/src/types/blog';
 import { EllipsisVertical } from 'lucide-react';
+import Link from 'next/link';
 import { useState } from 'react';
 import { BlogAuthorFollowSection } from './BlogAuthorFolowingSection';
 import { BlogOwnerActionSheet } from './BlogOwnerActionSheet';
-
 type BlogDetailHeaderProps = {
   blog: BlogDetailDto;
   isOwner: boolean;
@@ -71,7 +71,7 @@ export function BlogDetailHeader({
 
           {/* 작성자 + 액션 */}
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
+            <Link href={`/profile/${blog.userId}`} className="group flex items-center gap-3">
               <div className="h-10 w-10 overflow-hidden rounded-full bg-slate-200">
                 <img
                   src={blog.profileImageUrl || '/tmpProfile.png'}
@@ -88,7 +88,7 @@ export function BlogDetailHeader({
                 </div>
                 <span className="text-[11px] text-slate-400">{formattedDate}</span>
               </div>
-            </div>
+            </Link>
 
             <div className="flex items-center gap-2">
               <BlogAuthorFollowSection
@@ -108,28 +108,31 @@ export function BlogDetailHeader({
               )}
             </div>
           </div>
-
-          {blog.thumbnailUrl && (
+        </div>
+      </header>
+      <div className="flex flex-col gap-6">
+        {blog.thumbnailUrl && (
+          <div className="px-5 sm:px-8">
             <div className="mt-3 w-full max-w-sm sm:max-w-md">
               <img
                 src={blog.thumbnailUrl}
                 alt="블로그 썸네일"
-                className="max-h-[220px] w-auto rounded-xl object-contain"
+                className="max-h-[300px] w-auto rounded-xl object-contain"
               />
             </div>
-          )}
-        </div>
-      </header>
-
-      {isOwner && (
-        <BlogOwnerActionSheet
-          open={ownerSheetOpen}
-          onClose={() => setOwnerSheetOpen(false)}
-          onDelete={() => onDelete?.()}
-          onEdit={() => onEdit?.()}
-          onConnectShorlog={() => onConnectShorlog?.()}
-        />
-      )}
+          </div>
+        )}
+        <div className="border-t border-slate-100 px-5 pb-1 pt-5 sm:px-11 sm:pt-6 overflow-x-hidden" />
+        {isOwner && (
+          <BlogOwnerActionSheet
+            open={ownerSheetOpen}
+            onClose={() => setOwnerSheetOpen(false)}
+            onDelete={() => onDelete?.()}
+            onEdit={() => onEdit?.()}
+            onConnectShorlog={() => onConnectShorlog?.()}
+          />
+        )}
+      </div>
     </>
   );
 }
