@@ -16,18 +16,15 @@ export default function NotificationsPage() {
   const { notifications, setNotifications, setUnreadCount } = useNotificationStore();
   const router = useRouter();
 
-  // 이번 주 월요일 0시
-  const getStartOfThisWeek = () => {
-    const now = new Date();
-    const day = now.getDay();
-    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-    return new Date(now.setDate(diff));
-  };
+  // 최근 7일 기준 날짜 계산
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-  const startOfThisWeek = getStartOfThisWeek();
+  // 이번 주 = 최근 7일
+  const thisWeek = notifications.filter((n) => new Date(n.createdAt) >= sevenDaysAgo);
 
-  const thisWeek = notifications.filter((n) => new Date(n.createdAt) >= startOfThisWeek);
-  const earlier = notifications.filter((n) => new Date(n.createdAt) < startOfThisWeek);
+  // 이전 활동 = 7일 이전
+  const earlier = notifications.filter((n) => new Date(n.createdAt) < sevenDaysAgo);
 
   // 초기 알림 로드 + 읽음 처리
   useEffect(() => {
@@ -50,6 +47,7 @@ export default function NotificationsPage() {
     };
   }, [setNotifications, setUnreadCount]);
 
+  // 개별 삭제
   const handleRemove = async (id: number) => {
     try {
       await deleteNotification(id);
@@ -59,6 +57,7 @@ export default function NotificationsPage() {
     }
   };
 
+  // 전체 삭제
   const handleRemoveAll = async () => {
     if (!confirm('모든 알림을 삭제하시겠습니까?')) return;
 
@@ -73,6 +72,7 @@ export default function NotificationsPage() {
 
   return (
     <div className="p-5 max-w-xl mx-auto">
+      {/* 헤더 */}
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-lg font-semibold">알림</h1>
 
@@ -99,6 +99,8 @@ export default function NotificationsPage() {
                 onClick={() => router.push(n.redirectUrl)}
               >
                 <NotificationItem n={n} />
+
+                {/* 삭제 버튼 */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -126,6 +128,8 @@ export default function NotificationsPage() {
                 onClick={() => router.push(n.redirectUrl)}
               >
                 <NotificationItem n={n} />
+
+                {/* 삭제 버튼 */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
