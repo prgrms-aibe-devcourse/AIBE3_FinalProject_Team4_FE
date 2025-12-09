@@ -21,11 +21,11 @@ import type {
 } from '@/src/types/blog';
 import { useMutation } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import BlogCommentSection from '../../components/blogs/detail/BlogCommentSection';
-import { ShareModal } from '../../components/blogs/detail/BlogShareModal';
-import { LinkedShorlogListModal } from '../../components/blogs/detail/LinkedShorlogModal';
-import BlogConnectShorlogModal from '../../components/blogs/link/BlogConnectShorlogModal';
-import { MarkdownViewer } from '../../components/blogs/write/MarkdownViewer';
+import BlogConnectShorlogModal from '../link/BlogConnectShorlogModal';
+import { MarkdownViewer } from '../write/MarkdownViewer';
+import BlogCommentSection from './BlogCommentSection';
+import { ShareModal } from './BlogShareModal';
+import { LinkedShorlogListModal } from './LinkedShorlogModal';
 
 type Props = {
   initialData: BlogDetailDto;
@@ -52,7 +52,7 @@ export default function BlogDetailClient({
 
   const [likeLoading, setLikeLoading] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
-   // 연결된 숏로그 모달용 상태
+  // 연결된 숏로그 모달용 상태
   const [linkedOpen, setLinkedOpen] = useState(false);
   const [linkedLoading, setLinkedLoading] = useState(false);
   const [linkedItems, setLinkedItems] = useState<LinkedShorlogSummary[]>([]);
