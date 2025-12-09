@@ -11,6 +11,7 @@ export type NotificationItem = {
   isRead: boolean;
   createdAt: string;
   relativeTime?: string;
+  redirectUrl: string;
 };
 
 interface NotificationStore {
