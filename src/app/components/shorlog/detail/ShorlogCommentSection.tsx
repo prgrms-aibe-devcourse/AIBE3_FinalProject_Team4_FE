@@ -271,7 +271,6 @@ export default function ShorlogCommentSection({
       await fetchComments();
       showGlobalToast('댓글이 삭제되었습니다.', 'success');
 
-      // React Query 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       queryClient.invalidateQueries({ queryKey: ['shorlog-detail'] });

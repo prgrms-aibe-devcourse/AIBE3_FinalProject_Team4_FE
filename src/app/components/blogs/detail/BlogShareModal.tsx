@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import { showGlobalToast } from '@/src/lib/toastStore';
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
 type ShareModalProps = {
   open: boolean;
@@ -59,8 +59,7 @@ export function ShareModal({
           text: description,
           url: shareUrl,
         });
-      } catch {
-      }
+      } catch {}
     } else {
       alert('이 브라우저에서는 시스템 공유를 지원하지 않습니다.');
     }
