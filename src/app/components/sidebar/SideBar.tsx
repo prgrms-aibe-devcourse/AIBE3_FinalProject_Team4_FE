@@ -302,7 +302,10 @@ export default function Sidebar() {
                   if (item.href === '/shorlog/feed') {
                     if (pathname === '/shorlog/feed') {
                       router.refresh();
-                    } else if (pathname.startsWith('/shorlog/') || pathname.startsWith('/profile/')) {
+                    } else if (
+                      pathname.startsWith('/shorlog/') ||
+                      pathname.startsWith('/profile/')
+                    ) {
                       window.location.href = '/shorlog/feed';
                     } else {
                       router.push('/shorlog/feed');

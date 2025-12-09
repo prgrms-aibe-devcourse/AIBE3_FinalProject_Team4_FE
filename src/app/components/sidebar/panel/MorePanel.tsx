@@ -4,8 +4,8 @@ import { useAuth } from '@/src/providers/AuthProvider';
 import { useLoginModal } from '@/src/providers/LoginModalProvider';
 import { X } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
-// ⭐ 추가: 모달 import
 import ConfirmLogoutModal from '../ConfirmLogoutModal';
 
 export default function MorePanel({
@@ -17,26 +17,46 @@ export default function MorePanel({
   showLogoutModal: boolean;
   setShowLogoutModal: (value: boolean) => void;
 }) {
+  const router = useRouter();
   const { isLogin, logout } = useAuth();
   const { open } = useLoginModal();
 
   const handleLogout = async () => {
-    console.log('로그아웃 처리');
     await logout();
     setShowLogoutModal(false);
     onClose();
   };
 
+  const go = (href: string) => {
+    onClose(); // ✅ 패널 닫고 이동 (UX 깔끔)
+    router.push(href);
+  };
+
+  const ItemBtn = ({ children, onClick }: { children: React.ReactNode; onClick: () => void }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className="
+        w-full text-left font-semibold
+        py-2 px-2 rounded-lg
+        hover:bg-gray-100 transition
+      "
+    >
+      {children}
+    </button>
+  );
+
   return (
     <>
       <div
         className="
-          fixed left-20 top-0 
-          w-80 h-screen 
-          bg-white border-r border-gray-200 
-          shadow-md 
-          animate-slideIn 
+          fixed left-20 top-0
+          w-80 h-screen
+          bg-white border-r border-gray-200
+          shadow-md
+          animate-slideIn
           z-[110]
+          flex flex-col
         "
       >
         {/* Header */}
@@ -49,64 +69,47 @@ export default function MorePanel({
 
         {/* List */}
         <div className="px-3 py-1 space-y-1 text-[15px]">
-          <button
-            className="
-              w-full text-left font-semibold 
-              py-2 px-2 rounded-lg 
-              hover:bg-gray-100 transition
-            "
-          >
-            설정 및 개인정보
-          </button>
+          <ItemBtn onClick={() => go('/terms')}>TexTok 이용약관</ItemBtn>
+          <ItemBtn onClick={() => go('/privacy')}>개인정보 처리방침</ItemBtn>
 
           <button
             className="
-              w-full text-left font-semibold 
-              py-2 px-2 rounded-lg 
+              w-full text-left font-semibold
+              py-2 px-2 rounded-lg
               hover:bg-gray-100 transition
             "
+            disabled
           >
             다크모드 (개발중)
           </button>
 
           {/* ✅ 로그인 상태: 로그아웃 */}
           {isLogin ? (
-            <button
+            <ItemBtn
               onClick={() => {
-                console.log('로그아웃 모달 열기');
                 setShowLogoutModal(true);
               }}
-              className="
-                w-full text-left font-semibold 
-                py-2 px-2 rounded-lg 
-                hover:bg-gray-100 transition
-              "
             >
               로그아웃
-            </button>
+            </ItemBtn>
           ) : (
             <>
               {/* ✅ 로그아웃 상태: 로그인 / 회원가입 */}
-              <button
+              <ItemBtn
                 onClick={() => {
                   onClose(); // 패널 먼저 닫고
                   open(); // 로그인 모달 열기
                 }}
-                className="
-                  w-full text-left font-semibold 
-                  py-2 px-2 rounded-lg 
-                  hover:bg-gray-100 transition
-                "
               >
                 로그인
-              </button>
+              </ItemBtn>
 
               <Link
                 href="/auth/register"
                 onClick={() => onClose()}
                 className="
-                  block w-full text-left font-semibold 
-                  py-2 px-2 rounded-lg 
+                  block w-full text-left font-semibold
+                  py-2 px-2 rounded-lg
                   hover:bg-gray-100 transition
                 "
               >
@@ -114,6 +117,11 @@ export default function MorePanel({
               </Link>
             </>
           )}
+        </div>
+
+        {/* (선택) 맨 아래 작은 카피 */}
+        <div className="mt-auto px-5 pb-5 pt-4 text-xs text-slate-400">
+          © {new Date().getFullYear()} TexTok
         </div>
       </div>
 
