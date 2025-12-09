@@ -2,7 +2,7 @@
 
 import { AlertCircle, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -33,6 +33,21 @@ export default function RegisterStep2Page() {
   const [dobMonth, setDobMonth] = useState('');
   const [dobDay, setDobDay] = useState('');
   const [gender, setGender] = useState<'MALE' | 'FEMALE' | 'OTHER' | ''>('');
+
+  /* =========================================================
+     동의(필수 2개)
+     ========================================================= */
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
+
+  const agreeAll = useMemo(() => agreeTerms && agreePrivacy, [agreeTerms, agreePrivacy]);
+
+  const toggleAgreeAll = () => {
+    const next = !agreeAll;
+    setAgreeTerms(next);
+    setAgreePrivacy(next);
+    setFormError('');
+  };
 
   /* =========================================================
      닉네임 상태
@@ -204,6 +219,12 @@ export default function RegisterStep2Page() {
     e.preventDefault();
     setFormError('');
 
+    // ✅ 필수 동의 체크
+    if (!agreeTerms || !agreePrivacy) {
+      setFormError('필수 약관에 동의해주세요.');
+      return;
+    }
+
     if (!nicknameAvailable || nicknameError) {
       return setFormError('닉네임을 다시 확인해주세요.');
     }
@@ -215,7 +236,7 @@ export default function RegisterStep2Page() {
     setLoading(true);
 
     try {
-      let res;
+      let res: Response | undefined;
 
       if (mode === 'normal' && step1Data) {
         // -----------------------------
@@ -392,7 +413,7 @@ export default function RegisterStep2Page() {
                 {[
                   { value: 'FEMALE', label: '여자' },
                   { value: 'MALE', label: '남자' },
-                  { value: 'OTHER', label: '기타' },
+                  { value: 'OTHER', label: '선택안함' },
                 ].map((g) => (
                   <button
                     type="button"
@@ -418,6 +439,73 @@ export default function RegisterStep2Page() {
                   <AlertCircle className="w-4 h-4" /> {genderError}
                 </p>
               )}
+            </div>
+
+            {/* ---------------- 동의 ---------------- */}
+            <div className="space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                  <input
+                    type="checkbox"
+                    checked={agreeAll}
+                    onChange={toggleAgreeAll}
+                    className="h-4 w-4 accent-[#2979FF]"
+                  />
+                  전체 동의하기
+                </label>
+              </div>
+
+              <div className="h-px bg-gray-200" />
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <label className="flex items-center gap-2 text-sm text-gray-800">
+                    <input
+                      type="checkbox"
+                      checked={agreeTerms}
+                      onChange={(e) => {
+                        setAgreeTerms(e.target.checked);
+                        setFormError('');
+                      }}
+                      className="h-4 w-4 accent-[#2979FF]"
+                    />
+                    <span className="text-[13px] text-gray-500">[필수]</span>
+                    TexTok 이용약관 동의
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={() => window.open('/terms', '_blank', 'noopener,noreferrer')}
+                    className="text-[12px] font-medium text-blue-600 hover:underline"
+                  >
+                    자세히 보기
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between gap-3">
+                  <label className="flex items-center gap-2 text-sm text-gray-800">
+                    <input
+                      type="checkbox"
+                      checked={agreePrivacy}
+                      onChange={(e) => {
+                        setAgreePrivacy(e.target.checked);
+                        setFormError('');
+                      }}
+                      className="h-4 w-4 accent-[#2979FF]"
+                    />
+                    <span className="text-[13px] text-gray-500">[필수]</span>
+                    개인정보 처리방침 동의
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={() => window.open('/privacy', '_blank', 'noopener,noreferrer')}
+                    className="text-[12px] font-medium text-blue-600 hover:underline"
+                  >
+                    자세히 보기
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* ---------------- FORM ERROR ---------------- */}
