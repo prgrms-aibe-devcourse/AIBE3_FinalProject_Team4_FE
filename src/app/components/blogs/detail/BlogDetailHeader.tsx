@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import type { BlogDetailDto } from '@/src/types/blog';
-import { BlogOwnerActionSheet } from './BlogOwnerActionSheet';
-import { EllipsisVertical, UserPlus, Check } from 'lucide-react';
+import { EllipsisVertical } from 'lucide-react';
+import { useState } from 'react';
 import { BlogAuthorFollowSection } from './BlogAuthorFolowingSection';
+import { BlogOwnerActionSheet } from './BlogOwnerActionSheet';
 
 type BlogDetailHeaderProps = {
   blog: BlogDetailDto;
@@ -37,7 +37,7 @@ export function BlogDetailHeader({
 
   return (
     <>
-      <header className="border-b border-slate-100 px-5 pb-6 pt-5 sm:px-8 sm:pt-7">
+      <header className="border-b border-slate-100 px-5 pb-6 pt-5 sm:px-8 sm:pt-7 overflow-x-hidden">
         <div className="flex flex-col gap-6">
           {/* 라벨 + 뷰/댓글 */}
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -73,13 +73,12 @@ export function BlogDetailHeader({
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 overflow-hidden rounded-full bg-slate-200">
-                  <img
-                    src={blog.profileImageUrl || '/tmpProfile.png'}
-                    alt={`${blog.nickname} 프로필 이미지`}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                  />
-              
+                <img
+                  src={blog.profileImageUrl || '/tmpProfile.png'}
+                  alt={`${blog.nickname} 프로필 이미지`}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
               </div>
 
               <div className="flex flex-col">
@@ -111,10 +110,12 @@ export function BlogDetailHeader({
           </div>
 
           {blog.thumbnailUrl && (
-            <div className="mt-2 max-w-md">
-              <div className="overflow-hidden rounded-lg border border-slate-200">
-                <img src={blog.thumbnailUrl} alt="블로그 썸네일" className="w-full object-cover" />
-              </div>
+            <div className="mt-3 w-full max-w-sm sm:max-w-md">
+              <img
+                src={blog.thumbnailUrl}
+                alt="블로그 썸네일"
+                className="max-h-[220px] w-auto rounded-xl object-contain"
+              />
             </div>
           )}
         </div>
