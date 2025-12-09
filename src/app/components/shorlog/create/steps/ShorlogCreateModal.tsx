@@ -19,7 +19,7 @@ export default function ShorlogCreateModal({ blogId }: ShorlogCreateModalProps) 
 
   return (
     <ShorlogDetailModalWrapper onRequestClose={handleRequestClose}>
-      <div className="relative flex h-full w-full overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-black/5">
+      <div className="relative flex h-full w-full overflow-hidden rounded-2xl sm:rounded-3xl bg-white shadow-2xl ring-1 ring-black/5">
         <ShorlogCreateWizard blogId={blogId} />
 
         {showConfirmExit && (

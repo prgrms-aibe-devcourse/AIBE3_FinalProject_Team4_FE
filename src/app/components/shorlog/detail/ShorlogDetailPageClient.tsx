@@ -339,7 +339,7 @@ export default function ShorlogDetailPageClient({
             />
           </div>
 
-          <div className="flex flex-1 flex-col overflow-y-auto px-4 pb-4 pt-3 md:px-5 md:pb-5 md:pt-4">
+          <div className="flex flex-1 flex-col overflow-y-auto px-3 sm:px-4 md:px-5 pb-4 md:pb-5 pt-3 md:pt-4">
             <section aria-label="숏로그 내용">
               <HighlightedContent content={detail.content} progress={ttsProgress} />
 

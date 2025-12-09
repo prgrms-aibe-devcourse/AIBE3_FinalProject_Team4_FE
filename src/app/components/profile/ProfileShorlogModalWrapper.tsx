@@ -49,7 +49,7 @@ export default function ProfileShorlogModalWrapper({ children }: Props) {
       />
 
       <div
-        className="relative flex h-[82vh] w-full max-w-[1200px] px-3 py-4 md:px-6 md:py-5 lg:px-8"
+        className="relative flex h-[90vh] sm:h-[85vh] md:h-[82vh] w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-[1200px] px-2 py-3 sm:px-4 sm:py-4 md:px-6 md:py-5 lg:px-8"
         onClick={(e) => e.stopPropagation()}
       >
         {children}

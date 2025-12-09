@@ -45,7 +45,7 @@ export default function ShorlogEditModal({ shorlogId, initialData }: ShorlogEdit
       onClick={handleBackgroundClick}
     >
       <div
-        className="h-[90vh] w-[95vw] max-w-7xl overflow-hidden rounded-3xl bg-white shadow-2xl"
+        className="h-[90vh] sm:h-[85vh] md:h-[90vh] w-[95vw] sm:w-[90vw] max-w-7xl overflow-hidden rounded-2xl sm:rounded-3xl bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <ShorlogEditWizard shorlogId={shorlogId} initialData={initialData} />

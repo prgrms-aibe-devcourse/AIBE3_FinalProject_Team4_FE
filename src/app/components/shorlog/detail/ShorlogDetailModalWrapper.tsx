@@ -54,12 +54,12 @@ export default function ShorlogDetailModalWrapper({ children, onRequestClose }: 
       data-scroll-locked="true"
     >
       <div
-        className="absolute inset-0 bg-black/55"  // <-- 회색 + 블러 대신, 살짝 어두운 블랙
+        className="absolute inset-0 bg-black/55"
         onClick={handleOverlayClick}
       />
 
       <div
-        className="relative flex h-[82vh] w-full max-w-[1200px] px-3 py-4 md:px-6 md:py-5 lg:px-8"
+        className="relative flex h-[90vh] sm:h-[85vh] md:h-[82vh] w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-[1200px] px-2 py-3 sm:px-4 sm:py-4 md:px-6 md:py-5 lg:px-8"
         onClick={(e) => e.stopPropagation()}
       >
         {children}
