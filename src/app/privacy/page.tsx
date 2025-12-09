@@ -53,7 +53,8 @@ export default function PrivacyPage() {
     { id: 'retention', label: '3. 얼마나 보관하나요' },
     { id: 'rights', label: '4. 동의 거부권' },
     { id: 'security', label: '5. 어떻게 보호하나요' },
-    { id: 'contact', label: '6. 문의' },
+    { id: 'outsourcing', label: '6. 개인정보 처리 위탁 및 국외 이전' },
+    { id: 'contact', label: '7. 문의' },
   ];
 
   return (
@@ -80,6 +81,11 @@ export default function PrivacyPage() {
               처리합니다. 아래 내용은 개인정보보호법 등 관련 법령을 기준으로 작성되었고, 베타 기간
               동안 일부 항목/보관 기간이 변경될 수 있어요. 중요한 변경이 있을 때는 서비스 내 공지로
               알려드릴게요.
+            </p>
+            <p>
+              또한 서비스는 숏로그/블로그 작성 편의를 위한 AI 기반 글 작성 도우미 기능(이하 “AI
+              도우미”)을 제공할 수 있습니다. AI 도우미 이용 과정에서 회원이 입력한 텍스트가 답변
+              생성을 위해 처리될 수 있으며, OpenAI의 API를 통해 처리됩니다.
             </p>
           </Section>
 
@@ -124,6 +130,8 @@ export default function PrivacyPage() {
                   <>IP 주소, 접속 로그(접속 일시/요청 기록 등)</>,
                   <>기기/브라우저 정보(가능한 범위)</>,
                   <>서비스 이용 기록(게시물 작성/수정/삭제, 좋아요/댓글/북마크 등)</>,
+                  <>최근 본 게시물 기록(숏로그/블로그 열람 이력)</>,
+                  <>AI 도우미 이용 시 입력한 텍스트(질문/추가 조건/글 본문 등)</>,
                 ]}
               />
             </Callout>
@@ -146,6 +154,8 @@ export default function PrivacyPage() {
               items={[
                 <>회원가입 의사 확인, 이메일 인증, 이용자 식별 및 계정 생성/관리</>,
                 <>로그인 및 서비스 제공(블로그/숏로그, 프로필, 좋아요/댓글/북마크 등)</>,
+                <>서비스 편의 기능 제공(개인화된 화면 구성)</>,
+                <>AI 도우미 기능 제공(문장 생성/요약/추천 등)</>,
                 <>
                   부정 이용 방지 및 보안(스팸/봇/과도한 요청 차단), 서비스 안정성 확보, 오류/장애
                   대응
@@ -179,6 +189,23 @@ export default function PrivacyPage() {
                   <>
                     <strong>접속 로그 등 이용 기록</strong>: 서비스 안정화/보안 목적의 최소 기간
                     보관
+                  </>,
+                  <>
+                    <strong>최근 본 게시물 기록</strong>: 최대 14일 보관 후 자동 삭제
+                    <br />
+                    <span className="text-slate-500">- 보관 개수: 숏로그 10개, 블로그 5개까지</span>
+                    <br />
+                    <span className="text-slate-500">
+                      - 기간 경과 또는 저장 한도 초과 시 오래된 기록부터 자동 삭제됩니다.
+                    </span>
+                  </>,
+                  <>
+                    <strong>AI 도우미 이용 기록</strong>: OpenAI 처리·보관 관련 사항은 6항 참고
+                    <br />
+                    <span className="text-slate-500">
+                      서비스는 AI 도우미 이용 과정에서 발생하는 입력·응답(대화) 로그를 별도로
+                      저장하지 않습니다.
+                    </span>
                   </>,
                 ]}
               />
@@ -222,7 +249,63 @@ export default function PrivacyPage() {
             />
           </Section>
 
-          <Section id="contact" title="6. 문의">
+          <Section id="outsourcing" title="6. 개인정보 처리 위탁 및 국외 이전">
+            <p className="text-sm text-slate-600">
+              서비스는 AI 도우미 기능 제공을 위해 아래 업체에 개인정보 처리를 위탁/국외 이전할 수
+              있습니다.
+            </p>
+            <BulletList
+              items={[
+                <>
+                  <strong>수탁업체:</strong> OpenAI, L.L.C.
+                </>,
+                <>
+                  <strong>이전/처리 항목:</strong> AI 도우미 이용 시 회원이 입력한 텍스트 및 생성된
+                  텍스트 응답
+                </>,
+                <>
+                  <strong>이용 목적:</strong> AI 도우미 답변 생성 및 서비스 제공
+                </>,
+                <>
+                  <strong>보관 및 처리 기간:</strong> OpenAI의 API 데이터 보관 정책에 따르며,{' '}
+                  기본적으로 입력·출력 데이터가 <strong>최대 30일</strong>간 보관될 수 있습니다. (
+                  <span className="text-slate-500">
+                    <a
+                      href="https://platform.openai.com/docs/faq/do-you-store-the-data-that-is-passed-into-the-api?utm_source=chatgpt.com"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline"
+                    >
+                      OpenAI 플랫폼
+                    </a>
+                  </span>
+                  )
+                </>,
+                <>
+                  <strong>이전 국가/처리 위치:</strong> OpenAI의 서버가 위치한 국가에서 처리될 수
+                  있으며, 서비스 제공을 위해 <strong>대한민국 외 지역</strong>에서 처리·일시 저장될
+                  수 있습니다. (
+                  <span className="text-slate-500">
+                    <a
+                      href="https://platform.openai.com/docs/guides/your-data?utm_source=chatgpt.com"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline"
+                    >
+                      OpenAI 플랫폼
+                    </a>
+                  </span>
+                  )
+                </>,
+              ]}
+            />
+            <p className="text-sm text-slate-600">
+              * TexTok은 위탁업체가 개인정보를 안전하게 처리하도록 관리·감독하며, 관련 법령이
+              요구하는 보호조치를 이행합니다.
+            </p>
+          </Section>
+
+          <Section id="contact" title="7. 문의">
             <BulletList
               items={[
                 <>
