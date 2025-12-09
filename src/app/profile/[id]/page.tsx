@@ -41,6 +41,7 @@ async function getProfileData(userId: string) {
   const res = await fetch(`${API_BASE_URL}/api/v1/users/${userId}`, {
     method: 'GET',
     credentials: 'include',
+    cache: 'no-store',
   });
   const json = await res.json();
   if (!json.resultCode || res.status !== 200) {

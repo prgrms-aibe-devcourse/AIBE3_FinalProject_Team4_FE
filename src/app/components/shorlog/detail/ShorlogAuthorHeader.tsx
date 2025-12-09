@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { deleteShorlog } from '@/src/app/components/shorlog/edit/api';
 import { showGlobalToast } from '@/src/lib/toastStore';
@@ -27,6 +29,8 @@ export default function ShorlogAuthorHeader({
   userId,
   onBlogConnectionUpdate,
 }: Props) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showBlogLinkModal, setShowBlogLinkModal] = useState(false);
@@ -38,8 +42,7 @@ export default function ShorlogAuthorHeader({
 
     if (action === '수정') {
       if (shorlogId) {
-        // 기존 모달을 완전히 닫기 위해 새로고침 방식으로 이동
-        window.location.href = `/shorlog/${shorlogId}/edit`;
+        router.push(`/shorlog/${shorlogId}/edit`);
       }
       return;
     }
@@ -64,8 +67,18 @@ export default function ShorlogAuthorHeader({
     try {
       await deleteShorlog(shorlogId.toString());
       showGlobalToast('숏로그가 삭제되었습니다.', 'success');
-      // 모달을 확실히 닫기 위해 window.location.href 사용
-      window.location.href = `/profile/${userId}`;
+
+      setShowDeleteModal(false);
+      setIsDeleting(false);
+
+      // React Query 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['shorlog-detail'] });
+
+      setTimeout(() => {
+        router.back();
+      }, 100);
     } catch (error) {
       showGlobalToast(error instanceof Error ? error.message : '숏로그 삭제 중 오류가 발생했습니다.', 'error');
       setIsDeleting(false);

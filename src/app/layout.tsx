@@ -1,11 +1,20 @@
+import type { Metadata } from 'next';
 import { AuthProvider } from '../providers/AuthProvider';
 import { LoginModalProvider } from '../providers/LoginModalProvider';
 import ReactQueryProvider from '../providers/ReactQueryProvider';
 import LoginModal from './components/auth/LoginModal';
 import { ToastContainer } from './components/common/ToastContainer';
+import MessagesRealtimeInitializer from './components/messages/MessagesRealtimeInitializer';
 import NotificationInitializer from './components/notifications/NotificationInitializer';
 import Sidebar from './components/sidebar/SideBar';
 import './globals.css';
+
+export const metadata: Metadata = {
+  title: 'TexTok',
+  icons: {
+    icon: '/icons/titleBook.png',
+  },
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -40,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AuthProvider>
             <LoginModalProvider>
               <NotificationInitializer />
+              <MessagesRealtimeInitializer />
               <div className="flex min-h-screen">
                 <Sidebar />
                 <main

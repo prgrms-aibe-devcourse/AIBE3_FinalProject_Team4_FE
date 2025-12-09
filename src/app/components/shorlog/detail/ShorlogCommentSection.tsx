@@ -11,6 +11,7 @@ import {
 import CommentList from '@/src/app/components/comments/ShorlogCommentList';
 import { useRequireAuth } from '@/src/hooks/userRequireAuth';
 import { showGlobalToast } from '@/src/lib/toastStore';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -25,6 +26,7 @@ export default function ShorlogCommentSection({
   initialCommentCount,
   onCommentCountChange,
 }: Props) {
+  const queryClient = useQueryClient();
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -59,8 +61,7 @@ export default function ShorlogCommentSection({
       for (const item of items) {
         if (item.id === targetId) {
           item._highlight = true;
-          item._forceOpen = true;
-          return true;
+          return true; // 찾음
         }
 
         if (item.children?.length) {
@@ -146,6 +147,20 @@ export default function ShorlogCommentSection({
       setCommentText('');
       await fetchComments();
       showGlobalToast('댓글이 등록되었습니다.', 'success');
+
+      // React Query 캐시 무효화
+      queryClient.invalidateQueries({
+        queryKey: ['shorlog-feed'],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['profile'],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['shorlog-detail'],
+        exact: false,
+      });
     } catch (err: any) {
       showGlobalToast(err.message || '댓글 등록 실패', 'error');
     }
@@ -160,6 +175,20 @@ export default function ShorlogCommentSection({
       await createComment(shorlogId, replyText.trim(), parentId);
       await fetchComments();
       showGlobalToast('답글이 등록되었습니다.', 'success');
+
+      // React Query 캐시 무효화 (exact: false로 모든 하위 쿼리도 무효화)
+      queryClient.invalidateQueries({
+        queryKey: ['shorlog-feed'],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['profile'],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['shorlog-detail'],
+        exact: false,
+      });
     } catch (err: any) {
       showGlobalToast(err.message || '답글 등록 실패', 'error');
     }
@@ -230,6 +259,11 @@ export default function ShorlogCommentSection({
       await editComment(commentId, newContent);
       await fetchComments();
       showGlobalToast('댓글이 수정되었습니다.', 'success');
+
+      // React Query 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['shorlog-detail'] });
     } catch (err: any) {
       showGlobalToast(err.message || '댓글 수정 실패', 'error');
     }
@@ -243,6 +277,10 @@ export default function ShorlogCommentSection({
       await deleteComment(commentId);
       await fetchComments();
       showGlobalToast('댓글이 삭제되었습니다.', 'success');
+
+      queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['shorlog-detail'] });
     } catch (err: any) {
       showGlobalToast(err.message || '댓글 삭제 실패', 'error');
     }

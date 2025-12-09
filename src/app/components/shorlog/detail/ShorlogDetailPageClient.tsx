@@ -23,6 +23,10 @@ interface Props {
 }
 
 function HighlightedContent({ content, progress }: { content: string; progress: number }) {
+  if (!content || typeof content !== 'string') {
+    return <p className="text-sm leading-relaxed text-slate-400">아직 내용이 없습니다.</p>;
+  }
+
   const totalLength = content.length;
 
   if (totalLength === 0) {
@@ -235,6 +239,14 @@ export default function ShorlogDetailPageClient({
   isOwner = false,
   hideNavArrows = false,
 }: Props) {
+  if (!detail || !detail.content || typeof detail.content !== 'string') {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <p className="text-slate-600">숏로그를 불러오는 중입니다...</p>
+      </div>
+    );
+  }
+
   const [ttsProgress, setTtsProgress] = useState(0);
   const [linkedBlogs, setLinkedBlogs] = useState<LinkedBlogDetail[]>([]);
   const [linkedBlogCount, setLinkedBlogCount] = useState(0);
@@ -327,7 +339,7 @@ export default function ShorlogDetailPageClient({
             />
           </div>
 
-          <div className="flex flex-1 flex-col overflow-y-auto px-4 pb-4 pt-3 md:px-5 md:pb-5 md:pt-4">
+          <div className="flex flex-1 flex-col overflow-y-auto px-3 sm:px-4 md:px-5 pb-4 md:pb-5 pt-3 md:pt-4">
             <section aria-label="숏로그 내용">
               <HighlightedContent content={detail.content} progress={ttsProgress} />
 
@@ -363,7 +375,7 @@ export default function ShorlogDetailPageClient({
                 commentCount={currentCommentCount}
                 bookmarkCount={detail.bookmarkCount}
                 title={`${detail.nickname}님의 숏로그`}
-                description={detail.content.split('\n')[0].trim() || '숏로그를 확인해보세요!'}
+                description={(detail.content || '').split('\n')[0]?.trim() || '숏로그를 확인해보세요!'}
                 imageUrl={detail.thumbnailUrls.length > 0 ? detail.thumbnailUrls[0] : null}
                 author={detail.nickname}
               />

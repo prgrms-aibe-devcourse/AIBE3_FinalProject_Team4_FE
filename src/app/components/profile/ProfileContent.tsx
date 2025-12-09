@@ -11,8 +11,10 @@ import {
 import type { ShorlogItem } from '@/src/app/components/shorlog/feed/ShorlogFeedPageClient';
 import { useAuth } from '@/src/providers/AuthProvider';
 import type { BlogSummary } from '@/src/types/blog';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { BlogListView, ShorlogListView, SortButtons } from './ProfileContentFeed';
+import { ProfileEmptyState } from './ProfileEmptyState';
 
 type SortKey = 'latest' | 'popular' | 'oldest';
 type PrimaryTab = 'mine' | 'bookmark';
@@ -31,52 +33,41 @@ export default function ProfileContent({ userId, isMyPage }: ProfileContentProps
   const [secondaryTab, setSecondaryTab] = useState<SecondaryTab>('short');
   const [sortKey, setSortKey] = useState<SortKey>('latest');
 
-  const [shorlogs, setShorlogs] = useState<ShorlogItem[]>([]);
-  const [blogs, setBlogs] = useState<BlogSummary[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
-
-      try {
-        if (isMyPage) {
-          if (primaryTab === 'mine') {
-            const shortPromise = getMyShorlogs(sortKey);
-            const longPromise = getMyBlogs(sortKey);
-
-            const [shorts, longs] = await Promise.all([shortPromise, longPromise]);
-
-            setShorlogs(shorts);
-            setBlogs(longs);
-          } else {
-            const shortPromise = getBookmarkedShorlogs(sortKey);
-            const longPromise = getBookmarkedBlogs(sortKey);
-
-            const [shorts, longs] = await Promise.all([shortPromise, longPromise]);
-
-            setShorlogs(shorts);
-            setBlogs(longs);
-          }
+  // React Query로 데이터 로드
+  const { data, isLoading } = useQuery({
+    queryKey: ['profile', userId, isMyPage, primaryTab, sortKey],
+    queryFn: async () => {
+      if (isMyPage) {
+        if (primaryTab === 'mine') {
+          const [shorts, longs] = await Promise.all([
+            getMyShorlogs(sortKey),
+            getMyBlogs(sortKey),
+          ]);
+          return { shorlogs: shorts, blogs: longs };
         } else {
-          const shortPromise = getUserShorlogs(userId, sortKey);
-          const longPromise = getUserBlogs(userId, sortKey);
-
-          const [shorts, longs] = await Promise.all([shortPromise, longPromise]);
-
-          setShorlogs(shorts);
-          setBlogs(longs);
+          const [shorts, longs] = await Promise.all([
+            getBookmarkedShorlogs(sortKey),
+            getBookmarkedBlogs(sortKey),
+          ]);
+          return { shorlogs: shorts, blogs: longs };
         }
-      } finally {
-        setLoading(false);
+      } else {
+        const [shorts, longs] = await Promise.all([
+          getUserShorlogs(userId, sortKey),
+          getUserBlogs(userId, sortKey),
+        ]);
+        return { shorlogs: shorts, blogs: longs };
       }
-    }
+    },
+    staleTime: 0,
+  });
 
-    load();
-  }, [userId, isMyPage, primaryTab, sortKey]);
+  const shorlogs = data?.shorlogs ?? [];
+  const blogs = data?.blogs ?? [];
 
   const shortCount = shorlogs.length;
   const longCount = blogs.length;
+  const isEmpty = secondaryTab === 'short' ? shorlogs.length === 0 : blogs.length === 0;
 
   return (
     <section className="space-y-4">
@@ -172,9 +163,14 @@ export default function ProfileContent({ userId, isMyPage }: ProfileContentProps
         </div>
       )}
 
-      {/* 리스트 */}
-      {loading ? (
+      {isLoading ? (
         <div className="mt-8 text-center text-sm text-slate-600">불러오는 중…</div>
+      ) : isEmpty ? (
+        <ProfileEmptyState
+          isMyPage={isMyPage}
+          primaryTab={primaryTab}
+          secondaryTab={secondaryTab}
+        />
       ) : secondaryTab === 'short' ? (
         <ShorlogListView items={shorlogs} profileUserId={userId} />
       ) : (

@@ -5,6 +5,7 @@ import { handleApiError } from '@/src/lib/handleApiError';
 import { showGlobalToast } from '@/src/lib/toastStore';
 import { Bookmark } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
 interface BookmarkButtonProps {
@@ -26,7 +27,7 @@ export default function BookmarkButton({
   variant = 'default',
   showCount = false,
 }: BookmarkButtonProps) {
-  const router = useRouter();
+  const queryClient = useQueryClient();
   const [isBookmarked, setIsBookmarked] = useState(initialBookmarked);
   const [bookmarkCount, setBookmarkCount] = useState(initialBookmarkCount);
   const [isLoading, setIsLoading] = useState(false);
@@ -106,6 +107,11 @@ export default function BookmarkButton({
       } else {
         showGlobalToast('북마크에서 제거했습니다.', 'success');
       }
+
+      // React Query 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['shorlog-detail'] });
     } catch (error) {
       handleApiError(error, '북마크 처리');
     } finally {

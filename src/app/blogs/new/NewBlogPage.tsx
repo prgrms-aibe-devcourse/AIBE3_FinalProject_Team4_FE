@@ -26,7 +26,6 @@ import { DraftListModal } from '../../components/blogs/write/DraftListModal';
 import { MarkdownEditor } from '../../components/blogs/write/MarkdownEditor';
 import { LoginRequiredModal } from '../../components/common/LoginRequireModal';
 import ImageSelector from '../../components/ImageSelector/ImageSelector';
-import { useChatPanelSlot } from '../Slot';
 
 type NewBlogPageProps = {
   editId?: number;
@@ -44,14 +43,8 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
     status: 'DRAFT',
     visibility: 'PRIVATE',
   });
-  const { setChatPanel } = useChatPanelSlot();
-  const { open: openLoginModal } = useLoginModal();
 
-  // AI 채팅 패널
-  useEffect(() => {
-    setChatPanel(<AiChatPanel title={form.title} content={form.contentMarkdown} />);
-    return () => setChatPanel(null); // 페이지 벗어나면 제거
-  }, [form.title, form.contentMarkdown, setChatPanel]);
+  const { open: openLoginModal } = useLoginModal();
 
   const [blogId, setBlogId] = useState<number | null>(editId ?? null);
   // 이미지/썸네일 상태
@@ -285,13 +278,12 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
   const handleCloseConnectModal = () => {
     setShowConnectModal(false);
     if (publishedBlogId != null) {
-      // 연결 여부랑 상관 없이 디테일 페이지
-      window.location.href = `/blogs/${publishedBlogId}`;
+      router.push(`/blogs/${publishedBlogId}`);
     }
   };
 
   return (
-    <>
+    <AiChatPanel title={form.title} content={form.contentMarkdown}>
       <BlogWriteHeader
         onSaveDraft={handleSaveDraft}
         onPublish={handlePublish}
@@ -360,6 +352,6 @@ export default function NewBlogPage({ editId }: NewBlogPageProps) {
           onCreateNewShorlog={() => router.push(`/shorlog/create?blogId=${publishedBlogId}`)}
         />
       )}
-    </>
+    </AiChatPanel>
   );
 }

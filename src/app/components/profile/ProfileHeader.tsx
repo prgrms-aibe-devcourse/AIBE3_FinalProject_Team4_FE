@@ -4,6 +4,7 @@ import { messagesApi } from '@/src/api/messagesApi';
 import { useFollow } from '@/src/hooks/useFollow';
 import { useAuth } from '@/src/providers/AuthProvider';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import ProfileEditModal from './ProfileHeaderEditModal';
 import FollowModal from './ProfileHeaderFollowModal';
@@ -29,6 +30,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) => {
   const { refreshUser } = useAuth();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const {
     isFollowing,
@@ -106,6 +108,10 @@ export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) =
 
     // 2) 실제 토글(API)
     await toggleFollow();
+
+    // React Query 캐시 무효화
+    queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
+    queryClient.invalidateQueries({ queryKey: ['profile'] });
 
     // 3) 서버 정답으로 보정 (훅이 실패를 밖으로 알려주지 않아도 맞춰짐)
     try {

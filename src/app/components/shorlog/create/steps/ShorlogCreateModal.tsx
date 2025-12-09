@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import ShorlogCreateWizard from './ShorlogCreateWizard';
 import ShorlogDetailModalWrapper from '../../detail/ShorlogDetailModalWrapper';
 
@@ -9,15 +10,16 @@ interface ShorlogCreateModalProps {
 }
 
 export default function ShorlogCreateModal({ blogId }: ShorlogCreateModalProps) {
+  const router = useRouter();
   const [showConfirmExit, setShowConfirmExit] = useState(false);
 
   const handleRequestClose = () => setShowConfirmExit(true);
-  const handleConfirmExit = () => { window.location.href = '/shorlog/feed'; };
+  const handleConfirmExit = () => { router.back(); };
   const handleCancelExit = () => setShowConfirmExit(false);
 
   return (
     <ShorlogDetailModalWrapper onRequestClose={handleRequestClose}>
-      <div className="relative flex h-full w-full overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-black/5">
+      <div className="relative flex h-full w-full overflow-hidden rounded-2xl sm:rounded-3xl bg-white shadow-2xl ring-1 ring-black/5">
         <ShorlogCreateWizard blogId={blogId} />
 
         {showConfirmExit && (

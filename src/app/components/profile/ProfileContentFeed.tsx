@@ -5,13 +5,23 @@ import type { BlogSummary } from '@/src/types/blog';
 import { Bookmark, Eye, Heart, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
-export function ShorlogListView({ items, profileUserId }: { items: ShorlogItem[]; profileUserId: string }) {
-  if (items.length === 0) return <p className="mt-8 text-sm text-slate-600">쇼로그가 없어요.</p>;
-
+export function ShorlogListView({
+  items,
+  profileUserId,
+}: {
+  items: ShorlogItem[];
+  profileUserId: string;
+}) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
       {items.map((item, index) => (
-        <ShorlogCardProfile key={item.id} item={item} index={index} allItems={items} profileUserId={profileUserId} />
+        <ShorlogCardProfile
+          key={item.id}
+          item={item}
+          index={index}
+          allItems={items}
+          profileUserId={profileUserId}
+        />
       ))}
     </div>
   );
@@ -21,7 +31,7 @@ export function ShorlogCardProfile({
   item,
   index,
   allItems,
-  profileUserId
+  profileUserId,
 }: {
   item: ShorlogItem;
   index: number;
@@ -40,7 +50,7 @@ export function ShorlogCardProfile({
 
   const handleClick = () => {
     if (typeof window !== 'undefined') {
-      const feedIds = allItems.map(item => item.id);
+      const feedIds = allItems.map((item) => item.id);
       sessionStorage.setItem('shorlog_feed_ids', JSON.stringify(feedIds));
       sessionStorage.setItem('shorlog_current_index', index.toString());
       sessionStorage.setItem('shorlog_source', 'profile');
@@ -88,8 +98,6 @@ export function ShorlogCardProfile({
 }
 
 export function BlogListView({ items }: { items: BlogSummary[] }) {
-  if (items.length === 0) return <p className="mt-8 text-sm text-slate-600">블로그가 없어요.</p>;
-
   return (
     <div className="space-y-4">
       {items.map((item) => (

@@ -5,6 +5,7 @@ import { handleApiError } from '@/src/lib/handleApiError';
 import { showGlobalToast } from '@/src/lib/toastStore';
 import { Heart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
 interface LikeButtonProps {
@@ -26,7 +27,7 @@ export default function LikeButton({
   variant = 'default',
   showCount = true,
 }: LikeButtonProps) {
-  const router = useRouter();
+  const queryClient = useQueryClient();
   const [isLiked, setIsLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [isLoading, setIsLoading] = useState(false);
@@ -106,6 +107,11 @@ export default function LikeButton({
       } else {
         showGlobalToast('좋아요를 취소했습니다.', 'success');
       }
+
+      // React Query 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['shorlog-detail'] });
 
       // 애니메이션 완료 후 상태 초기화
       setTimeout(() => setIsAnimating(false), 300);

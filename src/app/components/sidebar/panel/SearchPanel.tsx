@@ -109,7 +109,7 @@ export default function SearchPanel({
         "
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-10 h-16">
+        <div className="flex items-center justify-between px-6 py-8 h-16">
           <h2 className="text-xl font-semibold">검색</h2>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100">
             <X size={22} />
@@ -117,7 +117,7 @@ export default function SearchPanel({
         </div>
 
         {/* 검색 입력 */}
-        <div className="flex-1 relative px-4 py-2">
+        <div className="flex-1 relative px-4 py-1">
           <input
             type="text"
             autoFocus

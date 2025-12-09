@@ -84,7 +84,7 @@ export default function LoginModal() {
 
       await refreshUser();
       closeAndReset();
-      router.push('/');
+      window.location.assign('/');
     } catch {
       setErrorMsg('서버 오류가 발생했습니다.');
     } finally {

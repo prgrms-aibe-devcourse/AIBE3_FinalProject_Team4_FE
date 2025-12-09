@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { unlinkShorlogFromBlog } from '@/src/api/blogShorlogLink';
 import { showGlobalToast } from '@/src/lib/toastStore';
@@ -27,6 +28,7 @@ export function LinkedBlogListModal({
   onUnlinked
 }: Props) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [unlinking, setUnlinking] = useState<number | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [blogToDelete, setBlogToDelete] = useState<LinkedBlogDetail | null>(null);
@@ -48,6 +50,11 @@ export function LinkedBlogListModal({
     try {
       await unlinkShorlogFromBlog(shorlogId, blogToDelete.id);
       showGlobalToast('블로그 연결을 해제했어요.', 'success');
+
+      // React Query 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+
       onUnlinked?.();
     } catch (error) {
       handleApiError(error, '블로그 연결 해제');
