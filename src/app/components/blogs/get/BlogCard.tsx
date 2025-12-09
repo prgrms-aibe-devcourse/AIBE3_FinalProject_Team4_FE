@@ -13,13 +13,12 @@ type BlogCardProps = {
 
 export function BlogCard({ blog }: BlogCardProps) {
   const hasThumbnail = !!blog.thumbnailUrl;
-  const hasProfile = !!blog.profileImageUrl;
   const liked = blog.likedByMe;
   const bookmarked = blog.bookmarkedByMe;
   return (
     <Link href={`/blogs/${blog.id}`} className="block group">
       <article className="group cursor-pointer rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100 transition hover:-translate-y-0.5 hover:shadow-md">
-        <div className="flex items-start gap-4">
+        <div className="flex flex-wrap items-start gap-3">
           {/* 썸네일 */}
           <div className="hidden flex-shrink-0 sm:block">
             {hasThumbnail ? (
