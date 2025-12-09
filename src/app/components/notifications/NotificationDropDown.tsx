@@ -37,21 +37,21 @@ export default function NotificationDropdown({ onClose }: Props) {
       .finally(() => setLoading(false));
   }, [setNotifications]);
 
-  // 읽지 않은 알림만 필터링
-  const unread = recent.filter((n) => n.isRead === false);
-  const visible = unread.slice(0, 5);
+  const visible = recent.slice(0, 5); // 🔥 5개만 표시
 
   return (
     <div
       ref={dropdownRef}
       className="
-        absolute top-16 left-[280px]
+        absolute top-16 left-[280px]   /* 🔥 오른쪽으로 이동 */
         w-96 bg-white shadow-xl rounded-xl border border-gray-200
         py-3 z-[200]
       "
     >
+      {/* Header */}
       <div className="px-5 pb-3 border-b border-gray-100 font-semibold text-sm">알림</div>
 
+      {/* Scroll List */}
       <div className="max-h-[430px] overflow-y-auto px-3 py-2 space-y-2">
         {loading ? (
           <p className="text-sm text-gray-400 text-center py-6">불러오는 중...</p>
@@ -66,6 +66,7 @@ export default function NotificationDropdown({ onClose }: Props) {
         )}
       </div>
 
+      {/* Footer */}
       <div className="p-3 border-t border-gray-100">
         <Link href="/notifications">
           <span className="block text-center text-sm text-blue-600 hover:text-blue-700">

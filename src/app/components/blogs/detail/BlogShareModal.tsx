@@ -25,7 +25,6 @@ export function ShareModal({
 }: ShareModalProps) {
   const [shareUrl, setShareUrl] = useState(url ?? '');
 
-  /** URL 설정 */
   useEffect(() => {
     if (!url && typeof window !== 'undefined') {
       setShareUrl(window.location.href);
@@ -34,22 +33,11 @@ export function ShareModal({
     }
   }, [url]);
 
-  /** Kakao SDK 초기화 */
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (!window.Kakao) return;
-
-    if (!window.Kakao.isInitialized()) {
-      window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_APP_KEY);
-    }
-  }, []);
-
   if (!open) return null;
 
   const encodedUrl = encodeURIComponent(shareUrl);
   const encodedTitle = encodeURIComponent(title);
 
-  /** 링크 복사 */
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
@@ -59,12 +47,10 @@ export function ShareModal({
     }
   };
 
-  /** popup helper */
   const openPopup = (shareLink: string) => {
     window.open(shareLink, '_blank', 'noopener,noreferrer,width=600,height=600');
   };
 
-  /** 웹 공유 API */
   const handleWebShare = async () => {
     if (navigator.share) {
       try {
@@ -76,43 +62,6 @@ export function ShareModal({
       } catch {}
     } else {
       alert('이 브라우저에서는 시스템 공유를 지원하지 않습니다.');
-    }
-  };
-
-  /** 카카오톡 공유 기능*/
-  const handleShareKakao = () => {
-    if (!shareUrl) return;
-
-    if (typeof window !== 'undefined' && window.Kakao?.isInitialized()) {
-      try {
-        window.Kakao.Share.sendDefault({
-          objectType: 'feed',
-          content: {
-            title,
-            description: description || '',
-            imageUrl: thumbnailUrl ?? 'https://via.placeholder.com/400x300?text=TexTok',
-            link: {
-              mobileWebUrl: shareUrl,
-              webUrl: shareUrl,
-            },
-          },
-          buttons: [
-            {
-              title: '블로그 보기',
-              link: {
-                mobileWebUrl: shareUrl,
-                webUrl: shareUrl,
-              },
-            },
-          ],
-        });
-      } catch (err) {
-        console.error(err);
-        showGlobalToast('카카오 공유 중 오류가 발생했습니다.', 'error');
-      }
-    } else {
-      const fallback = confirm('카카오 공유가 설정되지 않았습니다.\n대신 링크를 복사할까요?');
-      if (fallback) handleCopy();
     }
   };
 
@@ -174,19 +123,21 @@ export function ShareModal({
           </div>
         </div>
 
-        {/* SNS 공유 버튼 */}
+        {/* SNS 공유 버튼들 */}
         <div className="px-6 pt-5 pb-3">
           <p className="mb-3 text-xs font-semibold text-slate-500">SNS로 공유하기</p>
           <div className="grid grid-cols-2 gap-2 text-xs font-medium">
-            {/* 카카오톡 공유 추가됨 */}
+            {/* 카카오톡: 실제로 쓰려면 Kakao SDK 초기화 필요 */}
             <button
               type="button"
-              onClick={handleShareKakao}
+              onClick={() => {
+                // TODO: Kakao SDK 붙인 뒤 Kakao.Link.sendDefault 사용
+                alert('카카오톡 공유는 추후 연동 예정');
+              }}
               className="flex items-center justify-center rounded-xl bg-[#FEE500] py-2 text-slate-900 hover:brightness-95"
             >
               카카오톡
             </button>
-
             <button
               type="button"
               onClick={() =>
@@ -196,7 +147,6 @@ export function ShareModal({
             >
               페이스북
             </button>
-
             <button
               type="button"
               onClick={() =>
@@ -206,7 +156,6 @@ export function ShareModal({
             >
               네이버 밴드
             </button>
-
             <button
               type="button"
               onClick={() =>
@@ -231,7 +180,7 @@ export function ShareModal({
             <button
               type="button"
               onClick={handleWebShare}
-              className="inline-flex items-center rounded-full bg-[#2979FF] px-3 py-1.5 text-[11px] font-medium text-white hover:bg-[#1f5ecc]"
+              className="inline-flex items-center rounded-full bg-[#2979FF] px-3 py-1.5 text-[11px] font-medium text-white  hover:bg-[#1f5ecc]"
             >
               기기 공유 시트 열기
             </button>
@@ -240,11 +189,4 @@ export function ShareModal({
       </div>
     </div>
   );
-}
-
-// Kakao 타입
-declare global {
-  interface Window {
-    Kakao: any;
-  }
 }
