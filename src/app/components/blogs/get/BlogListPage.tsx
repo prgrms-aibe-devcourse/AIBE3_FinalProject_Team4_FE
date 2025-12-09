@@ -11,13 +11,19 @@ import { BlogEmptyState, BlogErrorState } from './BlogStates';
 import { BlogToolbar } from './BlogToolbar';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-export function BlogListPage() {
-  const [blogs, setBlogs] = useState<BlogSummary[]>([]);
+type Props = {
+  initialBlogs: BlogSummary[];
+};
+
+export function BlogListClient({ initialBlogs }: Props) {
+  const [blogs, setBlogs] = useState<BlogSummary[]>(initialBlogs);
   const [error, setError] = useState<Error | null>(null);
+
   const [sortType, setSortType] = useState<BlogSortType>('LATEST');
   const [keyword, setKeyword] = useState('');
-  const [loading, setLoading] = useState(true);
   const [scope, setScope] = useState<BlogScope>('ALL');
+
+  const [loading, setLoading] = useState(true);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { open: openLoginModal } = useLoginModal();
@@ -62,29 +68,23 @@ export function BlogListPage() {
       setLoading(false);
     }
   }
+  
   useEffect(() => {
     loadBlogs();
   }, [sortType, keyword, scope]);
 
-  // 로딩
-  if (loading) return <LoadingSpinner label="블로그 페이지 로딩중입니다"></LoadingSpinner>;
-
   return (
     <section className="space-y-8">
       <header className="mb-6 space-y-4 md:mb-8">
-        {/* 상단 라벨 */}
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-600">BLOG FEED</p>
 
-        {/* 메인 타이틀 */}
         <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">블로그</h1>
 
-        {/* 설명 문구 */}
         <p className="max-w-2xl text-sm text-slate-500 md:text-base">
           길게 남기고 싶은 생각과 기록을 자유롭게 공유해 보세요. 연결된 짧은 글로 흐름을 느껴
           보세요.
         </p>
 
-        {/* 블로그 툴바 */}
         <div className="pt-2">
           <BlogToolbar
             keyword={keyword}
@@ -100,9 +100,9 @@ export function BlogListPage() {
       {/* 블로그 리스트 */}
       <div className="space-y-4">
         {loading && (
-          <p className="py-10 text-center text-sm text-slate-500">
-            <LoadingSpinner label="블로그를 불러오는 중입니다"></LoadingSpinner>
-          </p>
+          <div className="py-10 text-center text-sm text-slate-500">
+            <LoadingSpinner label="블로그를 불러오는 중입니다" />
+          </div>
         )}
 
         {!loading && error && <BlogErrorState onRetry={loadBlogs} />}
