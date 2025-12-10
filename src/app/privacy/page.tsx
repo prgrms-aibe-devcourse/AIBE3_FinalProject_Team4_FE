@@ -300,7 +300,7 @@ export default function PrivacyPage() {
               ]}
             />
             <p className="text-sm text-slate-600">
-              * TexTok은 위탁업체가 개인정보를 안전하게 처리하도록 관리·감독하며, 관련 법령이
+              * 서비스는 위탁업체가 개인정보를 안전하게 처리하도록 관리·감독하며, 관련 법령이
               요구하는 보호조치를 이행합니다.
             </p>
           </Section>
