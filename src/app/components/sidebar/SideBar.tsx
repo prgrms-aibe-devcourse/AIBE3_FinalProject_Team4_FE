@@ -26,12 +26,14 @@ export default function Sidebar() {
   const [openPanel, setOpenPanel] = useState<OpenPanel>('none');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [sidebarKeyword, setSidebarKeyword] = useState('');
+  const isPanelTransitioning = useRef(false);
 
   const pathname = usePathname();
   const router = useRouter();
 
   const moreModalRef = useRef<HTMLDivElement>(null);
   const searchWrapperRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
 
   const menuData = isLogin ? loggedInMenu : guestMenu;
   const menu = typeof menuData === 'function' ? menuData(0) : menuData;
@@ -45,13 +47,21 @@ export default function Sidebar() {
   const sidebarWidth = isCollapsed ? 80 : 240;
 
   const openPanelFn = (panel: OpenPanel) => {
-    setOpenPanel(panel);
-    setIsCollapsed(true);
+    if (openPanel !== 'none' && openPanel !== panel) {
+      // 다른 패널이 열려있으면 패널만 교체
+      isPanelTransitioning.current = true;
+      setOpenPanel('none');
+      setTimeout(() => {
+        setOpenPanel(panel);
+        isPanelTransitioning.current = false;
+      }, 250);
+    } else {
+      setOpenPanel(panel);
+    }
   };
 
   const closePanelFn = () => {
     setOpenPanel('none');
-    setIsCollapsed(false);
   };
 
   const goHome = () => {
@@ -63,11 +73,18 @@ export default function Sidebar() {
       if (window.innerWidth < 1280) {
         setIsCollapsed(true);
       } else {
+        // 패널이 열려있지 않을 때만 사이드바 확장
         if (openPanel === 'none') {
           setIsCollapsed(false);
         }
       }
     }
+
+    // 패널 상태에 따라 사이드바 축소/확장 관리
+    if (openPanel !== 'none') {
+      setIsCollapsed(true);
+    }
+
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -80,9 +97,14 @@ export default function Sidebar() {
 
       const target = e.target as Node;
 
+      // 사이드바 클릭 확인
+      const clickedInsideSidebar = sidebarRef.current && sidebarRef.current.contains(target);
       const clickedInsideMore = moreModalRef.current && moreModalRef.current.contains(target);
       const clickedInsideSearch =
         searchWrapperRef.current && searchWrapperRef.current.contains(target);
+
+      // 사이드바 안쪽 클릭이면 아무것도 하지 않음
+      if (clickedInsideSidebar) return;
 
       if (openPanel === 'search' && !clickedInsideSearch) {
         closePanelFn();
@@ -108,34 +130,23 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* 배경 오버레이 */}
-      {(isSearchOpen || isNotificationOpen || isMoreOpen) && (
-        <div
-          className="fixed inset-0 bg-black/50 transition-opacity duration-300"
-          style={{
-            left: isSearchOpen || isNotificationOpen ? sidebarWidth + 400 : sidebarWidth,
-            zIndex: 50,
-          }}
-          onClick={closePanelFn}
-        />
-      )}
-
       <aside
+        ref={sidebarRef}
         className={`
           ${isCollapsed ? 'w-20' : 'w-60'}
           bg-white border-r border-gray-200
           h-screen fixed flex flex-col
-          transition-all duration-300
+          transition-all duration-300 ease-in-out
           z-[60]
         `}
       >
         {/* ================= HEADER ================= */}
-        <div className="pl-1 pr-1 pt-5 pb-2 flex items-center justify-center">
+        <div className="pl-1 pr-1 pt-5 pb-2 flex items-center justify-center transition-all duration-300 ease-in-out">
           {isCollapsed && (
             <button
               type="button"
               onClick={goHome}
-              className="flex items-center justify-center rounded-xl text-slate-900 transition"
+              className="flex items-center justify-center rounded-xl text-slate-900 transition-opacity duration-300"
             >
               <Image
                 src="/icons/book.png"
@@ -151,7 +162,7 @@ export default function Sidebar() {
             <button
               type="button"
               onClick={goHome}
-              className="flex items-center justify-center transition py-2"
+              className="flex items-center justify-center transition-opacity duration-300 py-2"
             >
               <Image
                 src="/icons/logo.png"
@@ -174,7 +185,7 @@ export default function Sidebar() {
               }}
               className={`
                 relative flex items-center cursor-pointer overflow-hidden
-                transition-all duration-200
+                transition-all duration-300 ease-in-out
                 mx-auto
                 ${
                   isCollapsed
@@ -210,7 +221,7 @@ export default function Sidebar() {
                 placeholder="검색어를 입력하세요"
                 className={`
                   bg-transparent text-sm outline-none text-slate-800 placeholder:text-slate-400
-                  transition-all duration-200
+                  transition-all duration-300 ease-in-out
                   ${isCollapsed ? 'w-0 opacity-0' : 'w-full opacity-100'}
                 `}
               />
@@ -244,7 +255,7 @@ export default function Sidebar() {
                       else openPanelFn('more');
                     }}
                     className={`
-                      w-full text-left flex items-center gap-3 px-4 py-2 rounded-lg transition-all
+                      w-full text-left flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 ease-in-out
                       ${isMoreOpen ? 'text-blue-600 font-medium bg-slate-50' : 'text-gray-600 hover:bg-gray-100'}
                     `}
                   >
@@ -265,7 +276,7 @@ export default function Sidebar() {
 
                     <span
                       className={`
-                        whitespace-nowrap transition-all duration-300
+                        whitespace-nowrap transition-all duration-300 ease-in-out
                         ${isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'}
                       `}
                     >
@@ -328,7 +339,7 @@ export default function Sidebar() {
                     router.push(item.href);
                   }}
                   className={`
-                    w-full text-left flex items-center gap-3 px-4 py-2 rounded-lg transition-all
+                    w-full text-left flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 ease-in-out
                     ${
                       isActive || (item.label === '알림' && isNotificationOpen)
                         ? 'text-blue-600 font-medium'
@@ -370,7 +381,7 @@ export default function Sidebar() {
 
                   <span
                     className={`
-                      whitespace-nowrap transition-all
+                      whitespace-nowrap transition-all duration-300 ease-in-out
                       ${isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'}
                     `}
                   >
@@ -383,7 +394,8 @@ export default function Sidebar() {
                     className="
                       absolute left-20 top-1/2 -translate-y-1/2
                       px-2 py-1 bg-gray-900 text-white text-xs rounded
-                      opacity-0 group-hover:opacity-100 transition pointer-events-none
+                      opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none
+                      whitespace-nowrap z-50
                     "
                   >
                     {item.label}
@@ -411,6 +423,7 @@ export default function Sidebar() {
         open={isNotificationOpen}
         onClose={closePanelFn}
         sidebarWidth={sidebarWidth}
+        sidebarRef={sidebarRef}
       />
     </>
   );
