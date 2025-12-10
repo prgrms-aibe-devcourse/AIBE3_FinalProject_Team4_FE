@@ -4,21 +4,49 @@ import { getRecentNotifications } from '@/src/api/notifications';
 import { showGlobalToast } from '@/src/lib/toastStore';
 import { useNotificationStore } from '@/src/stores/useNotificationsStore';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import NotificationItem from './NotificationItem';
 
 interface Props {
   open: boolean;
   onClose: () => void;
   sidebarWidth: number;
+  sidebarRef: React.RefObject<HTMLElement | null>;
 }
 
-export default function NotificationPanel({ open, onClose, sidebarWidth }: Props) {
+export default function NotificationPanel({ open, onClose, sidebarWidth, sidebarRef }: Props) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const recent = useNotificationStore((s) => s.notifications);
   const setNotifications = useNotificationStore((s) => s.setNotifications);
+
+  // 외부 클릭 시 닫기
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      const target = e.target as Node;
+
+      // 사이드바 클릭 확인
+      const clickedInsideSidebar = sidebarRef.current && sidebarRef.current.contains(target);
+      // 패널 클릭 확인
+      const clickedInsidePanel = panelRef.current && panelRef.current.contains(target);
+
+      // 사이드바나 패널 안쪽 클릭이면 아무것도 하지 않음
+      if (clickedInsideSidebar || clickedInsidePanel) return;
+
+      // 외부 클릭이면 닫기
+      onClose();
+    };
+
+    if (open) {
+      setTimeout(() => {
+        document.addEventListener('mousedown', handler);
+      }, 0);
+    }
+
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open, onClose]); // sidebarRef 제거
 
   // 알림 로딩
   useEffect(() => {
@@ -45,6 +73,7 @@ export default function NotificationPanel({ open, onClose, sidebarWidth }: Props
 
   return (
     <div
+      ref={panelRef}
       className={`
         fixed top-0 
         h-screen w-[400px]
