@@ -181,7 +181,7 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
           <ChatBotButton onClick={() => setIsOpen(true)} ariaLabel="AI 채팅 열기" />
           <Tooltip
             text="안녕하세요. TexTok 블로그 작성 도우미입니다."
-            className="bg-white text-[15px] text-gray-700 border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.12)] rounded-[10px] px-2.5 py-1.5"
+            className="bg-white text-sm text-gray-700 border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.12)] rounded-[10px] px-2.5 py-1.5"
             animationClass="translate-x-1 group-hover:translate-x-0 origin-right"
             position="top-right"
           />

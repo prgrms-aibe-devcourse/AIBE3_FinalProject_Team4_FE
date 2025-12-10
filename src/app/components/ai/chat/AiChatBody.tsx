@@ -4,8 +4,7 @@ import { useAiChatStreamMutation } from '@/src/api/useAiChatStream';
 import { ChatMessage as Message, ModelOption } from '@/src/types/ai';
 
 import { useEffect, useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { MarkdownViewer } from '../../blogs/write/MarkdownViewer';
 import ChatBubble from './ChatBubble';
 import ChatInput from './ChatInput';
 
@@ -62,7 +61,7 @@ export default function AIChatBody({
             <ChatBubble key={msg.id} role={msg.role} text={msg.text} />
           ) : (
             <ChatBubble key={msg.id} role={msg.role}>
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+              <MarkdownViewer markdown={msg.text} />
             </ChatBubble>
           ),
         )}
