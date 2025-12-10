@@ -79,7 +79,7 @@ export default function ChatInput({
           aria-label="맨 아래로"
           className="
           absolute left-1/2 -translate-x-1/2
-          -top-1   /* <- 살짝 위로 떠있게. 필요하면 -top-2/-top-3 조절 */
+          -top-1
           bg-white border border-gray-300 rounded-full
           w-7 h-7 flex items-center justify-center
           text-gray-700 hover:bg-gray-100 transition
@@ -90,12 +90,12 @@ export default function ChatInput({
         </button>
       )}
       <div className="rounded-3xl border bg-white p-3 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)]">
-        {/* Top row: small badges / context */}
+        {/* 블로그 제목 표시 */}
         <div className="inline-flex max-w-full items-center gap-2 px-3 py-1 rounded-full bg-slate-50 text-xs text-slate-700 border">
           <FileText size={14} className="text-slate-500" />
           <span className="min-w-0 truncate font-light">{displayTitle}</span>
         </div>
-        {/* Middle: large input / placeholder */}
+        {/* 입력 영역 */}
         <div className="mb-3 mt-3">
           <label htmlFor="ai-input" className="sr-only">
             message
@@ -107,7 +107,7 @@ export default function ChatInput({
             onChange={(e) => setMessage(e.target.value)}
             rows={1}
             placeholder={isModelDisabled ? '모델 사용 불가' : '블로그 작성 도움받기'}
-            className="w-full min-h-[40px] max-h-[240px] resize-none bg-transparent outline-none text-[15px] placeholder:text-slate-400 placeholder:text-[15px] leading-relaxed overflow-y-auto"
+            className="w-full min-h-[40px] max-h-[190px] resize-none bg-transparent outline-none text-sm placeholder:text-slate-400 placeholder:text-sm leading-relaxed overflow-y-auto"
             style={{ height: 'auto' }}
             onInput={(e) => {
               const target = e.target as HTMLTextAreaElement;

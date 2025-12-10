@@ -10,7 +10,7 @@ interface AiChatHeaderProps {
 export default function AiChatHeader({ mode, onToggleMode, onClose }: AiChatHeaderProps) {
   return (
     <div className="flex items-center justify-between py-2 px-4 rounded-t-lg min-w-0 w-full">
-      <div className="text-s text-slate-700">TexTok AI</div>
+      <div className="text-slate-700">TexTok AI</div>
       <div className="flex items-center gap-0.5">
         <div className="relative group">
           <HeaderIconButton
