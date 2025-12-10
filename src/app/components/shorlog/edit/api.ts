@@ -28,7 +28,7 @@ export async function uploadImagesBatch(images: LocalImage[]): Promise<UploadIma
     };
   });
 
-  formData.append('orders', JSON.stringify(orders));
+  formData.append('orderItems', JSON.stringify(orders));
 
   let totalFileSize = 0;
   let fileCount = 0;
