@@ -101,17 +101,14 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
       return;
     }
 
-    // 모든 이미지를 업로드 (URL 타입은 그대로 전달, FILE 타입은 파일로 전달)
     setIsUploading(true);
     setError(null);
 
     try {
-      // URL 타입은 그대로 유지, FILE 타입만 처리
       const uploaded = await uploadImagesBatch(images);
       setUploadedImages(uploaded);
       goToStep(3);
     } catch (e) {
-      console.error(e);
       setError(e instanceof Error ? e.message : '이미지 업로드 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.');
     } finally {
       setIsUploading(false);
@@ -134,7 +131,6 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
     setError(null);
 
     try {
-      // 모든 이미지가 이미 업로드되었으므로 uploadedImages의 ID만 사용
       const allImageIds = uploadedImages.map(img => img.id);
 
       if (allImageIds.length === 0) {

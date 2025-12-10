@@ -2,6 +2,7 @@
 
 import { useFollowMutation, useFollowStatus } from '@/src/hooks/useFollow';
 import { useAuth } from '@/src/providers/AuthProvider';
+import { useLoginModal } from '@/src/providers/LoginModalProvider';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -16,6 +17,7 @@ export type Creator = {
 
 export default function CreatorCard({ creator }: { creator: Creator }) {
   const { loginUser, isLogin } = useAuth();
+  const { open } = useLoginModal();
   const router = useRouter();
 
   // 팔로우 상태 (서버에서 가져온 값 우선, 없으면 초기값 사용)
@@ -26,14 +28,9 @@ export default function CreatorCard({ creator }: { creator: Creator }) {
   const { followMutation, unfollowMutation } = useFollowMutation(creator.id, loginUser?.id ?? null);
 
   const handleFollowToggle = async () => {
-    // 로그인 확인
+    // ✅ 로그인 안 했으면 바로 로그인 모달
     if (!isLogin) {
-      const confirmLogin = window.confirm(
-        '팔로우 기능은 로그인이 필요합니다.\n로그인 페이지로 이동하시겠습니까?',
-      );
-      if (confirmLogin) {
-        router.push('/auth/login');
-      }
+      open();
       return;
     }
 
@@ -58,8 +55,7 @@ export default function CreatorCard({ creator }: { creator: Creator }) {
         cursor-pointer
       "
     >
-      {/* Thumbnail */}
-      <div className="aspect-[3/4] relative w-full">
+      <div className="aspect-[4/5] relative w-full">
         <img
           src={creator.popularThumbnailUrl || creator.profileImgUrl || '/tmpProfile.png'}
           alt={`${creator.nickname} 대표 썸네일`}
@@ -69,7 +65,6 @@ export default function CreatorCard({ creator }: { creator: Creator }) {
         <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-black/30 to-transparent" />
 
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center w-full px-4">
-          {/* Profile Image */}
           <div className="mx-auto h-14 w-14 rounded-full overflow-hidden border-white shadow">
             <img
               src={creator.profileImgUrl || '/tmpProfile.png'}
@@ -78,10 +73,8 @@ export default function CreatorCard({ creator }: { creator: Creator }) {
             />
           </div>
 
-          {/* Nickname */}
           <p className="mt-2 text-white font-semibold text-xl">{creator.nickname}</p>
 
-          {/* 팔로우 버튼 - 본인이 아닌 경우에만 표시 */}
           {loginUser?.id !== creator.id && (
             <button
               onClick={(e) => {
@@ -101,9 +94,7 @@ export default function CreatorCard({ creator }: { creator: Creator }) {
               `}
             >
               {followMutation.isPending || unfollowMutation.isPending
-                ? isFollowing
-                  ? '처리중...'
-                  : '처리중...'
+                ? '처리중...'
                 : isFollowing
                   ? '팔로잉'
                   : '팔로우'}

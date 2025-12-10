@@ -102,20 +102,34 @@ export default function ShorlogAuthorHeader({
     };
   }, [menuOpen]);
 
+  const handleProfileClick = () => {
+    if (userId) {
+      router.push(`/profile/${userId}`);
+    }
+  };
+
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="flex items-center gap-3">
-        <div className="h-9 w-9 overflow-hidden rounded-full bg-slate-200 md:h-10 md:w-10">
+        <button
+          type="button"
+          onClick={handleProfileClick}
+          className="h-9 w-9 overflow-hidden rounded-full bg-slate-200 md:h-10 md:w-10 cursor-pointer hover:opacity-80 transition-opacity"
+        >
           <img
             src={profileImgUrl || '/tmpProfile.png'}
             alt={`${nickname} 프로필 이미지`}
             className="h-full w-full object-cover"
           />
-        </div>
-        <div className="flex flex-col">
+        </button>
+        <button
+          type="button"
+          onClick={handleProfileClick}
+          className="flex flex-col text-left hover:opacity-70 transition-opacity"
+        >
           <span className="text-[15px] font-semibold text-slate-900">{nickname}</span>
           <span className="text-[13px] text-slate-500">@{username}</span>
-        </div>
+        </button>
       </div>
 
       <div className="flex items-center gap-1.5">

@@ -1,6 +1,5 @@
 'use client';
 
-// TTS 오디오 재생 관련 유틸리티 함수들
 export class TtsAudioPlayer {
   private audioRef: React.MutableRefObject<HTMLAudioElement | null>;
   private onLoadedMetadata?: (duration: number) => void;
@@ -30,9 +29,7 @@ export class TtsAudioPlayer {
     this.onError = callbacks.onError;
   }
 
-  // 오디오 파일 재생
   play(url: string) {
-    // 기존 오디오가 있으면 완전히 정리
     this.cleanup();
 
     const audio = new Audio(url);
@@ -69,14 +66,12 @@ export class TtsAudioPlayer {
     });
   }
 
-  // 일시정지
   pause() {
     if (this.audioRef.current && !this.audioRef.current.paused) {
       this.audioRef.current.pause();
     }
   }
 
-  // 재생 재개
   resume() {
     if (this.audioRef.current && this.audioRef.current.paused) {
       this.audioRef.current.play().catch((_error) => {
@@ -85,7 +80,6 @@ export class TtsAudioPlayer {
     }
   }
 
-  // 정지
   stop() {
     if (this.audioRef.current) {
       this.audioRef.current.pause();
@@ -102,14 +96,12 @@ export class TtsAudioPlayer {
     }
   }
 
-  // 특정 위치로 이동
   seekTo(position: number) {
     if (this.audioRef.current) {
       this.audioRef.current.currentTime = position * this.audioRef.current.duration;
     }
   }
 
-  // 시간 건너뛰기
   skip(seconds: number) {
     if (this.audioRef.current) {
       this.audioRef.current.currentTime += seconds;
@@ -117,7 +109,6 @@ export class TtsAudioPlayer {
   }
 }
 
-// Web Speech API 관련 유틸리티 함수들
 export class TtsWebSpeech {
   private speechRef: React.MutableRefObject<SpeechSynthesisUtterance | null>;
   private progressInterval: NodeJS.Timeout | null = null;
@@ -152,7 +143,6 @@ export class TtsWebSpeech {
     this.onResume = callbacks.onResume;
   }
 
-  // Web Speech API로 재생
   speak(content: string) {
     this.currentContent = content;
     this.currentProgress = 0;
@@ -185,9 +175,8 @@ export class TtsWebSpeech {
       this.onEnd?.();
     };
 
-    utterance.onerror = (event) => {
+    utterance.onerror = () => {
       this.clearProgressTimer();
-      console.error('Web Speech API 오류:', event);
       this.onError?.('음성 재생에 실패했습니다.');
     };
 
@@ -219,7 +208,6 @@ export class TtsWebSpeech {
     }, 50);
   }
 
-  // 일시정지
   pause() {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       if (speechSynthesis.speaking && !speechSynthesis.paused) {
@@ -228,13 +216,12 @@ export class TtsWebSpeech {
           this.onPause?.();
           speechSynthesis.pause();
         } catch (error) {
-          console.error('Speech synthesis pause error:', error);
+          this.onError?.('일시정지에 실패했습니다.');
         }
       }
     }
   }
 
-  // 재생 재개
   resume() {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       if (speechSynthesis.paused) {
@@ -243,14 +230,13 @@ export class TtsWebSpeech {
           speechSynthesis.resume();
           this.onResume?.();
         } catch (error) {
-          console.error('Speech synthesis resume error:', error);
           setTimeout(() => {
             if (speechSynthesis.paused) {
               try {
                 speechSynthesis.resume();
                 this.onResume?.();
               } catch (retryError) {
-                console.error('Speech synthesis resume retry failed:', retryError);
+                this.onError?.('재생 재개에 실패했습니다.');
               }
             }
           }, 100);
@@ -261,7 +247,6 @@ export class TtsWebSpeech {
     }
   }
 
-  // 정지 및 정리
   cancel() {
     this.clearProgressTimer();
     this.isPaused = false;
@@ -278,14 +263,13 @@ export class TtsWebSpeech {
           }
         }, 50);
       } catch (error) {
-        console.error('Speech synthesis cancel error:', error);
+        this.onError?.('음성 정지에 실패했습니다.');
       }
     }
 
     this.speechRef.current = null;
   }
 
-  // 진행률 타이머 정리
   private clearProgressTimer() {
     if (this.progressInterval) {
       clearInterval(this.progressInterval);
@@ -294,9 +278,7 @@ export class TtsWebSpeech {
   }
 }
 
-// 파일 다운로드 유틸리티
 export class TtsFileDownloader {
-  // fetch를 사용해 blob으로 안전하게 다운로드
   static async downloadFile(url: string, filename: string): Promise<void> {
     try {
       // fetch를 사용해서 파일을 blob으로 가져오기

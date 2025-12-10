@@ -138,7 +138,6 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'TTS 생성에 실패했습니다.';
-      console.error('TTS 에러:', errorMessage);
       setError(errorMessage);
       playWebSpeech();
     } finally {
