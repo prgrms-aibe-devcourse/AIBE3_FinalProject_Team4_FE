@@ -11,3 +11,9 @@ export async function fetchMe(): Promise<MeResponse> {
     method: 'GET',
   });
 }
+
+export async function withdraw(): Promise<void> {
+  await apiClient('/api/v1/auth/withdraw', {
+    method: 'DELETE',
+  });
+}
