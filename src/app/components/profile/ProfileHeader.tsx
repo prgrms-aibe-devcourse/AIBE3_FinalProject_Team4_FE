@@ -1,13 +1,17 @@
 'use client';
 
 import { messagesApi } from '@/src/api/messagesApi';
+import { withdraw } from '@/src/api/user';
 import { useFollow } from '@/src/hooks/useFollow';
 import { useAuth } from '@/src/providers/AuthProvider';
-import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import ProfileEditModal from './ProfileHeaderEditModal';
 import FollowModal from './ProfileHeaderFollowModal';
+import ProfileHeaderMoreModal from './ProfileHeaderMoreModal';
+import ProfileHeaderOtherMoreModal from './ProfileHeaderOtherMoreModal';
+import ProfileHeaderWithdrawConfirmModal from './ProfileHeaderWithdrawConfirmModal';
 
 interface ProfileHeaderProps {
   profile: {
@@ -47,6 +51,14 @@ export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) =
 
   const [followingCount, setFollowingCount] = useState(profile.followingCount);
   const [followersCount, setFollowersCount] = useState(profile.followersCount);
+
+  const moreBtnRef = useRef<HTMLButtonElement>(null);
+
+  const [myMoreOpen, setMyMoreOpen] = useState(false);
+  const [otherMoreOpen, setOtherMoreOpen] = useState(false);
+  const [withdrawConfirmOpen, setWithdrawConfirmOpen] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [withdrawError, setWithdrawError] = useState<string | null>(null);
 
   // profile이 바뀌는 경우(다른 유저로 이동 등) 동기화
   useEffect(() => {
@@ -150,6 +162,29 @@ export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) =
   /** 프로필 편집 모달 */
   const [editOpen, setEditOpen] = useState(false);
 
+  const handleWithdraw = async () => {
+    if (withdrawing) return;
+    setWithdrawing(true);
+    setWithdrawError(null);
+
+    try {
+      await withdraw();
+
+      queryClient.clear();
+      await refreshUser().catch(() => {});
+
+      setWithdrawConfirmOpen(false);
+      setMyMoreOpen(false);
+
+      router.replace('/');
+      router.refresh();
+    } catch (e: any) {
+      setWithdrawError(e?.message ?? '회원 탈퇴에 실패했어요.');
+    } finally {
+      setWithdrawing(false);
+    }
+  };
+
   /** 숫자 압축 */
   const formatCompactNumber = (value: number | null) => {
     const num = Number(value ?? 0);
@@ -189,7 +224,9 @@ export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) =
                 </button>
 
                 <button
+                  ref={moreBtnRef}
                   aria-label="더보기"
+                  onClick={() => setMyMoreOpen((o) => !o)}
                   className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 hover:bg-slate-100"
                 >
                   ⋯
@@ -219,7 +256,9 @@ export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) =
                 </button>
 
                 <button
+                  ref={moreBtnRef}
                   aria-label="더보기"
+                  onClick={() => setOtherMoreOpen((v) => !v)}
                   className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 hover:bg-slate-100"
                 >
                   ⋯
@@ -295,6 +334,30 @@ export const ProfileHeader = ({ profile, isMyPage, myId }: ProfileHeaderProps) =
         followersCount={followersCount}
         myId={myId}
         profileUserId={profile.id}
+      />
+
+      <ProfileHeaderOtherMoreModal
+        isOpen={otherMoreOpen}
+        anchorRef={moreBtnRef}
+        onClose={() => setOtherMoreOpen(false)}
+      />
+
+      <ProfileHeaderMoreModal
+        isOpen={myMoreOpen}
+        anchorRef={moreBtnRef}
+        onClose={() => setMyMoreOpen(false)}
+        onClickWithdraw={() => {
+          setMyMoreOpen(false);
+          setWithdrawConfirmOpen(true);
+        }}
+      />
+
+      <ProfileHeaderWithdrawConfirmModal
+        isOpen={withdrawConfirmOpen}
+        withdrawing={withdrawing}
+        errorMessage={withdrawError}
+        onClose={() => setWithdrawConfirmOpen(false)}
+        onConfirm={handleWithdraw}
       />
     </>
   );
