@@ -291,8 +291,8 @@ export default function ImageSelector({
           {[
             { key: 'upload', label: '이미지 업로드' },
             { key: 'blog', label: '블로그 이미지' },
-            { key: 'unsplash', label: '무료 이미지 (Unsplash)' },
             { key: 'pixabay', label: '무료 이미지 (Pixabay)' },
+            { key: 'unsplash', label: '무료 이미지 (Unsplash)' },
           ].map((tab) => {
             const isActive = selectedTab === tab.key;
             return (
