@@ -177,7 +177,7 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
 
       {/* 열기 버튼 */}
       {!isOpen && (
-        <div className="fixed bottom-6 right-6 z-30 group">
+        <div className="fixed bottom-7 right-6 z-30 group">
           <ChatBotButton onClick={() => setIsOpen(true)} ariaLabel="AI 채팅 열기" />
           <Tooltip
             text="안녕하세요. TexTok 블로그 작성 도우미입니다."
