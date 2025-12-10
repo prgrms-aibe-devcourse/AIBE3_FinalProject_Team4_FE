@@ -1,4 +1,4 @@
-import { Minus, PanelRight, SquareSquare } from 'lucide-react';
+import { Minus, PanelRight, PictureInPicture2 } from 'lucide-react';
 import Tooltip from '../Tooltip';
 
 interface AiChatHeaderProps {
@@ -18,7 +18,7 @@ export default function AiChatHeader({ mode, onToggleMode, onClose }: AiChatHead
             ariaLabel={mode === 'sidebar' ? '플로팅 모드로 전환' : '사이드바 모드로 전환'}
           >
             {mode === 'sidebar' ? (
-              <SquareSquare size={18} strokeWidth={1.75} />
+              <PictureInPicture2 size={18} strokeWidth={1.75} />
             ) : (
               <PanelRight size={18} strokeWidth={1.75} />
             )}
