@@ -3,11 +3,9 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8
 import { LocalImage, UploadImageOrderRequest, UploadImageResponse } from '../create/types';
 import { UpdateShorlogRequest, UpdateShorlogResponse } from './types';
 
-// 이미지 일괄 업로드 (생성과 동일)
 export async function uploadImagesBatch(images: LocalImage[]): Promise<UploadImageResponse[]> {
   const formData = new FormData();
 
-  // FILE 타입 이미지의 인덱스를 추적하기 위한 카운터
   let fileIndexCounter = 0;
 
   const orders: UploadImageOrderRequest[] = images.map((img, index) => {
@@ -37,7 +35,6 @@ export async function uploadImagesBatch(images: LocalImage[]): Promise<UploadIma
       formData.append('files', img.file);
       totalFileSize += img.file.size;
       fileCount++;
-      console.log(`📎 파일 ${fileCount - 1}: ${img.file.name}`);
     }
   });
 
@@ -74,12 +71,10 @@ export async function uploadImagesBatch(images: LocalImage[]): Promise<UploadIma
   }
 }
 
-// 숏로그 수정 API
 export async function updateShorlog(
   shorlogId: string,
   payload: UpdateShorlogRequest,
 ): Promise<UpdateShorlogResponse> {
-
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/${shorlogId}`, {
       method: 'PUT',
@@ -102,7 +97,6 @@ export async function updateShorlog(
   }
 }
 
-// 블로그 연결
 export async function connectBlogToShorlog(shorlogId: string, blogId: number): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/${shorlogId}/blog/${blogId}`, {
     method: 'POST',
@@ -114,7 +108,6 @@ export async function connectBlogToShorlog(shorlogId: string, blogId: number): P
   }
 }
 
-// 블로그 연결 해제
 export async function disconnectBlogFromShorlog(shorlogId: string): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/${shorlogId}/blog`, {
     method: 'DELETE',
@@ -126,7 +119,6 @@ export async function disconnectBlogFromShorlog(shorlogId: string): Promise<void
   }
 }
 
-// 숏로그 삭제
 export async function deleteShorlog(shorlogId: string): Promise<void> {
 
   const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/${shorlogId}`, {

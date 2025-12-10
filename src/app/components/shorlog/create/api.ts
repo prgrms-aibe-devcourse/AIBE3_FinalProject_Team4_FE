@@ -34,7 +34,6 @@ export async function uploadImagesBatch(images: LocalImage[]): Promise<UploadIma
   });
 
   if (totalFileSize > 100 * 1024 * 1024) {
-    // 100MB
     throw new Error('파일 전체 크기가 100MB를 초과합니다. 일부 이미지를 제거해주세요.');
   }
 
@@ -48,27 +47,13 @@ export async function uploadImagesBatch(images: LocalImage[]): Promise<UploadIma
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('❌ 서버 오류 응답:', {
-        status: response.status,
-        statusText: response.statusText,
-        errorData,
-      });
       // RsData 형식: { resultCode, msg, data }
       throw new Error(errorData.msg || errorData.message || `이미지 업로드 실패 (${response.status})`);
     }
 
     const result = await response.json();
-    console.log('✅ 업로드 성공:', {
-      uploadedCount: result.data?.length || 0,
-      data: result.data,
-    });
     return result.data || [];
   } catch (error) {
-    console.error('💥 업로드 오류 상세:', {
-      errorType: error instanceof Error ? error.constructor.name : typeof error,
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-    });
 
     if (error instanceof TypeError && error.message === 'Failed to fetch') {
       throw new Error('서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.');
@@ -97,12 +82,8 @@ export async function createShorlog(payload: CreateShorlogRequest): Promise<any>
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.log('숏로그 생성 에러 응답:', errorData);
-
-      // RsData 형식: { resultCode, msg, data }
       const errorMessage = errorData.msg || errorData.message || errorData.error || `숏로그 생성 실패 (${response.status})`;
 
-      // 해시태그 관련 오류 감지 (400 에러이면서 해시태그 관련)
       if (
         response.status === 400 &&
         (errorMessage.toLowerCase().includes('해시태그') ||
@@ -144,13 +125,11 @@ export async function callAiApi(params: {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      // RsData 형식: { resultCode, msg, data }
       throw new Error(errorData.msg || errorData.message || `AI API 호출 실패 (${response.status})`);
     }
 
     const result = await response.json();
 
-    // 백엔드 응답 성공 여부 체크 (200-1 등의 성공 코드)
     if (!result.resultCode || !result.resultCode.startsWith('200')) {
       throw new Error(`AI API 오류: ${result.msg || '알 수 없는 오류'}`);
     }
@@ -163,8 +142,6 @@ export async function callAiApi(params: {
     throw error;
   }
 }
-
-// ========== 임시저장 API ==========
 
 export interface DraftData {
   content: string;
@@ -180,7 +157,6 @@ export interface DraftResponse {
   createdAt: string;
 }
 
-// 임시저장 목록 조회
 export async function getDrafts(): Promise<DraftResponse[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/draft`, {
@@ -190,7 +166,6 @@ export async function getDrafts(): Promise<DraftResponse[]> {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      // RsData 형식: { resultCode, msg, data }
       throw new Error(errorData.msg || errorData.message || `임시저장 조회 실패 (${response.status})`);
     }
 
@@ -204,7 +179,6 @@ export async function getDrafts(): Promise<DraftResponse[]> {
   }
 }
 
-// 임시저장 생성
 export async function createDraft(data: DraftData): Promise<DraftResponse> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/draft`, {
@@ -218,12 +192,8 @@ export async function createDraft(data: DraftData): Promise<DraftResponse> {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.log('임시저장 에러 응답:', errorData);
-
-      // RsData 형식: { resultCode, msg, data }
       const errorMessage = errorData.msg || errorData.message || errorData.error || `임시저장 실패 (${response.status})`;
 
-      // 해시태그 관련 오류 감지 (400 에러이면서 해시태그 관련)
       if (
         response.status === 400 &&
         (errorMessage.toLowerCase().includes('해시태그') ||
@@ -246,7 +216,6 @@ export async function createDraft(data: DraftData): Promise<DraftResponse> {
   }
 }
 
-// 임시저장 상세 조회
 export async function getDraft(id: number): Promise<DraftResponse> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/draft/${id}`, {
@@ -256,7 +225,6 @@ export async function getDraft(id: number): Promise<DraftResponse> {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      // RsData 형식: { resultCode, msg, data }
       throw new Error(errorData.msg || errorData.message || `임시저장 조회 실패 (${response.status})`);
     }
 
@@ -270,7 +238,6 @@ export async function getDraft(id: number): Promise<DraftResponse> {
   }
 }
 
-// 임시저장 삭제
 export async function deleteDraft(id: number): Promise<void> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/shorlog/draft/${id}`, {
@@ -280,7 +247,6 @@ export async function deleteDraft(id: number): Promise<void> {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      // RsData 형식: { resultCode, msg, data }
       throw new Error(errorData.msg || errorData.message || `임시저장 삭제 실패 (${response.status})`);
     }
   } catch (error) {

@@ -37,18 +37,16 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
     loadDrafts();
   }, []);
 
-  // 임시저장 목록 불러오기
   const loadDrafts = async () => {
     try {
       const draftList = await getDrafts();
       setDrafts(draftList);
 
-      // 임시저장이 있으면 모달 표시
       if (draftList.length > 0) {
         setShowDraftModal(true);
       }
     } catch (error) {
-      console.error('임시저장 목록 조회 실패:', error);
+      showGlobalToast('임시저장 목록을 불러오는데 실패했습니다.', 'error');
     }
   };
 
@@ -73,26 +71,23 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
     await shorlogCreate.handleSubmit(content, hashtag.hashtags);
   };
 
-  // 임시 저장 (Step 3의 버튼)
   const handleSaveDraft = async () => {
     try {
       setIsDraftLoading(true);
 
-      // 먼저 이미지 업로드
       if (shorlogCreate.images.length === 0) {
         showGlobalToast('최소 1개의 이미지가 필요합니다.', 'warning');
         setIsDraftLoading(false);
         return;
       }
 
-      // 5개 제한 확인
       if (drafts.length >= 5) {
         showGlobalToast(
           '임시저장이 5개로 가득 찼어요. 기존 임시저장을 삭제한 후 다시 시도해주세요.',
           'warning',
         );
         setIsDraftLoading(false);
-        setShowDraftModal(true); // 모달 열어서 삭제할 수 있게
+        setShowDraftModal(true);
         return;
       }
 
@@ -112,24 +107,20 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
       showGlobalToast('임시저장이 완료되었어요!', 'success');
       await loadDrafts();
     } catch (error) {
-      console.error('임시저장 실패:', error);
       showGlobalToast(error instanceof Error ? error.message : '임시저장에 실패했어요.', 'error');
     } finally {
       setIsDraftLoading(false);
     }
   };
 
-  // 임시저장 불러오기
   const handleLoadDraft = async (draftId: number) => {
     try {
       setIsDraftLoading(true);
       const draft = await getDraft(draftId);
 
-      // 내용과 해시태그 복원
       setContent(draft.content || '');
       hashtag.setHashtags(draft.hashtags || []);
 
-      // 기존 이미지를 LocalImage 형태로 변환 (모두 재업로드할 예정)
       if (draft.thumbnailUrls && draft.thumbnailUrls.length > 0) {
         const initialImages = draft.thumbnailUrls.map((url, index) => ({
           id: `existing-${index}`,
@@ -139,21 +130,18 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
           aspectRatio: 'ORIGINAL' as const,
         }));
         shorlogCreate.setImages(initialImages);
-        // Step 2로 이동 (이미지 편집 단계)
         shorlogCreate.goToStep(2);
       }
 
       showGlobalToast('임시저장 내용을 불러왔어요!', 'success');
       setShowDraftModal(false);
     } catch (error) {
-      console.error('임시저장 불러오기 실패:', error);
       showGlobalToast(error instanceof Error ? error.message : '불러오기에 실패했어요.', 'error');
     } finally {
       setIsDraftLoading(false);
     }
   };
 
-  // 임시저장 삭제
   const handleDeleteDraft = async (draftId: number) => {
     if (!confirm('이 임시저장을 삭제하시겠어요?')) {
       return;
@@ -165,14 +153,12 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
       showGlobalToast('임시저장을 삭제했습니다.', 'success');
       await loadDrafts();
     } catch (error) {
-      console.error('임시저장 삭제 실패:', error);
       showGlobalToast(error instanceof Error ? error.message : '삭제에 실패했어요.', 'error');
     } finally {
       setIsDraftLoading(false);
     }
   };
 
-  // AI 해시태그
   const handleAiHashtagClick = async () => {
     const result = await hashtag.handleAiHashtagClick(content);
     if (result.error) {
@@ -180,10 +166,8 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
     }
   };
 
-  // 블로그 → 숏로그 변환 상태
   const [isBlogConverting, setIsBlogConverting] = useState(false);
 
-  // 블로그 → 숏로그 변환
   const handleBlogToShorlogClick = async () => {
     if (!blogId) {
       showGlobalToast('연결된 블로그가 없습니다.', 'error');
@@ -195,7 +179,6 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
     try {
       setIsBlogConverting(true);
 
-      // 1. blogId로 해당 블로그 내용 조회
       const blogDetail = await fetchBlogDetail(blogId);
 
       if (!blogDetail.content || !blogDetail.content.trim()) {
@@ -203,26 +186,20 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
         return;
       }
 
-      // 2. 블로그 내용을 AI로 요약 (200-800자)
       const aiResponse = await generateAiContent({
         mode: 'summary',
         contentType: 'shorlog',
         content: blogDetail.content,
       });
 
-      console.log('AI 응답:', aiResponse); // 디버깅용
-
-      // 응답이 성공인지 확인 (백엔드는 200-1을 성공 코드로 사용)
       if (!aiResponse.resultCode || !aiResponse.resultCode.startsWith('200')) {
         throw new Error(`AI 서버 오류: ${aiResponse.msg || '알 수 없는 오류'}`);
       }
 
-      // data가 있는지 확인
       if (!aiResponse.data) {
         throw new Error('AI 응답에 데이터가 없습니다.');
       }
 
-      // summary 모드는 AiGenerateSingleResponse 형태로 data.result를 반환
       const singleResponse = aiResponse as AiGenerateSingleResponse;
       const summaryResult = singleResponse.data.result;
 
@@ -230,13 +207,9 @@ export default function ShorlogCreateWizard({ blogId }: ShorlogCreateWizardProps
         throw new Error('AI가 빈 요약을 반환했습니다.');
       }
 
-      // 3. 요약 결과를 content에 설정
       setContent(summaryResult.trim());
-
-      // 4. 사용자에게 성공 알림
       showGlobalToast('블로그 내용을 숏로그로 요약했어요!', 'success');
     } catch (error) {
-      console.error('블로그 → 숏로그 변환 실패:', error);
       const errorMessage =
         error instanceof Error ? error.message : '블로그를 숏로그로 변환하는데 실패했습니다.';
       showGlobalToast(errorMessage, 'error');

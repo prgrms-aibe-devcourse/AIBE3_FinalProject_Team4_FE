@@ -65,7 +65,6 @@ export function useShorlogCreate() {
       const data = await response.json();
       setRecentBlogs(data.data || []);
     } catch (e) {
-      console.error('최근 블로그 목록 조회 실패:', e);
       setRecentBlogs([]);
     } finally {
       setIsLoadingBlogs(false);
@@ -126,7 +125,6 @@ export function useShorlogCreate() {
       setUploadedImages(uploaded);
       goToStep(3);
     } catch (e) {
-      console.error(e);
       showGlobalToast(
         e instanceof Error
           ? e.message
@@ -138,7 +136,6 @@ export function useShorlogCreate() {
     }
   };
 
-  // 이미지만 업로드하는 메서드 (임시저장용)
   const uploadImages = async () => {
     if (!images.length) {
       throw new Error('편집할 이미지가 없습니다.');
