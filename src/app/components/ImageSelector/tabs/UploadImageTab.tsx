@@ -160,7 +160,7 @@ export default function UploadTab({
         >
           <UploadCloud className="w-10 h-10 mb-3 text-slate-400" />
           <p className="text-xs text-slate-600">이미지를 끌어오거나 클릭하여 업로드하세요</p>
-          <p className="mt-1 text-[11px] text-slate-400 text-center">
+          <p className="mt-1 mx-2 text-[11px] text-slate-400 text-center">
             JPG / JPEG / PNG / WEBP 형식의 이미지 파일을 업로드할 수 있어요. (최대 10MB)
           </p>
         </div>
@@ -168,11 +168,14 @@ export default function UploadTab({
         // 파일이 있을 때: 카드형 정보 박스
         <div
           className={`
-            relative flex items-center gap-4 rounded-xl border bg-white/80 px-5 py-4
-            backdrop-blur-sm transition cursor-pointer hover:bg-slate-50/60 hover:shadow-sm
-            ${isDragging ? 'border-main bg-main/10 ring-2 ring-main/20' : ''}
-            ${isSelected ? 'border-main border-[2px] bg-white shadow-sm' : 'border-slate-200'}
-          `}
+    relative flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4
+    rounded-xl border bg-white/80
+    px-3 py-3 sm:px-5 sm:py-4
+    backdrop-blur-sm transition cursor-pointer
+    hover:bg-slate-50/60 hover:shadow-sm
+    ${isDragging ? 'border-main bg-main/10 ring-2 ring-main/20' : ''}
+    ${isSelected ? 'border-main border-[2px] bg-white shadow-sm' : 'border-slate-200'}
+  `}
           onClick={handleFileClick}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -181,19 +184,18 @@ export default function UploadTab({
         >
           {/* 선택/삭제 아이콘 */}
           {isSelected ? (
-            <div className="absolute top-2.5 right-2.5 h-6 w-6 rounded-full bg-main flex items-center justify-center shadow-sm">
+            <div className="absolute top-2 right-2 h-6 w-6 rounded-full bg-main flex items-center justify-center shadow-sm">
               <Check className="w-4 h-4 text-white" />
             </div>
           ) : (
             <button
               onClick={handleRemoveFile}
               className="
-                absolute top-2.5 right-2.5
+                absolute top-2 right-2
                 inline-flex items-center justify-center
                 h-6 w-6 rounded-full
                 text-slate-400 hover:text-rose-500
-                hover:bg-rose-50    
-                transition
+                hover:bg-rose-50 transition
               "
               aria-label="파일 삭제"
               tabIndex={0}
@@ -203,25 +205,39 @@ export default function UploadTab({
           )}
 
           {/* 파일 아이콘 */}
-          <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-slate-50 border border-slate-100 flex-shrink-0">
-            <FileImage className="w-6 h-6 text-slate-400" />
+          <div
+            className="
+              flex items-center justify-center
+              w-10 h-10 sm:w-12 sm:h-12
+              rounded-lg bg-slate-50 border border-slate-100
+              flex-shrink-0
+            "
+          >
+            <FileImage className="w-5 h-5 sm:w-6 sm:h-6 text-slate-400" />
           </div>
 
           {/* 파일 정보 */}
-          <div className="flex-1 min-w-0 pr-6">
+          <div className="flex-1 min-w-0 pr-0 sm:pr-6 overflow-hidden">
             {uploadedFileUrl ? (
               <a
                 href={uploadedFileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-slate-900 truncate underline hover:text-main transition"
                 onClick={(e) => e.stopPropagation()}
+                className="
+                  block w-full min-w-0
+                  text-xs text-slate-900 underline hover:text-main transition
+                  break-all sm:truncate
+                "
               >
                 {uploadedFile.name}
               </a>
             ) : (
-              <div className="text-xs text-slate-900 truncate">{uploadedFile.name}</div>
+              <div className="block w-full min-w-0 text-xs text-slate-900 break-all sm:truncate">
+                {uploadedFile.name}
+              </div>
             )}
+
             <div className="mt-0.5 text-[11px] text-slate-500">
               {(uploadedFile.size / 1024).toFixed(2)} KB
             </div>

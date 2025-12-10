@@ -3,6 +3,8 @@ type TooltipAlign = 'left' | 'center' | 'right';
 
 type TooltipPosition = `${TooltipSide}-${TooltipAlign}`;
 
+type TooltipHover = 'group' | 'peer' | 'self' | 'none';
+
 interface TooltipProps {
   text: string;
   open?: boolean;
@@ -13,6 +15,8 @@ interface TooltipProps {
   className?: string;
   animationClass?: string;
   style?: React.CSSProperties;
+  hover?: TooltipHover;
+  hoverDelayMs?: number;
 }
 
 export default function Tooltip({
@@ -25,6 +29,8 @@ export default function Tooltip({
   className = 'bg-gray-700 text-white text-[12.5px] text-center font-light px-2 py-1 rounded-md border-none shadow',
   animationClass = '',
   style,
+  hover = 'group',
+  hoverDelayMs = 200,
 }: TooltipProps) {
   const [ps, pa] = position?.split('-') ?? [];
   const finalSide: TooltipSide =
@@ -57,11 +63,20 @@ export default function Tooltip({
 
   const finalPositionClass = positionClass ?? `${sideClass} ${alignClass}`;
 
+  const hoverVisibility =
+    hover === 'group'
+      ? `opacity-0 group-hover:opacity-100 group-hover:delay-[${hoverDelayMs}ms]`
+      : hover === 'peer'
+        ? `opacity-0 peer-hover:opacity-100 peer-hover:delay-[${hoverDelayMs}ms] peer-focus-visible:opacity-100`
+        : hover === 'self'
+          ? `opacity-0 hover:opacity-100 delay-[${hoverDelayMs}ms]`
+          : 'opacity-0'; // none
+
   const visibilityClass =
     open === undefined
-      ? `opacity-0 group-hover:opacity-100 group-hover:delay-200` // scale-95 group-hover:scale-100 추가 가능
+      ? hoverVisibility // scale-95 group-hover:scale-100 추가 가능
       : open
-        ? 'opacity-100 scale-100 delay-200'
+        ? `opacity-100 scale-100 delay-[${hoverDelayMs}ms]`
         : 'opacity-0 scale-90';
 
   const transitionClass =

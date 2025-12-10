@@ -242,44 +242,50 @@ export default function ImageSelector({
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    setCroppingImage(originalImage);
-                    setIsCropping(true);
-                  }}
-                  disabled={!selectedImage}
-                  className={`
-                    rounded-xl border px-3 py-1.5 text-xs transition flex items-center gap-1
-                    ${
-                      selectedImage
-                        ? 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                        : 'border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed opacity-60'
-                    }
-                  `}
-                >
-                  <Crop className="w-4 h-4 mr-1" />
-                  자르기
-                </button>
-                <div className="group relative">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex flex-nowrap items-center gap-2 max-[420px]:basis-full">
                   <button
-                    onClick={handleSubmit}
-                    disabled={!selectedImage || isSubmitting || isAlreadyThumbnailOriginal}
+                    onClick={() => {
+                      setCroppingImage(originalImage);
+                      setIsCropping(true);
+                    }}
+                    disabled={!selectedImage}
                     className={`
-                      rounded-xl px-3 py-1.5 text-xs text-white shadow-sm transition flex items-center gap-1
+                      rounded-xl border px-3 py-1.5 text-xs transition flex items-center gap-1
+                      whitespace-nowrap flex-shrink-0
                       ${
-                        selectedImage && !isSubmitting && !isAlreadyThumbnailOriginal
-                          ? 'bg-[#2979FF] hover:opacity-90'
-                          : 'bg-slate-300 cursor-not-allowed opacity-60'
+                        selectedImage
+                          ? 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                          : 'border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed opacity-60'
                       }
                     `}
                   >
-                    <CheckCircle className="w-4 h-4 mr-1" />
-                    {isSubmitting ? '적용 중...' : '적용하기'}
+                    <Crop className="w-4 h-4 mr-1" />
+                    자르기
                   </button>
-                  {isAlreadyThumbnailOriginal && (
-                    <Tooltip text="이미 썸네일로 등록된 이미지입니다" />
-                  )}
+
+                  <div className="group relative">
+                    <button
+                      onClick={handleSubmit}
+                      disabled={!selectedImage || isSubmitting || isAlreadyThumbnailOriginal}
+                      className={`
+                        rounded-xl px-3 py-1.5 text-xs text-white shadow-sm transition flex items-center gap-1
+                        whitespace-nowrap flex-shrink-0
+                        ${
+                          selectedImage && !isSubmitting && !isAlreadyThumbnailOriginal
+                            ? 'bg-[#2979FF] hover:opacity-90'
+                            : 'bg-slate-300 cursor-not-allowed opacity-60'
+                        }
+                      `}
+                    >
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      {isSubmitting ? '적용 중...' : '적용하기'}
+                    </button>
+
+                    {isAlreadyThumbnailOriginal && (
+                      <Tooltip text="이미 썸네일로 등록된 이미지입니다" />
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -289,25 +295,28 @@ export default function ImageSelector({
         {/* 탭 메뉴 */}
         <div className="flex w-full items-center gap-1 rounded-full bg-slate-100 p-1 text-xs">
           {[
-            { key: 'upload', label: '이미지 업로드' },
-            { key: 'blog', label: '블로그 이미지' },
-            { key: 'unsplash', label: '무료 이미지 (Unsplash)' },
-            { key: 'pixabay', label: '무료 이미지 (Pixabay)' },
+            { key: 'upload', full: '이미지 업로드', short: '업로드' },
+            { key: 'blog', full: '블로그 이미지', short: '블로그' },
+            { key: 'pixabay', full: '무료 이미지 (Pixabay)', short: 'Pixabay' },
+            { key: 'unsplash', full: '무료 이미지 (Unsplash)', short: 'Unsplash' },
           ].map((tab) => {
             const isActive = selectedTab === tab.key;
+
             return (
               <button
                 key={tab.key}
                 type="button"
                 onClick={() => setSelectedTab(tab.key as ImageSelectorTabType)}
                 className={[
-                  'flex-1 rounded-full px-3 py-1.5 font-medium transition truncate',
+                  'flex-1 min-w-0 shrink rounded-full px-2 sm:px-3 py-1.5 font-medium transition',
+                  'whitespace-nowrap truncate',
                   isActive
                     ? 'bg-white text-slate-700 shadow-sm'
                     : 'text-slate-500 hover:text-slate-700',
                 ].join(' ')}
               >
-                {tab.label}
+                <span className="hidden sm:inline">{tab.full}</span>
+                <span className="sm:hidden">{tab.short}</span>
               </button>
             );
           })}

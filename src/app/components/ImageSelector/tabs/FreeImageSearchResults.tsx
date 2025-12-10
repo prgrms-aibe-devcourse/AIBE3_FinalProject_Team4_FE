@@ -1,7 +1,7 @@
 import { getPixabayImages, getUnsplashImages } from '@/src/api/blogImageApi';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { AlertCircle, Check, Info, SearchSlash } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 const PAGE_SIZE = 20;
 const MAX_IMAGES = 200;
@@ -24,6 +24,27 @@ export default function FreeImageSearchResults({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const selectedImageRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState<number>(0);
+
+  useLayoutEffect(() => {
+    if (!scrollContainerRef.current) return;
+
+    const el = scrollContainerRef.current;
+
+    const update = () => setContainerWidth(el.clientWidth);
+    update();
+
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+
+    return () => ro.disconnect();
+  }, []);
+
+  const columnCount = useMemo(() => {
+    if (containerWidth < 520) return 2; // 작은 화면 2
+    if (containerWidth < 900) return 3; // 대부분 노트북/태블릿 3
+    return 4; // 매우 넓으면 4
+  }, [containerWidth]);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, error } =
     useInfiniteQuery({
@@ -99,7 +120,6 @@ export default function FreeImageSearchResults({
     return columns;
   }
 
-  const columnCount = 3;
   const columns = distributeMasonry(images, columnCount);
 
   // 검색어가 변경되면 실패한 이미지 목록 초기화 및 스크롤을 맨 위로
