@@ -25,12 +25,6 @@ export const guestMenu: MenuItem[] = [
   { icon: Users, label: '추천 계정', href: '/creators' },
   { icon: PlusSquare, label: '작성', href: '/create-content' },
   { icon: User, label: '프로필', href: '/profile' },
-  // 알림 메뉴 (조건부 alert)
-  {
-    icon: Bell,
-    label: '알림',
-    href: '/notifications',
-  },
   { icon: MoreHorizontal, label: '더보기', href: '' },
 ];
 
