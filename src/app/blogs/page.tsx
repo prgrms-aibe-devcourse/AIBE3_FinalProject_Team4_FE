@@ -17,11 +17,5 @@ async function fetchBlogs(sort: BlogSortType = 'LATEST'): Promise<BlogSummary[]>
 export default async function BlogsPage() {
   const initialBlogs = await fetchBlogs('LATEST');
 
-  return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 via-sky-50/40 to-slate-50">
-      <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8 pb-16 pt-10">
-        <BlogListClient initialBlogs={initialBlogs} />
-      </div>
-    </main>
-  );
+  return <BlogListClient initialBlogs={initialBlogs} />;
 }

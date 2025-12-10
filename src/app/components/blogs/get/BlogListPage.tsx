@@ -68,19 +68,21 @@ export function BlogListClient({ initialBlogs }: Props) {
       setLoading(false);
     }
   }
-  
+
   useEffect(() => {
     loadBlogs();
   }, [sortType, keyword, scope]);
 
   return (
     <section className="space-y-8">
-      <header className="mb-6 space-y-4 md:mb-8">
+      <header className="mb-6  md:mb-8">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-600">BLOG FEED</p>
 
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">블로그</h1>
+        <h1 className="mt-2 text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
+          블로그
+        </h1>
 
-        <p className="max-w-2xl text-sm text-slate-500 md:text-base">
+        <p className="mt-3 text-sm md:text-base text-slate-500">
           길게 남기고 싶은 생각과 기록을 자유롭게 공유해 보세요. 연결된 짧은 글로 흐름을 느껴
           보세요.
         </p>
