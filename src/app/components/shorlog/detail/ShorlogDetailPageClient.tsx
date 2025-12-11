@@ -68,19 +68,19 @@ function HighlightedContent({ content, progress }: { content: string; progress: 
     <p className="whitespace-pre-line text-[15px] md:text-base leading-relaxed text-slate-800">
       {fadeStartLength > 0 && (
         <span
-          className="bg-blue-50 transition-all duration-500 ease-out"
+          className="bg-blue-50 transition-all duration-100 ease-out"
           style={{ willChange: 'background-color' }}
         >
           {alreadyRead}
         </span>
       )}
       <span
-        className="bg-gradient-to-r from-blue-100 to-blue-200 transition-all duration-200 ease-linear"
+        className="bg-gradient-to-r from-blue-100 to-blue-200 transition-all duration-75 ease-linear"
         style={{ willChange: 'background-color' }}
       >
         {currentlyReading}
       </span>
-      <span className="transition-all duration-200 ease-out">{remaining}</span>
+      <span className="transition-all duration-100 ease-out">{remaining}</span>
     </p>
   );
 }

@@ -261,7 +261,7 @@ export class TtsWebSpeech {
           if (speechSynthesis.speaking || speechSynthesis.pending) {
             speechSynthesis.cancel();
           }
-        }, 50);
+        }, 10);
       } catch (error) {
         this.onError?.('음성 정지에 실패했습니다.');
       }
