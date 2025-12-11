@@ -1,17 +1,19 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Props {
   children: React.ReactNode;
-  /** 배경 클릭 / ESC 누를 때 호출되는 훅 (없으면 바로 닫기) */
   onRequestClose?: () => void;
 }
 
 export default function ShorlogDetailModalWrapper({ children, onRequestClose }: Props) {
   const router = useRouter();
   const initialPathRef = useRef<string | null>(null);
+  const originalOverflowRef = useRef<string>('');
+  const isClosingRef = useRef(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     if (initialPathRef.current === null && typeof window !== 'undefined') {
@@ -21,19 +23,37 @@ export default function ShorlogDetailModalWrapper({ children, onRequestClose }: 
         initialPathRef.current = savedInitialPath;
       }
     }
-
   }, []);
 
   const closeModal = () => {
-    if (initialPathRef.current) {
+    if (isClosingRef.current) return;
+    isClosingRef.current = true;
+
+    setIsVisible(false);
+
+    document.body.style.overflow = originalOverflowRef.current || '';
+
+    sessionStorage.setItem('shorlog_modal_closing', 'true');
+
+    setTimeout(() => {
+      const returnPath = initialPathRef.current || '/shorlog/feed';
       sessionStorage.removeItem('shorlog_modal_initial_path');
-      router.replace(initialPathRef.current);
-    } else {
-      router.back();
-    }
+      sessionStorage.removeItem('shorlog_feed_ids');
+      sessionStorage.removeItem('shorlog_current_index');
+      
+      router.push(returnPath);
+
+      setTimeout(() => {
+        sessionStorage.removeItem('shorlog_modal_closing');
+      }, 100);
+    }, 200);
   };
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && sessionStorage.getItem('shorlog_modal_closing') === 'true') {
+      return;
+    }
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         if (onRequestClose) {
@@ -46,12 +66,14 @@ export default function ShorlogDetailModalWrapper({ children, onRequestClose }: 
 
     window.addEventListener('keydown', handleKeyDown);
 
-    const originalOverflow = document.body.style.overflow;
+    originalOverflowRef.current = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = originalOverflow;
+      if (!isClosingRef.current) {
+        document.body.style.overflow = originalOverflowRef.current || '';
+      }
     };
   }, [onRequestClose]);
 
@@ -62,22 +84,32 @@ export default function ShorlogDetailModalWrapper({ children, onRequestClose }: 
       closeModal();
     }
   };
+  
+  if (!isVisible) {
+    return null;
+  }
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center"
+      className="fixed inset-0 z-[70] flex items-center justify-center transition-opacity duration-200"
       role="dialog"
       aria-modal="true"
       data-scroll-locked="true"
+      style={{ opacity: isVisible ? 1 : 0 }}
     >
       <div
-        className="absolute inset-0 bg-black/55"
+        className="absolute inset-0 bg-black/55 transition-opacity duration-200"
         onClick={handleOverlayClick}
+        style={{ opacity: isVisible ? 1 : 0 }}
       />
 
       <div
-        className="relative flex h-[90vh] sm:h-[85vh] md:h-[82vh] w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-[1200px] px-2 py-3 sm:px-4 sm:py-4 md:px-6 md:py-5 lg:px-8"
+        className="relative flex h-[90vh] sm:h-[85vh] md:h-[82vh] w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-[1200px] px-2 py-3 sm:px-4 sm:py-4 md:px-6 md:py-5 lg:px-8 transition-all duration-200"
         onClick={(e) => e.stopPropagation()}
+        style={{
+          opacity: isVisible ? 1 : 0,
+          transform: isVisible ? 'scale(1)' : 'scale(0.95)'
+        }}
       >
         {children}
       </div>
