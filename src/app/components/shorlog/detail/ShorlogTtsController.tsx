@@ -6,12 +6,13 @@ import { useTts } from './useTts';
 interface Props {
   shorlogId: number;
   content: string;
-  progress: number; // 호환성을 위해 유지
-  setProgress: React.Dispatch<React.SetStateAction<number>>; // 호환성을 위해 유지
+  progress: number;
+  setProgress: React.Dispatch<React.SetStateAction<number>>;
+  setTtsMode?: (mode: 'none' | 'ai' | 'web') => void;
 }
 
 // 기존 스타일을 유지하면서 토큰 표시만 추가한 TTS 컨트롤러
-export default function ShorlogTtsController({ shorlogId, content, progress, setProgress }: Props) {
+export default function ShorlogTtsController({ shorlogId, content, progress, setProgress, setTtsMode }: Props) {
   const {
     tokens,
     mode,
@@ -26,12 +27,17 @@ export default function ShorlogTtsController({ shorlogId, content, progress, set
     download,
   } = useTts({ shorlogId, content });
 
-  // useTts의 진행률을 부모 컴포넌트와 동기화
   useEffect(() => {
     if (ttsProgress !== progress) {
       setProgress(ttsProgress);
     }
   }, [ttsProgress, progress, setProgress]);
+
+  useEffect(() => {
+    if (setTtsMode) {
+      setTtsMode(mode);
+    }
+  }, [mode, setTtsMode]);
 
   const handleTogglePlay = () => {
     togglePlay();

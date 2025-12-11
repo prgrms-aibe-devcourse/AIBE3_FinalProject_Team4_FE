@@ -22,7 +22,7 @@ interface Props {
   hideNavArrows?: boolean;
 }
 
-function HighlightedContent({ content, progress }: { content: string; progress: number }) {
+function HighlightedContent({ content, progress, ttsMode }: { content: string; progress: number; ttsMode: 'none' | 'ai' | 'web' }) {
   if (!content || typeof content !== 'string') {
     return <p className="text-sm leading-relaxed text-slate-400">아직 내용이 없습니다.</p>;
   }
@@ -31,6 +31,14 @@ function HighlightedContent({ content, progress }: { content: string; progress: 
 
   if (totalLength === 0) {
     return <p className="text-sm leading-relaxed text-slate-400">아직 내용이 없습니다.</p>;
+  }
+
+  if (ttsMode === 'web') {
+    return (
+      <p className="whitespace-pre-line text-[15px] md:text-base leading-relaxed text-slate-800">
+        {content}
+      </p>
+    );
   }
 
   const clamped = Math.max(0, Math.min(progress, 1));
@@ -68,19 +76,19 @@ function HighlightedContent({ content, progress }: { content: string; progress: 
     <p className="whitespace-pre-line text-[15px] md:text-base leading-relaxed text-slate-800">
       {fadeStartLength > 0 && (
         <span
-          className="bg-blue-50 transition-all duration-100 ease-out"
+          className="bg-blue-50 transition-all duration-150 ease-out"
           style={{ willChange: 'background-color' }}
         >
           {alreadyRead}
         </span>
       )}
       <span
-        className="bg-gradient-to-r from-blue-100 to-blue-200 transition-all duration-75 ease-linear"
+        className="bg-gradient-to-r from-blue-100 to-blue-200 transition-all duration-100 ease-linear"
         style={{ willChange: 'background-color' }}
       >
         {currentlyReading}
       </span>
-      <span className="transition-all duration-100 ease-out">{remaining}</span>
+      <span className="transition-all duration-150 ease-out">{remaining}</span>
     </p>
   );
 }
@@ -248,6 +256,7 @@ export default function ShorlogDetailPageClient({
   }
 
   const [ttsProgress, setTtsProgress] = useState(0);
+  const [ttsMode, setTtsMode] = useState<'none' | 'ai' | 'web'>('none');
   const [linkedBlogs, setLinkedBlogs] = useState<LinkedBlogDetail[]>([]);
   const [linkedBlogCount, setLinkedBlogCount] = useState(0);
   const [showLinkedBlogsModal, setShowLinkedBlogsModal] = useState(false);
@@ -341,7 +350,7 @@ export default function ShorlogDetailPageClient({
 
           <div className="flex flex-1 flex-col overflow-y-auto px-3 sm:px-4 md:px-5 pb-4 md:pb-5 pt-3 md:pt-4">
             <section aria-label="숏로그 내용">
-              <HighlightedContent content={detail.content} progress={ttsProgress} />
+              <HighlightedContent content={detail.content} progress={ttsProgress} ttsMode={ttsMode} />
 
               {detail.hashtags && detail.hashtags.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -399,6 +408,7 @@ export default function ShorlogDetailPageClient({
                 content={detail.content}
                 progress={ttsProgress}
                 setProgress={setTtsProgress}
+                setTtsMode={setTtsMode}
               />
             </section>
 

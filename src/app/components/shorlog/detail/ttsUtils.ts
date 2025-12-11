@@ -214,7 +214,14 @@ export class TtsWebSpeech {
         try {
           this.isPaused = true;
           this.onPause?.();
+
           speechSynthesis.pause();
+
+          setTimeout(() => {
+            if (speechSynthesis.speaking && !speechSynthesis.paused) {
+              speechSynthesis.pause();
+            }
+          }, 0);
         } catch (error) {
           this.onError?.('일시정지에 실패했습니다.');
         }
