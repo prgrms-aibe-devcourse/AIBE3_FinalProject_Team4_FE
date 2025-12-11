@@ -7,6 +7,9 @@ import ShorlogFilterTabs from './ShorlogFilterTabs';
 import ShorlogSortButton from './ShorlogSortButton';
 import LoadingSpinner from '../../common/LoadingSpinner';
 import ShorlogCard from './ShorlogCard';
+import { fetchMe } from '@/src/api/user';
+import { showGlobalToast } from '@/src/lib/toastStore';
+import { useLoginModal } from '@/src/providers/LoginModalProvider';
 
 export type ShorlogFilter = "all" | "following";
 export type ShorlogSort = "recommend" | null;
@@ -68,8 +71,31 @@ async function fetchShorlogFeed(filter: ShorlogFilter, sort: ShorlogSort, page: 
 export default function ShorlogFeedPageClient() {
   const [filter, setFilter] = useState<ShorlogFilter>('all');
   const [sort, setSort] = useState<ShorlogSort>('recommend');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { open: openLoginModal } = useLoginModal();
 
-  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = useInfiniteQuery({
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        await fetchMe();
+        setIsLoggedIn(true);
+      } catch {
+        setIsLoggedIn(false);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const handleFilterChange = (next: ShorlogFilter) => {
+    if (next === 'following' && !isLoggedIn) {
+      showGlobalToast('팔로잉 피드는 로그인 후 이용할 수 있어요.', 'warning');
+      openLoginModal();
+      return;
+    }
+    setFilter(next);
+  };
+
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ['shorlog-feed', filter, sort],
     queryFn: ({ pageParam }) => fetchShorlogFeed(filter, sort, pageParam as number),
     initialPageParam: 0,
@@ -94,14 +120,12 @@ export default function ShorlogFeedPageClient() {
   return (
     <section aria-label="숏 피드">
       <div className="flex items-center justify-between">
-        <ShorlogFilterTabs value={filter} onChange={setFilter} />
+        <ShorlogFilterTabs value={filter} onChange={handleFilterChange} />
         {filter === 'all' && <ShorlogSortButton value={sort} onChange={setSort} />}
       </div>
 
       <div className="mt-4 md:mt-6">
-        {isError ? (
-          <ErrorState onRetry={refetch} />
-        ) : isEmpty && !isLoading ? (
+        {isEmpty && !isLoading ? (
           <EmptyState />
         ) : (
           <>
@@ -140,22 +164,6 @@ export default function ShorlogFeedPageClient() {
   );
 }
 
-
-function ErrorState({ onRetry }: { onRetry: () => void }) {
-  return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-rose-100 bg-rose-50/40 px-4 py-10 text-center">
-      <p className="text-sm font-medium text-rose-700">숏로그를 불러오는 중 문제가 발생했어요.</p>
-      <p className="mt-1 text-xs text-rose-500">네트워크 상태를 확인하시고 다시 시도해 주세요.</p>
-      <button
-        type="button"
-        onClick={onRetry}
-        className="mt-4 inline-flex items-center rounded-full bg-rose-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-rose-50"
-      >
-        다시 시도
-      </button>
-    </div>
-  );
-}
 
 function EmptyState() {
   return (
