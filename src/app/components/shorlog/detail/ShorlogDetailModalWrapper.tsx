@@ -29,18 +29,23 @@ export default function ShorlogDetailModalWrapper({ children, onRequestClose }: 
     if (isClosingRef.current) return;
     isClosingRef.current = true;
 
-    setIsVisible(false);
+    sessionStorage.setItem('shorlog_modal_closing', 'true');
 
     document.body.style.overflow = originalOverflowRef.current || '';
 
+    setIsVisible(false);
+
+    // 세션 스토리지 정리
     const returnPath = initialPathRef.current || '/shorlog/feed';
     sessionStorage.removeItem('shorlog_modal_initial_path');
     sessionStorage.removeItem('shorlog_feed_ids');
     sessionStorage.removeItem('shorlog_current_index');
 
+    router.replace(returnPath);
+
     setTimeout(() => {
-      router.replace(returnPath);
-    }, 200);
+      sessionStorage.removeItem('shorlog_modal_closing');
+    }, 300);
   };
 
   useEffect(() => {
@@ -76,30 +81,25 @@ export default function ShorlogDetailModalWrapper({ children, onRequestClose }: 
     }
   };
 
+  if (!isVisible) {
+    return null;
+  }
+
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center transition-opacity duration-200"
+      className="fixed inset-0 z-[70] flex items-center justify-center"
       role="dialog"
       aria-modal="true"
       data-scroll-locked="true"
-      style={{
-        opacity: isVisible ? 1 : 0,
-        pointerEvents: isVisible ? 'auto' : 'none'
-      }}
     >
       <div
-        className="absolute inset-0 bg-black/55 transition-opacity duration-200"
+        className="absolute inset-0 bg-black/55"
         onClick={handleOverlayClick}
-        style={{ opacity: isVisible ? 1 : 0 }}
       />
 
       <div
-        className="relative flex h-[90vh] sm:h-[85vh] md:h-[82vh] w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-[1200px] px-2 py-3 sm:px-4 sm:py-4 md:px-6 md:py-5 lg:px-8 transition-all duration-200"
+        className="relative flex h-[90vh] sm:h-[85vh] md:h-[82vh] w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-[1200px] px-2 py-3 sm:px-4 sm:py-4 md:px-6 md:py-5 lg:px-8"
         onClick={(e) => e.stopPropagation()}
-        style={{
-          opacity: isVisible ? 1 : 0,
-          transform: isVisible ? 'scale(1)' : 'scale(0.95)'
-        }}
       >
         {children}
       </div>
