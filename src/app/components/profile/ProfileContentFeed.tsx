@@ -55,6 +55,9 @@ export function ShorlogCardProfile({
       sessionStorage.setItem('shorlog_current_index', index.toString());
       sessionStorage.setItem('shorlog_source', 'profile');
       sessionStorage.setItem('shorlog_profile_user_id', profileUserId);
+
+      const currentPath = window.location.pathname + window.location.search;
+      sessionStorage.setItem('shorlog_modal_initial_path', currentPath);
     }
   };
 

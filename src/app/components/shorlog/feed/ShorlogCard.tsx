@@ -23,6 +23,9 @@ export default function ShorlogCard({ item, index, allItems }: ShorlogCardProps)
       const feedIds = allItems.map(item => item.id);
       sessionStorage.setItem('shorlog_feed_ids', JSON.stringify(feedIds));
       sessionStorage.setItem('shorlog_current_index', index.toString());
+
+      const currentPath = window.location.pathname + window.location.search;
+      sessionStorage.setItem('shorlog_modal_initial_path', currentPath);
     }
   };
 

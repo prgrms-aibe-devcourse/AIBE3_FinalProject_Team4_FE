@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Props {
@@ -11,9 +11,26 @@ interface Props {
 
 export default function ShorlogDetailModalWrapper({ children, onRequestClose }: Props) {
   const router = useRouter();
+  const initialPathRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (initialPathRef.current === null && typeof window !== 'undefined') {
+      const savedInitialPath = sessionStorage.getItem('shorlog_modal_initial_path');
+
+      if (savedInitialPath) {
+        initialPathRef.current = savedInitialPath;
+      }
+    }
+
+  }, []);
 
   const closeModal = () => {
-    router.back();
+    if (initialPathRef.current) {
+      sessionStorage.removeItem('shorlog_modal_initial_path');
+      router.replace(initialPathRef.current);
+    } else {
+      router.back();
+    }
   };
 
   useEffect(() => {
