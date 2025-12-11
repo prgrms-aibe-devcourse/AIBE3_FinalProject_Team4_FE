@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 export default function ProfileLayout({
   children,
-  modal
+  modal,
 }: {
   children: ReactNode;
   modal: ReactNode;
@@ -14,4 +14,3 @@ export default function ProfileLayout({
     </>
   );
 }
-

@@ -22,7 +22,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const isMyPage = currentUserId === id;
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-sky-50/40 to-slate-50">
       <div className="flex">
         <main className="flex-1 min-h-screen">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8">
