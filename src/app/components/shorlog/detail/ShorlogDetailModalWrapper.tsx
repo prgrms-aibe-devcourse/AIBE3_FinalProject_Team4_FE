@@ -33,26 +33,17 @@ export default function ShorlogDetailModalWrapper({ children, onRequestClose }: 
 
     document.body.style.overflow = originalOverflowRef.current || '';
 
-    sessionStorage.setItem('shorlog_modal_closing', 'true');
+    const returnPath = initialPathRef.current || '/shorlog/feed';
+    sessionStorage.removeItem('shorlog_modal_initial_path');
+    sessionStorage.removeItem('shorlog_feed_ids');
+    sessionStorage.removeItem('shorlog_current_index');
 
     setTimeout(() => {
-      const returnPath = initialPathRef.current || '/shorlog/feed';
-      sessionStorage.removeItem('shorlog_modal_initial_path');
-      sessionStorage.removeItem('shorlog_feed_ids');
-      sessionStorage.removeItem('shorlog_current_index');
-      
-      router.push(returnPath);
-
-      setTimeout(() => {
-        sessionStorage.removeItem('shorlog_modal_closing');
-      }, 100);
+      router.replace(returnPath);
     }, 200);
   };
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && sessionStorage.getItem('shorlog_modal_closing') === 'true') {
-      return;
-    }
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -84,10 +75,6 @@ export default function ShorlogDetailModalWrapper({ children, onRequestClose }: 
       closeModal();
     }
   };
-  
-  if (!isVisible) {
-    return null;
-  }
 
   return (
     <div
@@ -95,7 +82,10 @@ export default function ShorlogDetailModalWrapper({ children, onRequestClose }: 
       role="dialog"
       aria-modal="true"
       data-scroll-locked="true"
-      style={{ opacity: isVisible ? 1 : 0 }}
+      style={{
+        opacity: isVisible ? 1 : 0,
+        pointerEvents: isVisible ? 'auto' : 'none'
+      }}
     >
       <div
         className="absolute inset-0 bg-black/55 transition-opacity duration-200"
