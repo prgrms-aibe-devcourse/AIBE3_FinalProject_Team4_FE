@@ -7,6 +7,7 @@ import { fetchMe } from '@/src/api/user';
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import LoadingSpinner from '@/src/app/components/common/LoadingSpinner';
+import { useEffect, useState } from 'react';
 
 async function fetchShorlogDetail(id: string): Promise<ShorlogDetail> {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
@@ -48,18 +49,34 @@ async function fetchShorlogDetail(id: string): Promise<ShorlogDetail> {
 export default function ProfileShorlogModalPage() {
   const params = useParams();
   const shorlogId = String(params.shorlogId);
-  
+  const [isClosing, setIsClosing] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const closing = sessionStorage.getItem('profile_modal_closing');
+      if (closing === 'true') {
+        setIsClosing(true);
+      }
+    }
+  }, []);
+
   const { data: detail, isLoading, error } = useQuery({
     queryKey: ['shorlog-detail', shorlogId],
     queryFn: () => fetchShorlogDetail(shorlogId),
-    staleTime: 0, // 항상 최신 데이터 확인
+    staleTime: 0,
   });
 
   const { data: me } = useQuery({
     queryKey: ['user-me'],
     queryFn: () => fetchMe().catch(() => null),
-    staleTime: 5 * 60 * 1000, // 5분간 캐시
+    staleTime: 5 * 60 * 1000, 
+    enabled: !isClosing,
   });
+
+
+  if (isClosing) {
+    return null;
+  }
 
   if (isLoading) {
     return (

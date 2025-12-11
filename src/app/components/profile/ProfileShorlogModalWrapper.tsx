@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface Props {
   children: React.ReactNode;
@@ -9,9 +9,25 @@ interface Props {
 
 export default function ProfileShorlogModalWrapper({ children }: Props) {
   const router = useRouter();
+  const originalOverflowRef = useRef<string>('');
+  const isClosingRef = useRef(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   const closeModal = () => {
+    if (isClosingRef.current) return;
+    isClosingRef.current = true;
+
+    sessionStorage.setItem('profile_modal_closing', 'true');
+
+    document.body.style.overflow = originalOverflowRef.current || '';
+
+    setIsVisible(false);
+
     router.back();
+
+    setTimeout(() => {
+      sessionStorage.removeItem('profile_modal_closing');
+    }, 300);
   };
 
   useEffect(() => {
@@ -23,18 +39,24 @@ export default function ProfileShorlogModalWrapper({ children }: Props) {
 
     window.addEventListener('keydown', handleKeyDown);
 
-    const originalOverflow = document.body.style.overflow;
+    originalOverflowRef.current = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = originalOverflow;
+      if (!isClosingRef.current) {
+        document.body.style.overflow = originalOverflowRef.current || '';
+      }
     };
   }, []);
 
   const handleOverlayClick = () => {
     closeModal();
   };
+
+  if (!isVisible) {
+    return null;
+  }
 
   return (
     <div
