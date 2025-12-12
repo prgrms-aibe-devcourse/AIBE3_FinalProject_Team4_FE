@@ -109,8 +109,10 @@ export default function NewThreadModal({
       >
         <div className="flex items-center justify-between gap-3 border-b border-slate-200/70 px-4 py-3">
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold tracking-[0.22em] text-[#2979FF]">NEW THREAD</p>
-            <h2 className="mt-0.5 truncate text-base font-bold text-slate-900">{title}</h2>
+            <h2 className="truncate text-base font-bold text-slate-900">{title}</h2>
+            <span className="truncate text-[12px] text-slate-500">
+              팔로잉 중인 사용자와만 새 대화를 시작할 수 있어요.
+            </span>
           </div>
 
           <button
@@ -132,7 +134,7 @@ export default function NewThreadModal({
               ref={inputRef}
               value={query}
               onChange={(e) => onQueryChange(e.target.value)}
-              placeholder="팔로잉 검색"
+              placeholder="팔로잉한 사용자 검색"
               className="w-full bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
             />
           </div>
@@ -152,7 +154,7 @@ export default function NewThreadModal({
           ) : filtered.length === 0 ? (
             <div className="px-3 py-8 text-center">
               <p className="text-sm font-semibold text-slate-900">검색 결과가 없어요</p>
-              <p className="mt-1 text-xs text-slate-500">다른 키워드로 다시 검색해보세요.</p>
+              {/* <p className="mt-1 text-xs text-slate-500">다른 키워드로 다시 검색해보세요.</p> */}
             </div>
           ) : (
             <ul className="space-y-1 px-2 pb-2">
@@ -193,7 +195,9 @@ export default function NewThreadModal({
         </div>
 
         <div className="border-t border-slate-200/70 px-4 py-2">
-          <p className="text-[11px] text-slate-400">ESC로 닫기</p>
+          <p className="mt-1 text-xs text-slate-500">
+            새로운 사용자와 대화하려면 프로필에서 메시지를 보내주세요.
+          </p>{' '}
         </div>
       </div>
     </div>
