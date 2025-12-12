@@ -8,6 +8,10 @@ export default function NotificationItem({ n }: { n: any }) {
   /** 알림 클릭 시 redirectUrl 이동 */
   const goToRedirect = () => {
     if (n.redirectUrl) {
+      // 숏로그 모달로 이동하는 경우, 현재 페이지를 저장
+      if (n.redirectUrl.includes('/shorlog/')) {
+        sessionStorage.setItem('shorlog_modal_initial_path', window.location.pathname);
+      }
       router.push(n.redirectUrl);
     }
   };

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Props {
@@ -13,7 +13,6 @@ export default function ShorlogDetailModalWrapper({ children, onRequestClose }: 
   const initialPathRef = useRef<string | null>(null);
   const originalOverflowRef = useRef<string>('');
   const isClosingRef = useRef(false);
-  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     if (initialPathRef.current === null && typeof window !== 'undefined') {
@@ -29,24 +28,16 @@ export default function ShorlogDetailModalWrapper({ children, onRequestClose }: 
     if (isClosingRef.current) return;
     isClosingRef.current = true;
 
-    setIsVisible(false);
+    // 즉시 body 스크롤 복원
+    document.body.style.overflow = originalOverflowRef.current || '';
 
-    setTimeout(() => {
-      document.body.style.overflow = originalOverflowRef.current || '';
+    // 세션 스토리지 정리
+    sessionStorage.removeItem('shorlog_modal_initial_path');
+    sessionStorage.removeItem('shorlog_feed_ids');
+    sessionStorage.removeItem('shorlog_current_index');
 
-      const savedPath = sessionStorage.getItem('shorlog_modal_initial_path');
-      sessionStorage.removeItem('shorlog_modal_initial_path');
-      sessionStorage.removeItem('shorlog_feed_ids');
-      sessionStorage.removeItem('shorlog_current_index');
-
-      const returnPath = initialPathRef.current || savedPath;
-
-      if (returnPath) {
-        router.back();
-      } else {
-        router.replace('/shorlog/feed');
-      }
-    }, 150);
+    // 즉시 뒤로가기 실행
+    router.back();
   };
 
   useEffect(() => {
@@ -82,15 +73,9 @@ export default function ShorlogDetailModalWrapper({ children, onRequestClose }: 
     }
   };
 
-  if (!isVisible) {
-    return null;
-  }
-
   return (
     <div
-      className={`fixed inset-0 z-[70] flex items-center justify-center transition-opacity duration-150 ${
-        isVisible ? 'opacity-100' : 'opacity-0'
-      }`}
+      className="fixed inset-0 z-[70] flex items-center justify-center"
       role="dialog"
       aria-modal="true"
       data-scroll-locked="true"

@@ -53,6 +53,7 @@ export default function ShorlogModalPage() {
   const [me, setMe] = useState<{ id: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<Error | null>(null);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -66,13 +67,11 @@ export default function ShorlogModalPage() {
         if (!cancelled) {
           setDetail(shorlogData);
           setMe(meData);
+          setLoading(false);
         }
       } catch (e: any) {
         if (!cancelled) {
           setLoadError(e);
-        }
-      } finally {
-        if (!cancelled) {
           setLoading(false);
         }
       }
@@ -85,10 +84,9 @@ export default function ShorlogModalPage() {
     };
   }, [shorlogId]);
 
-
   return (
     <ShorlogDetailModalWrapper>
-      {loading && !detail ? (
+      {loading ? (
         <div className="flex h-full w-full items-center justify-center">
           <LoadingSpinner label="숏로그를 불러오는 중입니다" />
         </div>

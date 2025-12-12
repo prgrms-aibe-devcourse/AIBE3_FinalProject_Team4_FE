@@ -71,8 +71,18 @@ export default function BlogDetailClient({
     if (fromShorlogId && typeof window !== 'undefined') {
       // 숏로그로 돌아갈 경로를 세션 스토리지에 저장
       sessionStorage.setItem('shorlog_modal_initial_path', window.location.pathname);
+
+      // 연결된 숏로그 정보 새로고침
+      fetchLinkedShorlogs(blog.id)
+        .then((list) => {
+          setHasLinkedShorlogs(list.length > 0);
+          setLinkedShorlogCount(list.length);
+        })
+        .catch(() => {
+          // 에러는 조용히 무시
+        });
     }
-  }, [searchParams]);
+  }, [searchParams, blog.id]);
 
   // 조회수 증가
   useEffect(() => {
