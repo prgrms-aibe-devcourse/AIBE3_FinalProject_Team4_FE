@@ -29,39 +29,24 @@ export default function ShorlogDetailModalWrapper({ children, onRequestClose }: 
     if (isClosingRef.current) return;
     isClosingRef.current = true;
 
-    sessionStorage.setItem('shorlog_modal_closing', 'true');
-
-    document.body.style.overflow = originalOverflowRef.current || '';
-
     setIsVisible(false);
 
-    // 돌아갈 경로 결정
-    let returnPath = '/shorlog/feed'; // 기본값
-
-    // 1순위: initialPathRef에 저장된 경로 (블로그 등에서 직접 열었을 때)
-    if (initialPathRef.current) {
-      returnPath = initialPathRef.current;
-    }
-    // 2순위: 세션 스토리지에 저장된 초기 경로
-    else if (typeof window !== 'undefined') {
-      const savedPath = sessionStorage.getItem('shorlog_modal_initial_path');
-      if (savedPath) {
-        returnPath = savedPath;
-      }
-    }
-
-    // 세션 스토리지 정리
-    sessionStorage.removeItem('shorlog_modal_initial_path');
-    sessionStorage.removeItem('shorlog_feed_ids');
-    sessionStorage.removeItem('shorlog_current_index');
-    // 블로그에서 숏로그로 왔다가 돌아가는 경우를 위해 이 값은 유지
-    // sessionStorage.removeItem('blog_return_to_shorlog');
-
-    router.replace(returnPath);
-
     setTimeout(() => {
-      sessionStorage.removeItem('shorlog_modal_closing');
-    }, 300);
+      document.body.style.overflow = originalOverflowRef.current || '';
+
+      const savedPath = sessionStorage.getItem('shorlog_modal_initial_path');
+      sessionStorage.removeItem('shorlog_modal_initial_path');
+      sessionStorage.removeItem('shorlog_feed_ids');
+      sessionStorage.removeItem('shorlog_current_index');
+
+      const returnPath = initialPathRef.current || savedPath;
+
+      if (returnPath) {
+        router.back();
+      } else {
+        router.replace('/shorlog/feed');
+      }
+    }, 150);
   };
 
   useEffect(() => {
@@ -103,7 +88,9 @@ export default function ShorlogDetailModalWrapper({ children, onRequestClose }: 
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center"
+      className={`fixed inset-0 z-[70] flex items-center justify-center transition-opacity duration-150 ${
+        isVisible ? 'opacity-100' : 'opacity-0'
+      }`}
       role="dialog"
       aria-modal="true"
       data-scroll-locked="true"
