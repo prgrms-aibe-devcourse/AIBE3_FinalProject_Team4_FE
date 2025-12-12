@@ -35,11 +35,27 @@ export default function ShorlogDetailModalWrapper({ children, onRequestClose }: 
 
     setIsVisible(false);
 
+    // 돌아갈 경로 결정
+    let returnPath = '/shorlog/feed'; // 기본값
+
+    // 1순위: initialPathRef에 저장된 경로 (블로그 등에서 직접 열었을 때)
+    if (initialPathRef.current) {
+      returnPath = initialPathRef.current;
+    }
+    // 2순위: 세션 스토리지에 저장된 초기 경로
+    else if (typeof window !== 'undefined') {
+      const savedPath = sessionStorage.getItem('shorlog_modal_initial_path');
+      if (savedPath) {
+        returnPath = savedPath;
+      }
+    }
+
     // 세션 스토리지 정리
-    const returnPath = initialPathRef.current || '/shorlog/feed';
     sessionStorage.removeItem('shorlog_modal_initial_path');
     sessionStorage.removeItem('shorlog_feed_ids');
     sessionStorage.removeItem('shorlog_current_index');
+    // 블로그에서 숏로그로 왔다가 돌아가는 경우를 위해 이 값은 유지
+    // sessionStorage.removeItem('blog_return_to_shorlog');
 
     router.replace(returnPath);
 

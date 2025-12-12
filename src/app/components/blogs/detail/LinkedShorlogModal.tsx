@@ -67,6 +67,11 @@ export function LinkedShorlogListModal({
               >
                 <div
                   onClick={() => {
+                    // 현재 블로그 페이지로 돌아올 수 있도록 세션 스토리지에 저장
+                    if (typeof window !== 'undefined') {
+                      const currentPath = window.location.pathname;
+                      sessionStorage.setItem('shorlog_modal_initial_path', currentPath);
+                    }
                     onClose();
                     router.push(`/shorlog/${item.shorlogId}`);
                   }}

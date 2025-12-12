@@ -21,6 +21,7 @@ import type {
 } from '@/src/types/blog';
 import { useMutation } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import BlogConnectShorlogModal from '../link/BlogConnectShorlogModal';
 import { MarkdownViewer } from '../write/MarkdownViewer';
 import BlogCommentSection from './BlogCommentSection';
@@ -42,6 +43,7 @@ export default function BlogDetailClient({
   onDelete,
   onEdit,
 }: Props) {
+  const searchParams = useSearchParams();
   const [blog, setBlog] = useState<BlogDetailDto>(initialData);
   // 리액션 상태
   const [viewCount, setViewCount] = useState(initialData.viewCount ?? 0);
@@ -62,6 +64,16 @@ export default function BlogDetailClient({
   );
   const [linkedShorlogCount, setLinkedShorlogCount] = useState(initialData.linkedShorlogCount ?? 0);
   const [shareOpen, setShareOpen] = useState(false);
+
+  // 숏로그에서 블로그로 돌아온 경우 처리
+  useEffect(() => {
+    const fromShorlogId = searchParams.get('fromShorlog');
+    if (fromShorlogId && typeof window !== 'undefined') {
+      // 숏로그로 돌아갈 경로를 세션 스토리지에 저장
+      sessionStorage.setItem('shorlog_modal_initial_path', window.location.pathname);
+    }
+  }, [searchParams]);
+
   // 조회수 증가
   useEffect(() => {
     let cancelled = false;
@@ -71,7 +83,7 @@ export default function BlogDetailClient({
           setViewCount(dto.viewCount);
         }
       })
-      .catch((e) => {});
+      .catch(() => {});
 
     return () => {
       cancelled = true;
@@ -129,6 +141,12 @@ export default function BlogDetailClient({
   // 연결된 숏로그
   const handleOpenLinkedShorlogs = async () => {
     if (!hasLinkedShorlogs) return;
+
+    // 현재 블로그 페이지로 돌아올 수 있도록 세션 스토리지에 저장
+    if (typeof window !== 'undefined') {
+      const currentPath = window.location.pathname;
+      sessionStorage.setItem('shorlog_modal_initial_path', currentPath);
+    }
 
     try {
       setLinkedOpen(true);

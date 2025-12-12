@@ -93,7 +93,8 @@ export function LinkedBlogListModal({
                 key={item.id}
                 onClick={() => {
                   onClose();
-                  router.push(`/blogs/${item.id}`);
+                  // 블로그에서 다시 숏로그로 돌아올 수 있도록 쿼리 파라미터에 숏로그 ID 추가
+                  router.push(`/blogs/${item.id}?fromShorlog=${shorlogId}`);
                 }}
                 className="group cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-4 py-3
                   text-xs text-slate-700 shadow-sm hover:bg-blue-50 hover:border-blue-300
