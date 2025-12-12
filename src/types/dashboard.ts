@@ -1,3 +1,15 @@
+export interface DailyViews30dItem {
+  date: string; // "YYYY-MM-DD"
+  blogViews: number;
+  shorlogViews: number;
+}
+
+export type DailyView = {
+  date: string; // "2025-12-13"
+  blogViews: number;
+  shorlogViews: number;
+};
+
 export interface CreatorOverview {
   periodDays: number;
 
@@ -20,4 +32,7 @@ export interface CreatorOverview {
   likesChangeRate: number | null;
   bookmarksChangeRate: number | null;
   followersChangeRate: number | null;
+
+  // ✅ 추가
+  dailyViews30d: DailyView[];
 }
