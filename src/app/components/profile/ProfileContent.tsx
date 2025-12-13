@@ -107,11 +107,11 @@ export default function ProfileContent({ userId, isMyPage }: ProfileContentProps
                   : 'border-transparent text-slate-500'
               }`}
             >
-              대시보드
+              통계
             </button>
           </div>
 
-          {(primaryTab === 'mine' ) && (
+          {primaryTab === 'mine' && (
             <div className="mb-1">
               <SortButtons sortKey={sortKey} setSortKey={setSortKey} />
             </div>

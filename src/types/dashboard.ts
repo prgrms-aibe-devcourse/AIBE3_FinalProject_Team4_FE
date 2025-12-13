@@ -16,6 +16,7 @@ export interface CreatorOverview {
   totalViews: number;
   totalLikes: number;
   totalBookmarks: number;
+  totalComments: number;
   followerCount: number;
 
   periodViews: number;
