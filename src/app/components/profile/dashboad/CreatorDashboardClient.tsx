@@ -3,261 +3,468 @@
 import { getCreatorOverview } from '@/src/api/dashboadOverview';
 import { showGlobalToast } from '@/src/lib/toastStore';
 import type { CreatorOverview } from '@/src/types/dashboard';
-import {
-  ArrowDownRight,
-  ArrowUpRight,
-  Bookmark,
-  Eye,
-  Heart,
-  MessageCircle,
-  Users,
-} from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Bookmark, Eye, Heart, MessageCircle, Users } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import LoadingSpinner from '../../common/LoadingSpinner';
 
-const PERIOD_OPTIONS = [
-  { key: 7, label: '최근 7일' },
-  { key: 30, label: '최근 30일' },
-  { key: 90, label: '최근 90일' },
+type StatMode = 'TOTAL' | 7 | 30;
+
+const STAT_OPTIONS: { key: StatMode; label: string }[] = [
+  { key: 'TOTAL', label: '전체' },
+  { key: 7, label: '주간' },
+  { key: 30, label: '월간' },
 ];
 
 export default function CreatorDashboardClient() {
-  const [period, setPeriod] = useState<number>(7);
-  const [data, setData] = useState<CreatorOverview | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [statMode, setStatMode] = useState<StatMode>('TOTAL');
 
-  const load = async (days: number) => {
+  // ✅ 기본(30일) 데이터: 그래프(30일 고정) + 월간 period 값까지 담당
+  const [data, setData] = useState<CreatorOverview | null>(null);
+
+  // ✅ 주간(7일) 전용 period 값용 데이터 (TOTAL용 total*도 들어있긴 하지만 TOTAL은 data 기준으로만 씀)
+  const [weekData, setWeekData] = useState<CreatorOverview | null>(null);
+
+  const [loading, setLoading] = useState(true); // 최초 로딩(30일)
+  const [weekLoading, setWeekLoading] = useState(false); // ✅ 주간 버튼 눌렀을 때만 별도 로딩
+
+  useEffect(() => {
+    load30();
+  }, []);
+
+  // ✅ 주간(7일) 선택 시에만 추가 호출 (캐시처럼 1번만)
+  useEffect(() => {
+    if (statMode !== 7) return;
+    if (weekData) return; // 이미 받아왔으면 재호출 안 함
+    load7();
+  }, [statMode, weekData]);
+
+  const load30 = async () => {
     try {
       setLoading(true);
-      setError(null);
-      const res = await getCreatorOverview(days);
+      const res = await getCreatorOverview(30);
       setData(res);
-    } catch (e: any) {
+    } catch (e) {
       console.error(e);
-      setError(e?.message ?? '대시보드 데이터를 불러오지 못했습니다.');
-      showGlobalToast('대시보드 데이터를 불러오지 못했습니다.', 'error');
+      showGlobalToast('통계 데이터를 불러오지 못했습니다.', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    load(period);
-  }, [period]);
+  const load7 = async () => {
+    try {
+      setWeekLoading(true);
+      const res = await getCreatorOverview(7);
+      setWeekData(res);
+    } catch (e) {
+      console.error(e);
+      showGlobalToast('주간 통계 데이터를 불러오지 못했습니다.', 'error');
+    } finally {
+      setWeekLoading(false);
+    }
+  };
 
-  const effectivePeriod = data?.periodDays ?? period;
+  /* 30일 그래프 요약 인사이트 */
+  const chartInsights = useMemo(() => {
+    if (!data?.dailyViews30d?.length) return null;
+
+    const total = data.dailyViews30d.reduce((sum, d) => sum + d.blogViews + d.shorlogViews, 0);
+    const avg = Math.round(total / data.dailyViews30d.length);
+
+    const peak = data.dailyViews30d.reduce(
+      (max, d) => {
+        const t = d.blogViews + d.shorlogViews;
+        return t > max.total ? { date: d.date, total: t } : max;
+      },
+      { date: data.dailyViews30d[0].date, total: 0 },
+    );
+
+    const start = data.dailyViews30d[0].date;
+    const end = data.dailyViews30d[data.dailyViews30d.length - 1].date;
+
+    return { total, avg, peak, start, end };
+  }, [data]);
+
+  const rightStatValues = useMemo(() => {
+    if (!data) return null;
+
+    if (statMode === 'TOTAL') {
+      return {
+        views: data.totalViews,
+        likes: data.totalLikes,
+        bookmarks: data.totalBookmarks,
+        comments: data.totalComments,
+        followersAdded: data.followerCount,
+      };
+    }
+
+    if (statMode === 7) {
+      if (!weekData) return null;
+      return {
+        views: weekData.periodViews,
+        likes: weekData.periodLikes,
+        bookmarks: weekData.periodBookmarks,
+        comments: weekData.periodComments,
+        followersAdded: weekData.periodFollowers,
+      };
+    }
+
+    // statMode === 30
+    return {
+      views: data.periodViews,
+      likes: data.periodLikes,
+      bookmarks: data.periodBookmarks,
+      comments: data.periodComments,
+      followersAdded: data.periodFollowers,
+    };
+  }, [data, weekData, statMode]);
+
+  const todayYesterday = useMemo(() => {
+    const rows = data?.dailyViews30d ?? [];
+    if (!rows.length) {
+      return { today: 0, yesterday: 0, todayLabel: '오늘', yesterdayLabel: '어제' };
+    }
+
+    const last = rows[rows.length - 1];
+    const prev = rows.length >= 2 ? rows[rows.length - 2] : null;
+
+    const todayTotal = (last?.blogViews ?? 0) + (last?.shorlogViews ?? 0);
+    const yesterdayTotal = prev ? (prev.blogViews ?? 0) + (prev.shorlogViews ?? 0) : 0;
+
+    return {
+      today: todayTotal,
+      yesterday: yesterdayTotal,
+      todayLabel: toMMDD(last.date),
+      yesterdayLabel: prev ? toMMDD(prev.date) : '전일',
+    };
+  }, [data]);
+
+  const chartData = useMemo(() => {
+    if (!data?.dailyViews30d?.length) return [];
+    return data.dailyViews30d.map((d, i, arr) => ({
+      dateLabel: formatXAxis(d.date, i, arr),
+      rawDate: d.date,
+      blog: d.blogViews,
+      shorlog: d.shorlogViews,
+      total: d.blogViews + d.shorlogViews,
+    }));
+  }, [data]);
+
+  const recentViewsStatus = useMemo(() => {
+    const today = todayYesterday.today ?? 0;
+    const yesterday = todayYesterday.yesterday ?? 0;
+
+    if (yesterday === 0 && today === 0) {
+      return {
+        tone: 'neutral' as const,
+        title: '데이터가 아직 충분하지 않아요',
+      };
+    }
+    if (yesterday === 0 && today > 0) {
+      return {
+        tone: 'up' as const,
+        title: '오늘부터 반응이 시작됐어요',
+      };
+    }
+
+    const ratio = today / Math.max(1, yesterday);
+
+    if (ratio >= 1.25) {
+      return {
+        tone: 'up' as const,
+        title: '어제보다 반응이 눈에 띄게 좋아요',
+      };
+    }
+    if (ratio <= 0.85) {
+      return {
+        tone: 'down' as const,
+        title: '오늘은 반응이 다소 조용해요',
+      };
+    }
+    return {
+      tone: 'neutral' as const,
+      title: '어제와 비슷한 조회 흐름이에요',
+    };
+  }, [todayYesterday]);
 
   return (
-    <section className="space-y-8">
-      {/* 상단 헤더 */}
+    <section className="space-y-10">
+      {/*  상단 통계 */}
       <header className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            {/* <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-600">
-              CREATOR DASHBOARD
-            </p>
-            <h3 className="mt-2 text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
-              크리에이터 대시보드
-            </h3> */}
-            <p className="mt-2 text-sm font-semibold  text-[#1f5ecc]">
-              내 숏로그·블로그의 조회/반응/팔로워 흐름을 한눈에 확인해 보세요.
-            </p>
+        {loading && (
+          <div className="py-10 flex justify-center">
+            <LoadingSpinner label="통계를 불러오는 중입니다" />
           </div>
+        )}
 
-          {/* 기간 선택 */}
-          <div className="inline-flex items-center rounded-full bg-slate-100 p-0.5 text-[12px]">
-            {PERIOD_OPTIONS.map((opt) => (
-              <button
-                key={opt.key}
-                type="button"
-                onClick={() => setPeriod(opt.key)}
+        {!loading && data && (
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+            {/* 좌: 어제/오늘 조회수 (필터 영향 X) */}
+            <section className="lg:col-span-5 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-slate-900">최근 조회수</h3>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <MiniStat
+                  label="어제"
+                  subLabel={todayYesterday.yesterdayLabel}
+                  value={todayYesterday.yesterday}
+                />
+                <MiniStat
+                  label="오늘"
+                  subLabel={todayYesterday.todayLabel}
+                  value={todayYesterday.today}
+                  highlight
+                />
+              </div>
+
+              <div
                 className={[
-                  'min-w-[80px] rounded-full px-3 py-1.5 transition-all',
-                  period === opt.key
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-800',
+                  'mt-4 rounded-xl px-3 py-2 text-[12px] ring-1',
+                  recentViewsStatus.tone === 'up'
+                    ? 'bg-sky-50 text-sky-900 ring-sky-100'
+                    : recentViewsStatus.tone === 'down'
+                      ? 'bg-slate-50 text-slate-700 ring-slate-200'
+                      : 'bg-slate-50 text-slate-700 ring-slate-200',
                 ].join(' ')}
               >
-                {opt.label}
-              </button>
-            ))}
+                <div className="rounded-xl text-[12px] text-slate-600">
+                  {recentViewsStatus.title}
+                </div>
+              </div>
+            </section>
+
+            {/* 우: 조회수/좋아요/북마크/댓글 */}
+            <section className="lg:col-span-7 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900">반응 통계</h3>
+                  <p className="mt-1 text-[11px] text-slate-500">
+                    적용 기준:{' '}
+                    <b className="text-slate-700">
+                      {statMode === 'TOTAL'
+                        ? '전체 누적'
+                        : statMode === 7
+                          ? '최근 7일'
+                          : '최근 30일'}
+                    </b>
+                  </p>
+                </div>
+
+                <div className="inline-flex rounded-full bg-slate-100 p-0.5 text-[12px]">
+                  {STAT_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => setStatMode(opt.key)}
+                      className={[
+                        'px-4 py-1.5 rounded-full transition',
+                        statMode === opt.key
+                          ? 'bg-white shadow text-slate-900'
+                          : 'text-slate-500 hover:text-slate-800',
+                      ].join(' ')}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* ✅ 주간(7일) 첫 진입 시 weekLoading 동안만 우측 영역에서 “값” 대신 로딩 */}
+              {statMode === 7 && weekLoading && (
+                <div className="mt-6 flex justify-center py-6">
+                  <LoadingSpinner label="주간 통계를 불러오는 중입니다" />
+                </div>
+              )}
+
+              {!(statMode === 7 && weekLoading) && rightStatValues && (
+                <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
+                  <CompactStat
+                    label="조회수"
+                    value={rightStatValues.views}
+                    icon={<Eye className="h-4 w-4" />}
+                    compact
+                  />
+                  <CompactStat
+                    label="좋아요"
+                    value={rightStatValues.likes}
+                    icon={<Heart className="h-4 w-4" />}
+                    compact
+                  />
+                  <CompactStat
+                    label="북마크"
+                    value={rightStatValues.bookmarks}
+                    icon={<Bookmark className="h-4 w-4" />}
+                    compact
+                  />
+                  <CompactStat
+                    label="댓글"
+                    value={rightStatValues.comments}
+                    icon={<MessageCircle className="h-4 w-4" />}
+                    compact
+                  />
+                  <CompactStat
+                    label="팔로워"
+                    value={rightStatValues.followersAdded}
+                    icon={<Users className="h-4 w-4" />}
+                    compact
+                  />
+                </div>
+              )}
+            </section>
           </div>
-        </div>
+        )}
       </header>
 
-      {/* 로딩/에러 상태 */}
-      {loading && !data && (
-        <div className="flex justify-center py-16">
-          <LoadingSpinner label="대시보드 데이터를 불러오는 중입니다" />
-        </div>
-      )}
-
-      {error && !data && (
-        <div className="rounded-2xl border border-dashed border-rose-100 bg-rose-50/50 p-6 text-center text-sm text-rose-600">
-          {error}
-        </div>
-      )}
-
+      {/* 하단 그래프 (30일 고정)*/}
       {!loading && data && (
-        <>
-          {/* 전체 통계 */}
-          <section className="space-y-4">
-            <h2 className="text-base font-semibold text-slate-900">전체 통계</h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <StatCard
-                icon={<Eye className="h-5 w-5 text-sky-500" />}
-                label="전체 조회수"
-                value={data.totalViews}
-              />
-              <StatCard
-                icon={<Heart className="h-5 w-5 text-rose-500" />}
-                label="전체 좋아요"
-                value={data.totalLikes}
-              />
-              <StatCard
-                icon={<Bookmark className="h-5 w-5 text-amber-500" />}
-                label="전체 북마크"
-                value={data.totalBookmarks}
-              />
-              <StatCard
-                icon={<Users className="h-5 w-5 text-emerald-500" />}
-                label="전체 팔로워"
-                value={data.followerCount}
-              />
-            </div>
-          </section>
+        <section className="space-y-3">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-slate-900">최근 30일 조회수 현황</h3>
+              </div>
 
-          {/* 최근 N일 활동 */}
-          <section className="space-y-4">
-            <h2 className="text-base font-semibold text-slate-900">
-              최근 {effectivePeriod}일 활동
-            </h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <StatCard
-                icon={<Heart className="h-5 w-5 text-rose-500" />}
-                label="좋아요"
-                value={data.periodLikes}
-                subLabel={`전체의 ${data.likeRate.toFixed(1)}%`}
-                changeRate={data.likesChangeRate}
-              />
-              <StatCard
-                icon={<Bookmark className="h-5 w-5 text-amber-500" />}
-                label="북마크"
-                value={data.periodBookmarks}
-                subLabel={`전체의 ${data.bookmarkRate.toFixed(1)}%`}
-                changeRate={data.bookmarksChangeRate}
-              />
-              <StatCard
-                icon={<MessageCircle className="h-5 w-5 text-sky-500" />}
-                label="댓글"
-                value={data.periodComments}
-                subLabel={`최근 ${effectivePeriod}일 동안`}
-              />
-              <StatCard
-                icon={<Users className="h-5 w-5 text-emerald-500" />}
-                label="새 팔로워"
-                value={data.periodFollowers}
-                subLabel="전체 팔로워 기준"
-                changeRate={data.followersChangeRate}
-              />
-            </div>
-          </section>
-
-          {/* 하단: 성과 요약 + 성장 팁 */}
-          <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {/* 성과 요약 */}
-            <div className="rounded-2xl border border-slate-100 bg-white/80 p-4 sm:p-5 shadow-sm">
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-50 text-sky-500">
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                </span>
-                성과 요약
-              </h3>
-              <dl className="mt-4 space-y-3 text-sm">
-                <Row label="평균 좋아요율">{data.likeRate.toFixed(1)}%</Row>
-                <Row label="평균 북마크율">{data.bookmarkRate.toFixed(1)}%</Row>
-                <Row label="팔로워당 조회수">{data.viewsPerFollower.toFixed(1)}</Row>
-              </dl>
+              {chartInsights && (
+                <p className="text-[12px] text-slate-500">
+                  총 {chartInsights.total.toLocaleString()}회{' · '}
+                  일평균 {chartInsights.avg.toLocaleString()}회{' · '}
+                  피크 {formatISOToMMDD(chartInsights.peak.date)} (
+                  {chartInsights.peak.total.toLocaleString()}회)
+                </p>
+              )}
             </div>
 
-            {/* 성장 팁 */}
-            <div className="rounded-2xl border border-sky-100  bg-gradient-to-br from-[#EAF3FF]  to-[#F5F9FF] p-4 sm:p-5 shadow-sm">
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-#EAF3FF text-indigo-600">
-                  💡
-                </span>
-                성장 팁
-              </h3>
-              <ul className="mt-4 space-y-2 text-xs sm:text-sm text-slate-600">
-                <li>• 일정한 주기로 콘텐츠를 발행해 팔로워와의 접점을 유지해 보세요.</li>
-                <li>• 댓글에 성실히 답변해 커뮤니티를 활성화해 보세요.</li>
-                <li>• 반응이 좋은 해시태그/주제를 분석해 비슷한 콘텐츠를 더 만들어 보세요.</li>
-              </ul>
+            <div className="flex items-center gap-3 text-[12px] text-slate-500">
+              <LegendDot color="#3B82F6" label="숏로그" />
+              <LegendDot color="#7DD3FC" label="블로그" />
             </div>
-          </section>
-        </>
+          </div>
+
+          <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+            {data?.dailyViews30d?.length ? (
+              <div className="h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={data.dailyViews30d.map((d, i, arr) => ({
+                      label: formatXAxis(d.date, i, arr),
+                      blog: d.blogViews,
+                      shorlog: d.shorlogViews,
+                    }))}
+                    margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="label" fontSize={12} tickMargin={8} />
+                    <YAxis fontSize={12} tickMargin={8} />
+                    <Tooltip
+                      formatter={(v: any, n: any) => [
+                        Number(v).toLocaleString(),
+                        n === 'blog' ? '블로그' : '숏로그',
+                      ]}
+                    />
+                    <Bar dataKey="shorlog" stackId="a" barSize={16} fill="#3B82F6" />
+                    <Bar dataKey="blog" stackId="a" barSize={16} fill="#7DD3FC" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="py-10 text-center text-sm text-slate-500">
+                최근 30일 조회수 데이터가 없습니다.
+              </div>
+            )}
+          </div>
+        </section>
       )}
     </section>
   );
 }
 
-/* 재사용 카드/부가 컴포넌트  */
+function MiniStat({
+  label,
+  subLabel,
+  value,
+  highlight,
+}: {
+  label: string;
+  subLabel?: string;
+  value: number;
+  highlight?: boolean;
+}) {
+  return (
+    <div
+      className={[
+        'rounded-2xl p-4 ring-1',
+        highlight ? 'bg-sky-50 ring-sky-100' : 'bg-white ring-slate-100',
+      ].join(' ')}
+    >
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-xs font-medium text-slate-700">{label}</span>
+        {subLabel && <span className="text-[11px] text-slate-400">{subLabel}</span>}
+      </div>
+      <div className="mt-2 text-2xl font-semibold text-slate-900">{formatNumber(value)}</div>
+    </div>
+  );
+}
 
-type StatCardProps = {
+function CompactStat({
+  icon,
+  label,
+  value,
+  compact,
+}: {
   icon: React.ReactNode;
   label: string;
   value: number;
-  subLabel?: string;
-  changeRate?: number | null;
-};
-
-function StatCard({ icon, label, value, subLabel, changeRate }: StatCardProps) {
+  compact?: boolean;
+}) {
   return (
-    <div className="flex flex-col justify-between rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 px-4 py-4 sm:px-5 sm:py-5">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-50">
-            {icon}
-          </div>
-          <span className="text-xs font-medium text-slate-500">{label}</span>
-        </div>
-        {typeof changeRate === 'number' && <TrendBadge value={changeRate} />}
-      </div>
-
-      <div className="mt-4">
-        <p className="text-2xl font-semibold tracking-tight text-slate-900">
-          {formatNumber(value)}
-        </p>
-        {subLabel && <p className="mt-1 text-[11px] text-slate-400">{subLabel}</p>}
-      </div>
-    </div>
-  );
-}
-
-function TrendBadge({ value }: { value: number }) {
-  const isUp = value >= 0;
-  const display = Math.abs(value).toFixed(1);
-
-  return (
-    <span
-      className={[
-        'inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-medium',
-        isUp ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600',
-      ].join(' ')}
+    <div
+      className={['rounded-2xl bg-white ring-1 ring-slate-100', compact ? 'p-3' : 'p-4'].join(' ')}
     >
-      {isUp ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-      {display}%
-    </span>
+      <div className="flex items-center gap-2 text-xs text-slate-500">
+        <span
+          className={[
+            'flex items-center justify-center rounded-lg bg-slate-50',
+            compact ? 'h-7 w-7' : 'h-8 w-8',
+          ].join(' ')}
+        >
+          {icon}
+        </span>
+        <span className={compact ? 'text-[11px]' : 'text-xs'}>{label}</span>
+      </div>
+      <p
+        className={['mt-3 font-semibold text-slate-900', compact ? 'text-xl' : 'text-2xl'].join(
+          ' ',
+        )}
+      >
+        {formatNumber(value)}
+      </p>
+    </div>
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
   return (
-    <div className="flex items-center justify-between gap-4">
-      <dt className="text-xs text-slate-500">{label}</dt>
-      <dd className="text-sm font-medium text-slate-900">{children}</dd>
+    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
+      <div className="flex items-center gap-2 text-xs text-slate-500">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50">
+          {icon}
+        </span>
+        {label}
+      </div>
+      <p className="mt-3 text-2xl font-semibold text-slate-900">{formatNumber(value)}</p>
     </div>
+  );
+}
+
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
+      {label}
+    </span>
   );
 }
 
@@ -266,4 +473,26 @@ function formatNumber(value: number): string {
     return (value / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
   }
   return value.toLocaleString();
+}
+
+function formatXAxis(dateStr: string, index: number, arr: { date: string }[]) {
+  const [, m, d] = dateStr.split('-').map(Number);
+
+  if (index === 0) return `${m}/${d}`;
+
+  const [, pm] = arr[index - 1].date.split('-').map(Number);
+  if (pm !== m) return `${m}/${d}`;
+
+  return `${d}`;
+}
+
+function formatISOToMMDD(dateStr: string) {
+  const [, m, d] = dateStr.split('-');
+  return `${Number(m)}/${Number(d)}`;
+}
+
+function toMMDD(dateStr: string) {
+  const [, m, d] = dateStr.split('-').map(Number);
+  if (!m || !d) return dateStr;
+  return `${m}/${d}`;
 }
