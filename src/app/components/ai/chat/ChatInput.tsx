@@ -44,6 +44,8 @@ export default function ChatInput({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const isAnswering = aiChat.isStreaming;
 
+  const MAX_MESSAGE_LENGTH = 1000;
+
   const submit = useCallback(() => {
     if (!message.trim()) return;
     onSend(message);
@@ -104,7 +106,12 @@ export default function ChatInput({
             id="ai-input"
             ref={textareaRef}
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value.length <= MAX_MESSAGE_LENGTH) {
+                setMessage(value);
+              }
+            }}
             rows={1}
             placeholder={isModelDisabled ? '모델 사용 불가' : '블로그 작성 도움받기'}
             className="w-full min-h-[40px] max-h-[190px] resize-none bg-transparent outline-none text-sm placeholder:text-slate-400 placeholder:text-sm leading-relaxed overflow-y-auto"
