@@ -17,7 +17,6 @@ interface AIChatBodyProps {
   addMessage: (msg: Message) => void;
   onSend: (text: string) => void;
   onStop: () => void;
-  waitingFirstToken: boolean;
   aiChat: ReturnType<typeof useAiChatStreamMutation>;
   blogTitle?: string;
 }
@@ -29,7 +28,6 @@ export default function AIChatBody({
   addMessage,
   onSend,
   onStop,
-  waitingFirstToken,
   aiChat,
   blogTitle,
 }: AIChatBodyProps) {
@@ -67,12 +65,13 @@ export default function AIChatBody({
           const text = msg.text;
           // AI 응답 중 여부: 마지막 메시지가 AI이고, aiChat.isStreaming이 true, 그리고 현재 메시지가 마지막 AI 메시지일 때
           const isAiResponding = aiChat?.isStreaming && i === messages.length - 1;
+
           return (
             <div key={msg.id} className="group">
               {isUser ? (
                 <ChatBubble role={msg.role} text={text} />
               ) : (
-                <ChatBubble role={msg.role}>
+                <ChatBubble role={msg.role} isThinking={msg.status === 'thinking'}>
                   <MarkdownViewer markdown={text} />
                 </ChatBubble>
               )}
@@ -87,13 +86,6 @@ export default function AIChatBody({
             </div>
           );
         })}
-        {waitingFirstToken && (
-          <ChatBubble role="ai">
-            <div className="text-sm text-slate-400 flex items-center gap-2 animate-pulse">
-              <span>생각 중...</span>
-            </div>
-          </ChatBubble>
-        )}
       </div>
       {/* 입력 영역 */}
       <ChatInput

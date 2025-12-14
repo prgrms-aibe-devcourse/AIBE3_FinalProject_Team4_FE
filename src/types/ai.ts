@@ -80,14 +80,13 @@ export interface UserMessage extends BaseMessage {
   model: ModelOptionValue; // 사용자가 선택한 모델
 }
 
+export type AiMessageStatus = 'thinking' | 'streaming' | 'cancelled' | 'done' | 'error';
+
 export interface AiMessage extends BaseMessage {
   role: 'ai';
   model: ModelOptionValue; // 응답 모델 표시용 (ex: GPT-4o-mini)
+  status?: AiMessageStatus;
   feedback?: Feedback; // 좋아요/싫어요 등
 }
 
-export interface SystemMessage extends BaseMessage {
-  role: 'system';
-}
-
-export type ChatMessage = UserMessage | AiMessage | SystemMessage;
+export type ChatMessage = UserMessage | AiMessage;

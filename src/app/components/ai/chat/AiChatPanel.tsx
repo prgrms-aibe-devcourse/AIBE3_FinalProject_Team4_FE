@@ -34,7 +34,6 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
 
   // 채팅 메시지 상태 (user/ai 모두)
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [waitingFirstToken, setWaitingFirstToken] = useState(false);
 
   // 모델 옵션/선택값/변경함수 상태를 여기서 관리
   const [modelOptions, setModelOptions] = useState<ModelOption[]>(DEFAULT_OPTIONS);
@@ -118,19 +117,20 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
     setMessages((prev) => [...prev, msg]);
   };
 
-  function isAbortError(e: unknown) {
-    return e instanceof DOMException && e.name === 'AbortError';
-  }
+  const isAbortError = (e: unknown) => e instanceof DOMException && e.name === 'AbortError';
 
   const aiChat = useAiChatStreamMutation({
     onChunk: (chunk) => {
-      setWaitingFirstToken(false);
-
       setMessages((prev) => {
         const last = prev[prev.length - 1];
+        if (!last) return prev;
 
         if (last?.role === 'ai') {
-          return [...prev.slice(0, -1), { ...last, text: last.text + chunk }];
+          const isThinking = last.status === 'thinking';
+          return [
+            ...prev.slice(0, -1),
+            { ...last, text: isThinking ? chunk : last.text + chunk, status: 'streaming' },
+          ];
         }
         if (last?.role === 'user') {
           return [...prev, { id: Date.now(), role: 'ai', text: chunk, model: last.model }];
@@ -148,12 +148,8 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
     onError: (e) => {
       // 사용자가 stop 한 경우 → 아무 것도 하지 않음
       if (isAbortError(e)) {
-        setWaitingFirstToken(false);
         return;
       }
-
-      // 생각 중 해제
-      setWaitingFirstToken(false);
 
       let errorText = '죄송해요. 😢\n\n응답을 생성하는 중 문제가 발생했어요.';
 
@@ -179,6 +175,7 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
             {
               ...last,
               text: errorText,
+              status: 'error',
             },
           ];
         }
@@ -191,19 +188,38 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
             role: 'ai',
             text: errorText,
             model: selectedModel,
+            status: 'error',
           },
         ];
+      });
+    },
+    onComplete: () => {
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (!last || last.role !== 'ai') return prev;
+
+        return [...prev.slice(0, -1), { ...last, status: 'done' }];
       });
     },
   });
 
   const handleSend = (text: string) => {
-    setWaitingFirstToken(true);
+    const userMsgId = Date.now();
+    const aiMsgId = userMsgId + 1;
 
-    setMessages((prev) => [...prev, { id: Date.now(), role: 'user', text, model: selectedModel }]);
+    setMessages((prev) => [
+      ...prev,
+      { id: userMsgId, role: 'user', text, model: selectedModel },
+      {
+        id: aiMsgId,
+        role: 'ai',
+        text: '생각 중...',
+        model: selectedModel,
+        status: 'thinking',
+      },
+    ]);
 
     aiChat.start({
-      id: 1,
       message: text,
       content: content,
       model: selectedModel,
@@ -212,7 +228,14 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
 
   const handleStop = () => {
     aiChat.stop();
-    setWaitingFirstToken(false);
+
+    setMessages((prev) => {
+      const last = prev[prev.length - 1];
+      if (last?.role === 'ai' && last.status === 'streaming') {
+        return [...prev.slice(0, -1), { ...last, status: 'cancelled' }];
+      }
+      return prev;
+    });
   };
 
   return (
@@ -244,7 +267,6 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
           addMessage={addMessage}
           onSend={handleSend}
           onStop={handleStop}
-          waitingFirstToken={waitingFirstToken}
           aiChat={aiChat}
           blogTitle={title}
         />
@@ -278,7 +300,6 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
               addMessage={addMessage}
               onSend={handleSend}
               onStop={handleStop}
-              waitingFirstToken={waitingFirstToken}
               aiChat={aiChat}
               blogTitle={title}
             />

@@ -80,7 +80,7 @@ export async function streamAiChat(
         Accept: 'text/event-stream, application/json',
       },
       body: JSON.stringify({
-        id: req.id ?? 'temp',
+        id: req.id ?? 0,
         message: req.message,
         content: req.content,
         model: req.model,
