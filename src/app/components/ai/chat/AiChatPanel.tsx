@@ -34,6 +34,7 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
 
   // 채팅 메시지 상태 (user/ai 모두)
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [waitingFirstToken, setWaitingFirstToken] = useState(false);
 
   // 모델 옵션/선택값/변경함수 상태를 여기서 관리
   const [modelOptions, setModelOptions] = useState<ModelOption[]>(DEFAULT_OPTIONS);
@@ -117,8 +118,14 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
     setMessages((prev) => [...prev, msg]);
   };
 
+  function isAbortError(e: unknown) {
+    return e instanceof DOMException && e.name === 'AbortError';
+  }
+
   const aiChat = useAiChatStreamMutation({
     onChunk: (chunk) => {
+      setWaitingFirstToken(false);
+
       setMessages((prev) => {
         const last = prev[prev.length - 1];
 
@@ -139,28 +146,60 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
       );
     },
     onError: (e) => {
+      // 사용자가 stop 한 경우 → 아무 것도 하지 않음
+      if (isAbortError(e)) {
+        setWaitingFirstToken(false);
+        return;
+      }
+
+      // 생각 중 해제
+      setWaitingFirstToken(false);
+
+      let errorText = '죄송해요. 😢\n\n응답을 생성하는 중 문제가 발생했어요.';
+
       if (e instanceof ApiError) {
         if (e.status === 401) {
-          // 로그인 유도 UI
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: Date.now(),
-              role: 'system',
-              text: '로그인이 필요해요. 로그인 후 다시 시도해 주세요.',
-            },
-          ]);
-          return;
+          errorText = '로그인이 필요해요. 😢\n\n로그인 후 다시 시도해 주세요.';
+        } else if (e.status === 403) {
+          errorText = '이 요청에 대한 접근 권한이 없어요. 😢';
+        } else if (e.status >= 500) {
+          errorText = '서버에 문제가 발생했어요. 😢\n\n잠시 후 다시 시도해 주세요.';
+        } else if (e.serverMsg) {
+          errorText = e.serverMsg;
         }
-        // 기타 에러 표시
-        // toast.error(e.serverMsg || e.message);
-      } else {
-        // toast.error('알 수 없는 오류가 발생했어요.');
       }
+
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+
+        // 이미 ai 메시지가 있으면 덮어쓰기 (스트림 중 실패)
+        if (last?.role === 'ai') {
+          return [
+            ...prev.slice(0, -1),
+            {
+              ...last,
+              text: errorText,
+            },
+          ];
+        }
+
+        // 아니면 새 ai 메시지 추가
+        return [
+          ...prev,
+          {
+            id: Date.now(),
+            role: 'ai',
+            text: errorText,
+            model: selectedModel,
+          },
+        ];
+      });
     },
   });
 
   const handleSend = (text: string) => {
+    setWaitingFirstToken(true);
+
     setMessages((prev) => [...prev, { id: Date.now(), role: 'user', text, model: selectedModel }]);
 
     aiChat.start({
@@ -169,6 +208,11 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
       content: content,
       model: selectedModel,
     });
+  };
+
+  const handleStop = () => {
+    aiChat.stop();
+    setWaitingFirstToken(false);
   };
 
   return (
@@ -199,6 +243,8 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
           messages={messages}
           addMessage={addMessage}
           onSend={handleSend}
+          onStop={handleStop}
+          waitingFirstToken={waitingFirstToken}
           aiChat={aiChat}
           blogTitle={title}
         />
@@ -231,6 +277,8 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
               messages={messages}
               addMessage={addMessage}
               onSend={handleSend}
+              onStop={handleStop}
+              waitingFirstToken={waitingFirstToken}
               aiChat={aiChat}
               blogTitle={title}
             />

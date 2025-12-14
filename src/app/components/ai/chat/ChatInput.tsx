@@ -7,6 +7,7 @@ import ModelDropdown from './ModelDropdown';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
+  onStop: () => void;
   blogTitle?: string;
   modelOptions: ModelOption[];
   selectedModel: ModelOption['value'];
@@ -18,6 +19,7 @@ interface ChatInputProps {
 
 export default function ChatInput({
   onSend,
+  onStop,
   blogTitle,
   modelOptions,
   selectedModel,
@@ -126,7 +128,7 @@ export default function ChatInput({
                 e.preventDefault();
                 if (!isModelDisabled) {
                   if (isAnswering) {
-                    aiChat.stop();
+                    onStop();
                   } else {
                     submit();
                   }
@@ -150,11 +152,7 @@ export default function ChatInput({
             <div className="relative flex items-center group">
               <button
                 onClick={
-                  isAnswering
-                    ? aiChat.stop
-                    : message.trim() && !isModelDisabled
-                      ? submit
-                      : undefined
+                  isAnswering ? onStop : message.trim() && !isModelDisabled ? submit : undefined
                 }
                 aria-label={isAnswering ? '응답 중지' : '전송'}
                 disabled={isModelDisabled || (!message.trim() && !isAnswering)}

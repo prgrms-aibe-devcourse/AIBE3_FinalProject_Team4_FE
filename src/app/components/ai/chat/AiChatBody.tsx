@@ -16,6 +16,8 @@ interface AIChatBodyProps {
   messages: Message[];
   addMessage: (msg: Message) => void;
   onSend: (text: string) => void;
+  onStop: () => void;
+  waitingFirstToken: boolean;
   aiChat: ReturnType<typeof useAiChatStreamMutation>;
   blogTitle?: string;
 }
@@ -26,27 +28,14 @@ export default function AIChatBody({
   messages,
   addMessage,
   onSend,
+  onStop,
+  waitingFirstToken,
   aiChat,
   blogTitle,
 }: AIChatBodyProps) {
-  const [waitingFirstToken, setWaitingFirstToken] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-
-  const handleSend = (text: string) => {
-    setWaitingFirstToken(true);
-    onSend(text);
-  };
-
-  useEffect(() => {
-    if (!waitingFirstToken) return;
-
-    const last = messages[messages.length - 1];
-    if (last && last.role === 'ai' && last.text.length > 0) {
-      setWaitingFirstToken(false);
-    }
-  }, [messages, waitingFirstToken]);
 
   // 스크롤을 맨 아래로 내리는 함수
   const scrollToBottom = () => {
@@ -108,7 +97,8 @@ export default function AIChatBody({
       </div>
       {/* 입력 영역 */}
       <ChatInput
-        onSend={handleSend}
+        onSend={onSend}
+        onStop={onStop}
         modelOptions={modelOptions}
         selectedModel={selectedModel}
         onModelChange={onModelChange}
