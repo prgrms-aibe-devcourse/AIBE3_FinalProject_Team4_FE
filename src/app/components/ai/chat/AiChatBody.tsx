@@ -29,9 +29,24 @@ export default function AIChatBody({
   aiChat,
   blogTitle,
 }: AIChatBodyProps) {
+  const [waitingFirstToken, setWaitingFirstToken] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  const handleSend = (text: string) => {
+    setWaitingFirstToken(true);
+    onSend(text);
+  };
+
+  useEffect(() => {
+    if (!waitingFirstToken) return;
+
+    const last = messages[messages.length - 1];
+    if (last && last.role === 'ai' && last.text.length > 0) {
+      setWaitingFirstToken(false);
+    }
+  }, [messages, waitingFirstToken]);
 
   // 스크롤을 맨 아래로 내리는 함수
   const scrollToBottom = () => {
@@ -83,10 +98,17 @@ export default function AIChatBody({
             </div>
           );
         })}
+        {waitingFirstToken && (
+          <ChatBubble role="ai">
+            <div className="text-sm text-slate-400 flex items-center gap-2 animate-pulse">
+              <span>생각 중...</span>
+            </div>
+          </ChatBubble>
+        )}
       </div>
       {/* 입력 영역 */}
       <ChatInput
-        onSend={onSend}
+        onSend={handleSend}
         modelOptions={modelOptions}
         selectedModel={selectedModel}
         onModelChange={onModelChange}
