@@ -137,15 +137,14 @@ export default function CreatorDashboardClient() {
   const rateMeta = useMemo(() => {
     if (!activePeriodData) return null;
 
-    // DTO가 0.75 같은 값으로 내려오니까 "그대로 %로 보여주는" 참고 코드 방식 유지
     const likeRateText =
       typeof activePeriodData.likeRate === 'number'
-        ? `전체의 ${activePeriodData.likeRate.toFixed(1)}%`
+        ? `조회수 대비 ${activePeriodData.likeRate.toFixed(1)}%`
         : undefined;
 
     const bookmarkRateText =
       typeof activePeriodData.bookmarkRate === 'number'
-        ? `전체의 ${activePeriodData.bookmarkRate.toFixed(1)}%`
+        ? `조회수 대비 ${activePeriodData.bookmarkRate.toFixed(1)}%`
         : undefined;
 
     return {
@@ -175,17 +174,6 @@ export default function CreatorDashboardClient() {
       todayLabel: toMMDD(last.date),
       yesterdayLabel: prev ? toMMDD(prev.date) : '전일',
     };
-  }, [data]);
-
-  const chartData = useMemo(() => {
-    if (!data?.dailyViews30d?.length) return [];
-    return data.dailyViews30d.map((d, i, arr) => ({
-      dateLabel: formatXAxis(d.date, i, arr),
-      rawDate: d.date,
-      blog: d.blogViews,
-      shorlog: d.shorlogViews,
-      total: d.blogViews + d.shorlogViews,
-    }));
   }, [data]);
 
   const recentViewsStatus = useMemo(() => {
@@ -503,20 +491,6 @@ function CompactStat({
           {subLabel && <p className="mt-1 text-[11px] text-slate-400 leading-tight">{subLabel}</p>}
         </div>
       </div>
-    </div>
-  );
-}
-
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
-  return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
-      <div className="flex items-center gap-2 text-xs text-slate-500">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50">
-          {icon}
-        </span>
-        {label}
-      </div>
-      <p className="mt-3 text-2xl font-semibold text-slate-900">{formatNumber(value)}</p>
     </div>
   );
 }
