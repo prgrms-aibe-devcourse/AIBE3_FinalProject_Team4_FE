@@ -63,7 +63,6 @@ export default function ShorlogSearchCard({
       className="group flex flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200 transition-all duration-200 hover:shadow-md hover:ring-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
       aria-label={`${item.nickname}의 숏로그: ${contentPreview}`}
     >
-      {/* 섬네일 영역 - 1:1 정사각형 */}
       <div className="relative w-full bg-slate-100">
         <div className="aspect-square w-full overflow-hidden">
           <img
@@ -75,9 +74,7 @@ export default function ShorlogSearchCard({
         </div>
       </div>
 
-      {/* 정보 영역 - 중앙 정렬 */}
       <div className="flex flex-col items-center text-center px-3 py-2.5 gap-1.5">
-        {/* 프로필 & 닉네임 */}
         <div className="flex flex-col items-center gap-1">
           <div className="h-8 w-8 overflow-hidden rounded-full bg-slate-200">
             <img
@@ -92,7 +89,6 @@ export default function ShorlogSearchCard({
           </span>
         </div>
 
-        {/* 해시태그 */}
         {item.hashtags.length > 0 && (
           <div className="flex flex-wrap justify-center gap-1">
             {item.hashtags.slice(0, 3).map((tag: string) => (
@@ -106,7 +102,6 @@ export default function ShorlogSearchCard({
           </div>
         )}
 
-        {/* 통계 */}
         <div className="flex items-center justify-center gap-3 text-[11px] text-slate-500">
           <div className="inline-flex items-center gap-1">
             <Heart className="h-3.5 w-3.5" />
@@ -117,8 +112,7 @@ export default function ShorlogSearchCard({
             <span className="font-medium">{item.commentCount}</span>
           </div>
         </div>
-
-        {/* 첫 문장 - 검색어 하이라이트 */}
+        
         <div className="border-t border-slate-100 pt-2 w-full">
           <p className="line-clamp-2 text-xs leading-relaxed text-slate-700">
             {highlightSearchKeyword(contentPreview, searchKeyword)}
