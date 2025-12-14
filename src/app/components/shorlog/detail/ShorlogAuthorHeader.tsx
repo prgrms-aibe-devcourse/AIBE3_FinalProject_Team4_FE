@@ -75,6 +75,7 @@ export default function ShorlogAuthorHeader({
       queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       queryClient.invalidateQueries({ queryKey: ['shorlog-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['shorlog-search'] }); // 검색 결과 캐시 무효화
 
       setTimeout(() => {
         router.back();

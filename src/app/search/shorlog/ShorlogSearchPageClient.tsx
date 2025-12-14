@@ -37,6 +37,7 @@ export default function ShorlogSearchPageClient() {
     getNextPageParam: (lastPage) =>
       !lastPage.last ? lastPage.pageable.pageNumber + 1 : undefined,
     enabled: !!keyword, // 검색어가 있을 때만 실행
+    staleTime: 1000 * 60 * 5, // 5분간 캐시 유지
   });
 
   const { ref: sentinelRef, inView } = useInView({

@@ -151,6 +151,7 @@ export function useShorlogEdit(shorlogId: string, initialData: ShorlogDetail) {
       queryClient.invalidateQueries({ queryKey: ['shorlog-feed'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       queryClient.invalidateQueries({ queryKey: ['shorlog-detail', shorlogId] }); // 상세 페이지도 갱신
+      queryClient.invalidateQueries({ queryKey: ['shorlog-search'] }); // 검색 결과 캐시 무효화
 
       router.back();
       setTimeout(() => {
