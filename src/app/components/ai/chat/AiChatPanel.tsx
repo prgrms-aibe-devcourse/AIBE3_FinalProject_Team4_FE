@@ -34,6 +34,7 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
 
   // 채팅 메시지 상태 (user/ai 모두)
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [waitingFirstToken, setWaitingFirstToken] = useState(false);
 
   // 모델 옵션/선택값/변경함수 상태를 여기서 관리
   const [modelOptions, setModelOptions] = useState<ModelOption[]>(DEFAULT_OPTIONS);
@@ -121,6 +122,8 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
 
   const aiChat = useAiChatStreamMutation({
     onChunk: (chunk) => {
+      setWaitingFirstToken(false);
+
       setMessages((prev) => {
         const last = prev[prev.length - 1];
         if (!last) return prev;
