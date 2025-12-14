@@ -3,7 +3,15 @@
 import { getCreatorOverview } from '@/src/api/dashboadOverview';
 import { showGlobalToast } from '@/src/lib/toastStore';
 import type { CreatorOverview } from '@/src/types/dashboard';
-import { Bookmark, Eye, Heart, MessageCircle, Users } from 'lucide-react';
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  Bookmark,
+  Eye,
+  Heart,
+  MessageCircle,
+  Users,
+} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import LoadingSpinner from '../../common/LoadingSpinner';
@@ -120,6 +128,35 @@ export default function CreatorDashboardClient() {
     };
   }, [data, weekData, statMode]);
 
+  const activePeriodData = useMemo(() => {
+    if (statMode === 7) return weekData;
+    if (statMode === 30) return data;
+    return null; // TOTAL은 period 개념 없음
+  }, [statMode, data, weekData]);
+
+  const rateMeta = useMemo(() => {
+    if (!activePeriodData) return null;
+
+    // DTO가 0.75 같은 값으로 내려오니까 "그대로 %로 보여주는" 참고 코드 방식 유지
+    const likeRateText =
+      typeof activePeriodData.likeRate === 'number'
+        ? `전체의 ${activePeriodData.likeRate.toFixed(1)}%`
+        : undefined;
+
+    const bookmarkRateText =
+      typeof activePeriodData.bookmarkRate === 'number'
+        ? `전체의 ${activePeriodData.bookmarkRate.toFixed(1)}%`
+        : undefined;
+
+    return {
+      likeRateText,
+      bookmarkRateText,
+      likesChangeRate: activePeriodData.likesChangeRate ?? null,
+      bookmarksChangeRate: activePeriodData.bookmarksChangeRate ?? null,
+      followersChangeRate: activePeriodData.followersChangeRate ?? null,
+    };
+  }, [activePeriodData]);
+
   const todayYesterday = useMemo(() => {
     const rows = data?.dailyViews30d ?? [];
     if (!rows.length) {
@@ -201,7 +238,7 @@ export default function CreatorDashboardClient() {
         {!loading && data && (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
             {/* 좌: 어제/오늘 조회수 (필터 영향 X) */}
-            <section className="lg:col-span-5 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
+            <section className="lg:col-span-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-900">최근 조회수</h3>
               </div>
@@ -237,7 +274,7 @@ export default function CreatorDashboardClient() {
             </section>
 
             {/* 우: 조회수/좋아요/북마크/댓글 */}
-            <section className="lg:col-span-7 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
+            <section className="lg:col-span-9 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-semibold text-slate-900">반응 통계</h3>
@@ -292,12 +329,16 @@ export default function CreatorDashboardClient() {
                     value={rightStatValues.likes}
                     icon={<Heart className="h-4 w-4" />}
                     compact
+                    subLabel={statMode === 'TOTAL' ? undefined : rateMeta?.likeRateText}
+                    changeRate={statMode === 'TOTAL' ? undefined : rateMeta?.likesChangeRate}
                   />
                   <CompactStat
                     label="북마크"
                     value={rightStatValues.bookmarks}
                     icon={<Bookmark className="h-4 w-4" />}
                     compact
+                    subLabel={statMode === 'TOTAL' ? undefined : rateMeta?.bookmarkRateText}
+                    changeRate={statMode === 'TOTAL' ? undefined : rateMeta?.bookmarksChangeRate}
                   />
                   <CompactStat
                     label="댓글"
@@ -310,6 +351,7 @@ export default function CreatorDashboardClient() {
                     value={rightStatValues.followersAdded}
                     icon={<Users className="h-4 w-4" />}
                     compact
+                    changeRate={statMode === 'TOTAL' ? undefined : rateMeta?.followersChangeRate}
                   />
                 </div>
               )}
@@ -413,34 +455,54 @@ function CompactStat({
   label,
   value,
   compact,
+  subLabel,
+  changeRate,
 }: {
   icon: React.ReactNode;
   label: string;
-  value: number;
+  value?: number | null;
   compact?: boolean;
+  subLabel?: string;
+  changeRate?: number | null;
 }) {
   return (
     <div
       className={['rounded-2xl bg-white ring-1 ring-slate-100', compact ? 'p-3' : 'p-4'].join(' ')}
     >
-      <div className="flex items-center gap-2 text-xs text-slate-500">
-        <span
-          className={[
-            'flex items-center justify-center rounded-lg bg-slate-50',
-            compact ? 'h-7 w-7' : 'h-8 w-8',
-          ].join(' ')}
-        >
-          {icon}
-        </span>
-        <span className={compact ? 'text-[11px]' : 'text-xs'}>{label}</span>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-xs text-slate-500 min-w-0">
+            <span
+              className={[
+                'flex items-center justify-center rounded-lg bg-slate-50 flex-shrink-0',
+                compact ? 'h-7 w-7' : 'h-8 w-8',
+              ].join(' ')}
+            >
+              {icon}
+            </span>
+            <span
+              className={['font-medium truncate', compact ? 'text-[11px]' : 'text-xs'].join(' ')}
+            >
+              {label}
+            </span>
+          </div>
+
+          {typeof changeRate === 'number' && (
+            <div className="flex-shrink-0">
+              <TrendBadge value={changeRate} />
+            </div>
+          )}
+        </div>
+
+        <div>
+          <p
+            className={['font-semibold text-slate-900', compact ? 'text-xl' : 'text-2xl'].join(' ')}
+          >
+            {formatNumber(value)}
+          </p>
+          {subLabel && <p className="mt-1 text-[11px] text-slate-400 leading-tight">{subLabel}</p>}
+        </div>
       </div>
-      <p
-        className={['mt-3 font-semibold text-slate-900', compact ? 'text-xl' : 'text-2xl'].join(
-          ' ',
-        )}
-      >
-        {formatNumber(value)}
-      </p>
     </div>
   );
 }
@@ -459,6 +521,23 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
   );
 }
 
+function TrendBadge({ value }: { value: number }) {
+  const isUp = value >= 0;
+  const display = Math.round(Math.abs(value));
+
+  return (
+    <span
+      className={[
+        'inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-medium',
+        isUp ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600',
+      ].join(' ')}
+    >
+      {isUp ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+      {display}%
+    </span>
+  );
+}
+
 function LegendDot({ color, label }: { color: string; label: string }) {
   return (
     <span className="inline-flex items-center gap-1.5">
@@ -468,7 +547,10 @@ function LegendDot({ color, label }: { color: string; label: string }) {
   );
 }
 
-function formatNumber(value: number): string {
+function formatNumber(value: number | null | undefined): string {
+  if (value === null || value === undefined) return '-';
+  if (!Number.isFinite(value)) return '-';
+
   if (value >= 10_000) {
     return (value / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
   }
