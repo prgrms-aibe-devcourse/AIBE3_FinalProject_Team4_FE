@@ -53,8 +53,20 @@ export default function ShorlogModalPage() {
   const [me, setMe] = useState<{ id: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<Error | null>(null);
+  const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const closing = sessionStorage.getItem('shorlog_modal_closing');
+      if (closing === 'true') {
+        setIsClosing(true);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isClosing) return;
+
     let cancelled = false;
 
     async function load() {
@@ -82,7 +94,11 @@ export default function ShorlogModalPage() {
     return () => {
       cancelled = true;
     };
-  }, [shorlogId]);
+  }, [shorlogId, isClosing]);
+
+  if (isClosing) {
+    return null;
+  }
 
   return (
     <ShorlogDetailModalWrapper>

@@ -10,34 +10,22 @@ interface Props {
 
 export default function ShorlogDetailModalWrapper({ children, onRequestClose }: Props) {
   const router = useRouter();
-  const initialPathRef = useRef<string | null>(null);
   const originalOverflowRef = useRef<string>('');
   const isClosingRef = useRef(false);
-
-  useEffect(() => {
-    if (initialPathRef.current === null && typeof window !== 'undefined') {
-      const savedInitialPath = sessionStorage.getItem('shorlog_modal_initial_path');
-
-      if (savedInitialPath) {
-        initialPathRef.current = savedInitialPath;
-      }
-    }
-  }, []);
 
   const closeModal = () => {
     if (isClosingRef.current) return;
     isClosingRef.current = true;
 
-    // 즉시 body 스크롤 복원
+    sessionStorage.setItem('shorlog_modal_closing', 'true');
+
     document.body.style.overflow = originalOverflowRef.current || '';
 
-    // 세션 스토리지 정리
-    sessionStorage.removeItem('shorlog_modal_initial_path');
-    sessionStorage.removeItem('shorlog_feed_ids');
-    sessionStorage.removeItem('shorlog_current_index');
-
-    // 즉시 뒤로가기 실행
     router.back();
+
+    setTimeout(() => {
+      sessionStorage.removeItem('shorlog_modal_closing');
+    }, 300);
   };
 
   useEffect(() => {
