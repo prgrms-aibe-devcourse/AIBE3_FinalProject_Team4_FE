@@ -19,13 +19,13 @@ import LoadingSpinner from '../../common/LoadingSpinner';
 type StatMode = 'TOTAL' | 7 | 30;
 
 const STAT_OPTIONS: { key: StatMode; label: string }[] = [
-  { key: 'TOTAL', label: '전체' },
   { key: 7, label: '주간' },
   { key: 30, label: '월간' },
+  { key: 'TOTAL', label: '전체' },
 ];
 
 export default function CreatorDashboardClient() {
-  const [statMode, setStatMode] = useState<StatMode>('TOTAL');
+  const [statMode, setStatMode] = useState<StatMode>(7);
 
   // ✅ 기본(30일) 데이터: 그래프(30일 고정) + 월간 period 값까지 담당
   const [data, setData] = useState<CreatorOverview | null>(null);
@@ -33,43 +33,34 @@ export default function CreatorDashboardClient() {
   // ✅ 주간(7일) 전용 period 값용 데이터 (TOTAL용 total*도 들어있긴 하지만 TOTAL은 data 기준으로만 씀)
   const [weekData, setWeekData] = useState<CreatorOverview | null>(null);
 
-  const [loading, setLoading] = useState(true); // 최초 로딩(30일)
-  const [weekLoading, setWeekLoading] = useState(false); // ✅ 주간 버튼 눌렀을 때만 별도 로딩
+  const [loading, setLoading] = useState(true); // 최초 로딩
 
   useEffect(() => {
-    load30();
+    const loadInitialData = async () => {
+      setLoading(true);
+      await Promise.all([load7(), load30()]);
+      setLoading(false);
+    };
+    loadInitialData();
   }, []);
-
-  // ✅ 주간(7일) 선택 시에만 추가 호출 (캐시처럼 1번만)
-  useEffect(() => {
-    if (statMode !== 7) return;
-    if (weekData) return; // 이미 받아왔으면 재호출 안 함
-    load7();
-  }, [statMode, weekData]);
 
   const load30 = async () => {
     try {
-      setLoading(true);
       const res = await getCreatorOverview(30);
       setData(res);
     } catch (e) {
       console.error(e);
       showGlobalToast('통계 데이터를 불러오지 못했습니다.', 'error');
-    } finally {
-      setLoading(false);
     }
   };
 
   const load7 = async () => {
     try {
-      setWeekLoading(true);
       const res = await getCreatorOverview(7);
       setWeekData(res);
     } catch (e) {
       console.error(e);
       showGlobalToast('주간 통계 데이터를 불러오지 못했습니다.', 'error');
-    } finally {
-      setWeekLoading(false);
     }
   };
 
@@ -297,14 +288,7 @@ export default function CreatorDashboardClient() {
                 </div>
               </div>
 
-              {/* ✅ 주간(7일) 첫 진입 시 weekLoading 동안만 우측 영역에서 “값” 대신 로딩 */}
-              {statMode === 7 && weekLoading && (
-                <div className="mt-6 flex justify-center py-6">
-                  <LoadingSpinner label="주간 통계를 불러오는 중입니다" />
-                </div>
-              )}
-
-              {!(statMode === 7 && weekLoading) && rightStatValues && (
+              {rightStatValues && (
                 <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
                   <CompactStat
                     label="조회수"
