@@ -149,8 +149,8 @@ export default function ChatInput({
                       ? submit
                       : undefined
                 }
-                aria-label="전송"
-                disabled={!message.trim() || isAnswering || isModelDisabled}
+                aria-label={isAnswering ? '응답 중지' : '전송'}
+                disabled={isModelDisabled || (!message.trim() && !isAnswering)}
                 className={`w-8 h-8 rounded-full flex items-center justify-center shadow transition
                   ${
                     isAnswering
