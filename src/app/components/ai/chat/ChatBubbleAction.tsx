@@ -33,7 +33,7 @@ export default function ChatBubbleAction({
   };
 
   return (
-    <div className={`flex w-full ${positionClass} pt-2 min-h-[32px]`}>
+    <div className={`flex w-full ${positionClass} pt-1 min-h-[32px]`}>
       <div className="relative">
         <button
           type="button"
@@ -42,7 +42,7 @@ export default function ChatBubbleAction({
             peer
             w-7 h-7 flex items-center justify-center rounded-md bg-white text-slate-500
             transition pointer-events-auto
-            hover:bg-slate-200 hover:text-slate-700
+            hover:bg-slate-100 hover:text-slate-700
             ${alwaysShow ? '' : 'opacity-0 group-hover:opacity-100'}
           `}
           aria-label="복사"

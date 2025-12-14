@@ -7,6 +7,7 @@ import ModelDropdown from './ModelDropdown';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
+  onStop: () => void;
   blogTitle?: string;
   modelOptions: ModelOption[];
   selectedModel: ModelOption['value'];
@@ -18,6 +19,7 @@ interface ChatInputProps {
 
 export default function ChatInput({
   onSend,
+  onStop,
   blogTitle,
   modelOptions,
   selectedModel,
@@ -43,6 +45,8 @@ export default function ChatInput({
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const isAnswering = aiChat.isStreaming;
+
+  const MAX_MESSAGE_LENGTH = 1000;
 
   const submit = useCallback(() => {
     if (!message.trim()) return;
@@ -104,7 +108,12 @@ export default function ChatInput({
             id="ai-input"
             ref={textareaRef}
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value.length <= MAX_MESSAGE_LENGTH) {
+                setMessage(value);
+              }
+            }}
             rows={1}
             placeholder={isModelDisabled ? '모델 사용 불가' : '블로그 작성 도움받기'}
             className="w-full min-h-[40px] max-h-[190px] resize-none bg-transparent outline-none text-sm placeholder:text-slate-400 placeholder:text-sm leading-relaxed overflow-y-auto"
@@ -119,7 +128,7 @@ export default function ChatInput({
                 e.preventDefault();
                 if (!isModelDisabled) {
                   if (isAnswering) {
-                    aiChat.stop();
+                    onStop();
                   } else {
                     submit();
                   }
@@ -143,14 +152,10 @@ export default function ChatInput({
             <div className="relative flex items-center group">
               <button
                 onClick={
-                  isAnswering
-                    ? aiChat.stop
-                    : message.trim() && !isModelDisabled
-                      ? submit
-                      : undefined
+                  isAnswering ? onStop : message.trim() && !isModelDisabled ? submit : undefined
                 }
-                aria-label="전송"
-                disabled={!message.trim() || isAnswering || isModelDisabled}
+                aria-label={isAnswering ? '응답 중지' : '전송'}
+                disabled={isModelDisabled || (!message.trim() && !isAnswering)}
                 className={`w-8 h-8 rounded-full flex items-center justify-center shadow transition
                   ${
                     isAnswering

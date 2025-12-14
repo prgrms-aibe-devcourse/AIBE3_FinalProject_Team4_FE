@@ -15,6 +15,8 @@ interface AiChatSidebarProps {
   messages: any[];
   addMessage: (msg: any) => void;
   onSend: (text: string) => void;
+  onStop: () => void;
+  waitingFirstToken: boolean;
   aiChat: ReturnType<typeof useAiChatStreamMutation>;
   blogTitle?: string;
 }
@@ -28,6 +30,8 @@ export default function AiChatSidebar({
   messages,
   addMessage,
   onSend,
+  onStop,
+  waitingFirstToken,
   aiChat,
   blogTitle,
 }: AiChatSidebarProps) {
@@ -171,6 +175,8 @@ export default function AiChatSidebar({
           messages={messages}
           addMessage={addMessage}
           onSend={onSend}
+          onStop={onStop}
+          waitingFirstToken={waitingFirstToken}
           aiChat={aiChat}
           blogTitle={blogTitle}
         />

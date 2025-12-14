@@ -16,6 +16,8 @@ interface AIChatBodyProps {
   messages: Message[];
   addMessage: (msg: Message) => void;
   onSend: (text: string) => void;
+  onStop: () => void;
+  waitingFirstToken: boolean;
   aiChat: ReturnType<typeof useAiChatStreamMutation>;
   blogTitle?: string;
 }
@@ -26,6 +28,8 @@ export default function AIChatBody({
   messages,
   addMessage,
   onSend,
+  onStop,
+  waitingFirstToken,
   aiChat,
   blogTitle,
 }: AIChatBodyProps) {
@@ -83,10 +87,18 @@ export default function AIChatBody({
             </div>
           );
         })}
+        {waitingFirstToken && (
+          <ChatBubble role="ai">
+            <div className="text-sm text-slate-400 flex items-center gap-2 animate-pulse">
+              <span>생각 중...</span>
+            </div>
+          </ChatBubble>
+        )}
       </div>
       {/* 입력 영역 */}
       <ChatInput
         onSend={onSend}
+        onStop={onStop}
         modelOptions={modelOptions}
         selectedModel={selectedModel}
         onModelChange={onModelChange}
