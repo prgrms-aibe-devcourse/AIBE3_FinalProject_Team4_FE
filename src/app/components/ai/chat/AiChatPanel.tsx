@@ -171,8 +171,23 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
       setMessages((prev) => {
         const last = prev[prev.length - 1];
 
-        // 이미 ai 메시지가 있으면 덮어쓰기 (스트림 중 실패)
-        if (last?.role === 'ai') {
+        if (last?.role !== 'ai') {
+          return prev;
+        }
+
+        // streaming 중 에러 → 덧붙이기
+        if (last.status === 'streaming') {
+          return [
+            ...prev.slice(0, -1),
+            {
+              ...last,
+              text: last.text + '\n\n---\n\n응답이 중간에 중단되었어요. ⚠️\n\n' + errorText,
+              status: 'error',
+            },
+          ];
+        }
+        // thinking 중 에러 → 덮어쓰기
+        if (last.status === 'thinking') {
           return [
             ...prev.slice(0, -1),
             {
@@ -183,17 +198,7 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
           ];
         }
 
-        // 아니면 새 ai 메시지 추가
-        return [
-          ...prev,
-          {
-            id: Date.now(),
-            role: 'ai',
-            text: errorText,
-            model: selectedModel,
-            status: 'error',
-          },
-        ];
+        return prev;
       });
     },
     onComplete: () => {
