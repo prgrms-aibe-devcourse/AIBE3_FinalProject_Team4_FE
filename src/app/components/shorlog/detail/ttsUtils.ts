@@ -30,6 +30,13 @@ export class TtsAudioPlayer {
   }
 
   play(url: string) {
+    if (this.audioRef.current && this.audioRef.current.src === url) {
+      if (this.audioRef.current.paused) {
+        this.resume();
+      }
+      return;
+    }
+
     this.cleanup();
 
     const audio = new Audio(url);

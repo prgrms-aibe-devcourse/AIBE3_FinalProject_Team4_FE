@@ -10,13 +10,9 @@ interface UseTtsProps {
   content: string;
 }
 
-// TTS 기능을 관리하는 커스텀 훅
 export function useTts({ shorlogId, content }: UseTtsProps) {
   const [tokens, setTokens] = useState<TtsTokenResponse | null>(null);
-  const [ttsUrl, setTtsUrl] = useState<string | null>(null);
-  const [cachedUserId, setCachedUserId] = useState<number | null>(null); // 캐시된 사용자 ID
-  const [cachedShorlogId, setCachedShorlogId] = useState<number | null>(null); // 캐시된 숏로그 ID
-  const [mode, setMode] = useState<TtsMode>('none');
+  const [ttsUrl, setTtsUrl] = useState<string | null>(null);const [mode, setMode] = useState<TtsMode>('none');
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -27,7 +23,6 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  // 오디오 플레이어 초기화
   const audioPlayer = new TtsAudioPlayer(audioRef, {
     onLoadedMetadata: (duration) => setDuration(duration),
     onTimeUpdate: (current, prog) => {
@@ -43,7 +38,6 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
     onError: (error) => setError(error)
   });
 
-  // Web Speech 플레이어 초기화
   const webSpeech = new TtsWebSpeech(speechRef, {
     onStart: () => {
       setIsPlaying(true);
@@ -72,15 +66,23 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
     }
   });
 
-  // 토큰 조회
   const fetchTokens = async () => {
     const tokenData = await TtsService.fetchTokens();
     setTokens(tokenData);
   };
 
-  // AI TTS 생성 및 재생
+
   const playAiTts = async () => {
+    if (ttsUrl) {
+      console.log('[TTS] 저장된 TTS 재생:', ttsUrl);
+      audioPlayer.play(ttsUrl);
+      setMode('ai');
+      return;
+    }
+
+    // 토큰이 없으면 Web Speech 사용
     if (!TtsService.hasValidTokens(tokens)) {
+      console.log('[TTS] 토큰 부족, Web Speech 사용');
       playWebSpeech();
       return;
     }
@@ -89,41 +91,13 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
     setError(null);
 
     try {
-      // 현재 사용자 ID 확인
-      const { fetchMe } = await import('@/src/api/user');
-      const currentUser = await fetchMe().catch(() => null);
-      const currentUserId = currentUser?.id || null;
-
-      // 캐시 유효성 검증
-      const isCacheValid =
-        ttsUrl &&
-        currentUserId === cachedUserId &&
-        shorlogId === cachedShorlogId;
-
-      if (!isCacheValid && ttsUrl) {
-        setTtsUrl(null);
-      }
-
-      // 캐시가 유효하면 기존 것 재생
-      if (isCacheValid && ttsUrl) {
-        audioPlayer.play(ttsUrl);
-        setMode('ai');
-        setIsLoading(false);
-        return;
-      }
-
-      // 먼저 기존 TTS URL 조회 시도
-      let response = await TtsService.getTtsUrl(shorlogId);
-
-      // 기존 TTS가 없으면 새로 생성
-      if (!response || !response.ttsUrl) {
-        response = await TtsService.generateTts(shorlogId);
-      }
+      console.log('[TTS] TTS 생성 API 호출');
+      const response = await TtsService.generateTts(shorlogId);
 
       if (response && response.ttsUrl) {
+        console.log('[TTS] TTS 성공 - URL:', response.ttsUrl, '남은 토큰:', response.remainingToken);
         setTtsUrl(response.ttsUrl);
-        setCachedUserId(currentUserId);
-        setCachedShorlogId(shorlogId);
+
         audioPlayer.play(response.ttsUrl);
         setMode('ai');
 
@@ -138,6 +112,7 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'TTS 생성에 실패했습니다.';
+      console.error('[TTS] 에러:', errorMessage);
       setError(errorMessage);
       playWebSpeech();
     } finally {
@@ -178,9 +153,14 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
 
   // 재생 시작
   const play = () => {
-    if (mode === 'ai' && ttsUrl) {
-      audioPlayer.resume();
-    } else if (mode === 'web') {
+    if (ttsUrl) {
+      console.log('[TTS] 저장된 TTS 재생');
+      audioPlayer.play(ttsUrl);
+      setMode('ai');
+      return;
+    }
+
+    if (mode === 'web') {
       webSpeech.resume();
     } else {
       playAiTts();
@@ -257,18 +237,13 @@ export function useTts({ shorlogId, content }: UseTtsProps) {
       cleanup();
 
       setTtsUrl(null);
-      setCachedShorlogId(null);
       setError(null);
 
-      const { fetchMe } = await import('@/src/api/user');
-      const currentUser = await fetchMe().catch(() => null);
-      const currentUserId = currentUser?.id || null;
-      setCachedUserId(currentUserId);
-
-      // 토큰 조회만 수행
+      // 토큰 조회
       const tokenData = await TtsService.fetchTokens();
       if (tokenData) {
         setTokens(tokenData);
+        console.log('[TTS] 토큰 조회 완료 - 남은 토큰:', tokenData.token);
       }
     };
 
