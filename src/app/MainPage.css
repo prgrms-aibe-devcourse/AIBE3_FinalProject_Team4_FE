@@ -320,7 +320,7 @@
   transform: scale(1.05);
 }
 
-/* 반응형 */
+/* 반응형 - 태블릿 */
 @media (max-width: 1024px) {
   .main {
     grid-template-columns: 1fr;
@@ -329,41 +329,206 @@
 
   .hero {
     padding: 3rem 2rem;
+    text-align: center;
   }
 
   .hero-title {
-    font-size: 2.5rem;
+    font-size: 2.8rem;
+  }
+
+  .hero-stats {
+    justify-content: center;
+  }
+
+  .hero-actions {
+    justify-content: center;
   }
 
   .illustration {
     height: 400px;
+    order: -1;
   }
 }
 
-@media (max-width: 640px) {
+/* 반응형 - 모바일 */
+@media (max-width: 768px) {
+  .page {
+    padding: 0;
+  }
+
   .hero {
     padding: 2rem 1.5rem;
+    text-align: center;
+  }
+
+  .hero-badge {
+    font-size: 0.7rem;
+    padding: 0.4rem 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .badge-dot {
+    width: 6px;
+    height: 6px;
   }
 
   .hero-title {
-    font-size: 2rem;
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
   }
 
   .hero-subtitle {
-    font-size: 0.9rem;
+    font-size: 1rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .hero-description {
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+  }
+
+  .hero-stats {
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1rem 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .stat-item {
+    text-align: center;
+    flex: 0 0 calc(33.333% - 1rem);
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .stat-divider {
+    display: none;
   }
 
   .hero-actions {
     flex-direction: column;
+    gap: 0.8rem;
     width: 100%;
   }
 
   .btn {
     width: 100%;
+    padding: 0.9rem 2rem;
+    font-size: 0.95rem;
+    justify-content: center;
   }
 
   .illustration {
-    height: 300px;
+    height: 350px;
+    order: -1;
+  }
+}
+
+/* 반응형 - 소형 모바일 */
+@media (max-width: 480px) {
+  .hero {
+    padding: 1.5rem 1rem;
+  }
+
+  .hero-badge {
+    font-size: 0.65rem;
+    padding: 0.35rem 0.7rem;
+    margin-bottom: 1rem;
+  }
+
+  .hero-title {
+    font-size: 1.8rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.9rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .hero-description {
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-stats {
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    padding: 0.8rem 0;
+  }
+
+  .stat-item {
+    flex: 0 0 100%;
+  }
+
+  .stat-number {
+    font-size: 1.3rem;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+  }
+
+  .hero-actions {
+    gap: 0.7rem;
+  }
+
+  .btn {
+    padding: 0.8rem 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .btn-arrow {
+    font-size: 1.1rem;
+  }
+
+  .illustration {
+    height: 280px;
+  }
+
+  .illustration-svg {
+    max-width: 400px;
+    max-height: 400px;
+  }
+}
+
+/* 랜드스케이프 모드 (가로 모드) */
+@media (max-width: 768px) and (orientation: landscape) {
+  .main {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .hero {
+    padding: 2rem 1.5rem;
+    text-align: left;
+  }
+
+  .hero-stats {
+    justify-content: flex-start;
+  }
+
+  .hero-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .btn {
+    width: auto;
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .illustration {
+    height: 100vh;
+    order: 0;
   }
 }
 
