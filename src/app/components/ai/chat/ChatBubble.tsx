@@ -17,7 +17,6 @@ export default function ChatBubble({ role, text, isThinking, children }: Props) 
           ${isUser ? 'max-w-[85%] bg-[#E9EEF6] px-4 py-1 rounded-2xl' : 'w-full bg-transparent m-2'}
           text-sm leading-relaxed
           break-words [overflow-wrap:anywhere]
-          ${isThinking ? 'animate-pulse' : ''}
         `}
       >
         {isThinking ? (
