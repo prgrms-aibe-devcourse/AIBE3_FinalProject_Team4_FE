@@ -234,9 +234,25 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
 
     setMessages((prev) => {
       const last = prev[prev.length - 1];
-      if (last?.role === 'ai' && (last.status === 'thinking' || last.status === 'streaming')) {
-        return [...prev.slice(0, -1), { ...last, status: 'cancelled' }];
+
+      if (last?.role !== 'ai') return prev;
+
+      // 아직 첫 토큰도 안 온 상태 → 메시지 제거
+      if (last.status === 'thinking') {
+        return prev.slice(0, -1);
       }
+
+      // 스트리밍 중이던 상태 → cancelled
+      if (last.status === 'streaming') {
+        return [
+          ...prev.slice(0, -1),
+          {
+            ...last,
+            status: 'cancelled',
+          },
+        ];
+      }
+
       return prev;
     });
   };
