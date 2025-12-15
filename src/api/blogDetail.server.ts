@@ -15,7 +15,7 @@ export async function fetchBlogDetailServer(id: number): Promise<BlogDetailDto> 
 }
 
 export async function fetchIsFollowingServer(targetUserId: number): Promise<boolean> {
-  return apiClientServer<boolean>(`/api/v1/follow/${targetUserId}/is-following`, {
+  return apiClientServer<boolean>(`/api/v1/follow/is-following/${targetUserId}`, {
     method: 'GET',
   });
 }
