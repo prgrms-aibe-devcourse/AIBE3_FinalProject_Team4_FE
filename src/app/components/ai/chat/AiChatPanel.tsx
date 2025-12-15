@@ -234,7 +234,7 @@ export default function AiChatPanel({ title, content, children }: AiChatPanelPro
 
     setMessages((prev) => {
       const last = prev[prev.length - 1];
-      if (last?.role === 'ai' && last.status === 'streaming') {
+      if (last?.role === 'ai' && (last.status === 'thinking' || last.status === 'streaming')) {
         return [...prev.slice(0, -1), { ...last, status: 'cancelled' }];
       }
       return prev;
