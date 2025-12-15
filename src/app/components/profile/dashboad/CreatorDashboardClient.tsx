@@ -141,6 +141,7 @@ export default function CreatorDashboardClient() {
     return {
       likeRateText,
       bookmarkRateText,
+      viewsChangeRate: activePeriodData.viewsChangeRate ?? null,
       likesChangeRate: activePeriodData.likesChangeRate ?? null,
       bookmarksChangeRate: activePeriodData.bookmarksChangeRate ?? null,
       followersChangeRate: activePeriodData.followersChangeRate ?? null,
@@ -295,6 +296,7 @@ export default function CreatorDashboardClient() {
                     value={rightStatValues.views}
                     icon={<Eye className="h-4 w-4" />}
                     compact
+                    changeRate={statMode === 'TOTAL' ? undefined : rateMeta?.viewsChangeRate}
                   />
                   <CompactStat
                     label="좋아요"
