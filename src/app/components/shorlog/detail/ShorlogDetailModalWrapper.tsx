@@ -48,8 +48,14 @@ export default function ShorlogDetailModalWrapper({ children, onRequestClose }: 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const checkDirectAccess = () => {
+        const navEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
+        const isReload = navEntries.length > 0 && navEntries[0].type === 'reload';
+
+        const hasNoHistory = window.history.length <= 1;
+
         const initialPath = sessionStorage.getItem('shorlog_modal_initial_path');
-        return window.history.length <= 1 || !initialPath;
+
+        return isReload || hasNoHistory || !initialPath;
       };
 
       setIsDirectAccess(checkDirectAccess());
@@ -97,10 +103,17 @@ export default function ShorlogDetailModalWrapper({ children, onRequestClose }: 
     };
   }, [onRequestClose]);
 
-  const handleOverlayClick = () => {
+  const handleOverlayClick = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     if (onRequestClose) {
       onRequestClose();
+    } else if (isDirectAccess) {
+      // 직접 접근(새로고침 포함) 시 숏피드로 이동
+      handleCloseToFeed();
     } else {
+      // 일반적인 경우 뒤로가기
       closeModal();
     }
   };
