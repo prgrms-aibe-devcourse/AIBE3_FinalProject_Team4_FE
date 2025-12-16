@@ -296,7 +296,7 @@ export default function ImageSelector({
         <div className="flex w-full items-center gap-1 rounded-full bg-slate-100 p-1 text-xs">
           {[
             { key: 'upload', full: '이미지 업로드', short: '업로드' },
-            { key: 'blog', full: '썸네일 이미지', short: '블로그' },
+            { key: 'blog', full: '썸네일 이미지', short: '썸네일' },
             { key: 'pixabay', full: '무료 이미지 (Pixabay)', short: 'Pixabay' },
             { key: 'unsplash', full: '무료 이미지 (Unsplash)', short: 'Unsplash' },
           ].map((tab) => {
