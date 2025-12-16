@@ -1,4 +1,6 @@
 import { apiClientServer } from './apiClientServer';
+import type { FollowCheckResponse } from '@/src/types/follow';
+
 type MeResponse = {
   id: number;
   username: string;
@@ -15,7 +17,8 @@ export async function fetchBlogDetailServer(id: number): Promise<BlogDetailDto> 
 }
 
 export async function fetchIsFollowingServer(targetUserId: number): Promise<boolean> {
-  return apiClientServer<boolean>(`/api/v1/follow/is-following/${targetUserId}`, {
+  const data = await apiClientServer<FollowCheckResponse>(`/api/v1/follow/is-following/${targetUserId}`, {
     method: 'GET',
   });
+  return data.isFollowing;
 }
