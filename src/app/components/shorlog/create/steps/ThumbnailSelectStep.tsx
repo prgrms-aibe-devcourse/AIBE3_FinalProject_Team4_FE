@@ -41,7 +41,7 @@ export default function ThumbnailSelectStep({
         <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white shadow-sm">
           <span className="text-xl sm:text-2xl">🖼️</span>
         </div>
-        <p className="mt-3 text-xs sm:text-sm font-medium text-slate-900">섬네일로 사용할 사진을 선택하세요</p>
+        <p className="mt-3 text-xs sm:text-sm font-medium text-slate-900">썸네일로 사용할 사진을 선택하세요</p>
         <p className="mt-1 text-[11px] sm:text-xs text-slate-500">
           JPG / PNG / WEBP 형식의 이미지를 1~10장까지 업로드할 수 있어요.
         </p>

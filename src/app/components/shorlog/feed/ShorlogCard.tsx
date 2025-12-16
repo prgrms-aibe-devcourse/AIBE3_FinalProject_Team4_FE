@@ -36,7 +36,6 @@ export default function ShorlogCard({ item, index, allItems }: ShorlogCardProps)
       className="group flex flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200 transition-all duration-200 hover:shadow-md hover:ring-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
       aria-label={`${item.nickname}의 숏로그: ${item.firstLine}`}
     >
-      {/* 섬네일 영역 - 1:1 정사각형 */}
       <div className="relative w-full bg-slate-100">
         <div className="aspect-square w-full overflow-hidden">
           <img

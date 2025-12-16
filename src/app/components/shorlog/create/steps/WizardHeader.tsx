@@ -7,7 +7,7 @@ interface WizardHeaderProps {
 
 export default function WizardHeader({ step, title }: WizardHeaderProps) {
   const steps = [
-    { id: 1, label: '섬네일' },
+    { id: 1, label: '썸네일' },
     { id: 2, label: '편집' },
     { id: 3, label: '작성' },
   ];
@@ -24,7 +24,7 @@ export default function WizardHeader({ step, title }: WizardHeaderProps) {
             <div className="flex items-center gap-1.5 rounded-md bg-red-50 border border-red-200 px-2.5 py-1">
               <span className="text-red-500 text-xs">⚠️</span>
               <span className="text-[11px] text-red-600 font-medium">
-                섬네일은 첫 번째 이미지로 자동 선택됩니다!
+                썸네일은 첫 번째 이미지로 자동 선택됩니다!
               </span>
             </div>
           )}

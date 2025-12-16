@@ -68,7 +68,7 @@ export default function ImageEditStep({
           onClick={onPrev}
           className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2979FF]"
         >
-          섬네일 선택으로 돌아가기
+          썸네일 선택으로 돌아가기
         </button>
       </div>
     );

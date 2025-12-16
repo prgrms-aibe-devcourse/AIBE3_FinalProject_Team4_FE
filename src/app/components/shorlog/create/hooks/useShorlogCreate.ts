@@ -32,7 +32,7 @@ export function useShorlogCreate() {
   const [isLoadingBlogs, setIsLoadingBlogs] = useState(false);
 
   const currentStepTitle = useMemo(() => {
-    if (step === 1) return '섬네일 선택';
+    if (step === 1) return '썸네일 선택';
     if (step === 2) return '사진 편집';
     return '숏로그 작성';
   }, [step]);
