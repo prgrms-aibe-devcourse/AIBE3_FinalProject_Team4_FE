@@ -42,7 +42,7 @@ export default function BlogImageTab({
   if (images.length === 0) {
     return (
       <div className="flex items-center justify-center h-[141px]">
-        <p className="text-xs text-slate-500">섬네일로 업로드된 이미지가 아직 없습니다</p>
+        <p className="text-xs text-slate-500">썸네일로 업로드된 이미지가 아직 없습니다</p>
       </div>
     );
   }
@@ -57,7 +57,7 @@ export default function BlogImageTab({
 
   return (
     <div>
-      <p className="text-xs text-slate-600 mb-4">블로그에 사용된 이미지 {images.length}개</p>
+      <p className="text-xs text-slate-600 mb-4">업로드된 이미지 {images.length}개</p>
 
       {/* 이미지 목록 */}
       <div ref={scrollContainerRef} className="max-h-[400px] overflow-y-auto pr-2">
