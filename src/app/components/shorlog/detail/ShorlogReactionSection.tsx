@@ -1,6 +1,6 @@
 'use client';
 
-import { MessageCircle, Send } from 'lucide-react';
+import { MessageCircle, Share2 } from 'lucide-react';
 import { useState } from 'react';
 
 import { useRequireAuth } from '@/src/hooks/userRequireAuth';
@@ -56,7 +56,7 @@ export default function ShorlogReactionSection({
 
   return (
     <>
-      <div className="flex items-center justify-between text-[13px] text-slate-700">
+      <div className="flex items-center justify-between text-[13px] text-slate-500">
         <div className="flex items-center gap-4">
           {/* 좋아요 */}
           <LikeButton
@@ -67,14 +67,8 @@ export default function ShorlogReactionSection({
             showCount={true}
           />
 
-          {/* 댓글 */}
-          <div className="flex items-center gap-1.5 text-slate-700">
-            <MessageCircle className="h-5 w-5" />
-            <span className="text-[13px] font-medium">{commentCount}</span>
-          </div>
-
           {/* 북마크 */}
-          <div className="flex items-center gap-1.5 text-slate-700">
+          <div className="flex items-center gap-1.5 text-slate-500">
             <BookmarkButton
               shorlogId={shorlogId}
               authorId={authorId}
@@ -83,6 +77,11 @@ export default function ShorlogReactionSection({
               variant="small"
             />
             <span className="text-[13px] font-medium">{currentBookmarkCount}</span>
+          </div>
+          {/* 댓글 */}
+          <div className="flex items-center gap-1.5 text-slate-500">
+            <MessageCircle className="h-4 w-4" />
+            <span className="text-[13px] font-medium">{commentCount}</span>
           </div>
         </div>
 
@@ -93,7 +92,7 @@ export default function ShorlogReactionSection({
           aria-label="공유"
           className="flex items-center text-sky-500 transition hover:text-sky-600"
         >
-          <Send className="h-5 w-5" />
+          <Share2 className="h-5 w-5" />
         </button>
       </div>
 
